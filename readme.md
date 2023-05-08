@@ -3,7 +3,9 @@
 ## todo
 
 - [ ] [maths for cs](https://www.youtube.com/playlist?list=PLB7540DEDD482705B)
-- [ ] [programming](https://www.youtube.com/playlist?list=PLDSlqjcPpoL64CJdF0Qee5oWqGS6we_Yu)
+- [ ] [sicp](https://www.youtube.com/playlist?list=PLE18841CABEA24090)
+- [ ] [computational thinking](https://www.youtube.com/playlist?list=PLUl4u3cNGP619EG1wp0kT-7rDE_Az5TNd)
+- [ ] [computation structures](https://www.youtube.com/playlist?list=PLXQjwcK5b0J4bUrLkGaNRS22hUrfUjMJd)
 - [ ] [computer architecture](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi97Ya5DEUpMpO2bbAoaG7c6)
 - [ ] [algorithms & data structures](https://www.youtube.com/playlist?list=PLBF3763AF2E1C572F)
 - [ ] [operating systems](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
