@@ -21,12 +21,13 @@
 - [homepage](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
 - [lectures](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l)
 - [ARM assembly](http://www.cburch.com/books/arm/)
+- [hamming code](https://harryli0088.github.io/hamming-code/)
 
 ## introduction
 
 **algorithm:** step-by-step procedure that is guaranteed to terminate where each step is precisely stated and can be carried out by a computer
 
-**instruction set arcitecture (ISA):** interface/contract between software & hardware
+**instruction set arhcitecture (ISA):** interface/contract between software & hardware
 
 **microarchitecture:** an implementation of ISA
 
@@ -48,7 +49,7 @@
 
 **example: DRAM refresh:** a DRAM cell consists of a capacitor & an access transistor, data stored in terms of charge status of capacitor but capacitors leak charge over time, memory controller needs to refresh each row periodically to restore charge, increases energy consumption and DRAM bank unavailable while refreshing, due to manufacturing process variation not all DRAM cells have same retention time (only small % have low retention time), check bins to determine refresh rate of a row once profiling (retention time of all DRAM rows) is done
  
-![](media/computer_architecture/dram_cell.png)
+![](media/computer_architecture/DRAM_cell.png)
 
 **bloom filter:** memory efficient probabilistic data structure that compactly represents set membership, test set membership using hash functions (unique identifier generator), never false negative and never overflows (but `num elements ∝ false positives rate`)
 
