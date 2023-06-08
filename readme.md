@@ -2,6 +2,8 @@
 
 - [maths](./maths.md)
 - [computer architecture](./computer_architecture.md)
+- [computer vision](./computer_vision.md)
+- [operating systems](./operating_systems.md)
 
 ## basics
 

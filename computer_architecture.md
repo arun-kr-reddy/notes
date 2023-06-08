@@ -47,7 +47,7 @@
 ![](media/computer_architecture/memory_performance_attacks.png)
 
 **example: DRAM refresh:** a DRAM cell consists of a capacitor & an access transistor, data stored in terms of charge status of capacitor but capacitors leak charge over time, memory controller needs to refresh each row periodically to restore charge, increases energy consumption and DRAM bank unavailable while refreshing, due to manufacturing process variation not all DRAM cells have same retention time (only small % have low retention time), check bins to determine refresh rate of a row once profiling (retention time of all DRAM rows) is done
-
+ 
 ![](media/computer_architecture/dram_cell.png)
 
 **bloom filter:** memory efficient probabilistic data structure that compactly represents set membership, test set membership using hash functions (unique identifier generator), never false negative and never overflows (but `num elements ∝ false positives rate`)
