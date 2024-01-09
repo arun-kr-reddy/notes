@@ -11,7 +11,6 @@
 - [file \& string stream](#file--string-stream)
 - [memory](#memory)
 - [pointers](#pointers)
-- [templates](#templates)
 - [error handling](#error-handling)
 - [misc](#misc)
   - [cpp core guidelines](#cpp-core-guidelines)
@@ -19,9 +18,9 @@
 
 ## links  <!-- omit from toc -->
 - [UBonn, 2018](https://www.youtube.com/playlist?list=PLgnQpQtFTOGR50iIOtO36nK6aNPtVq98C)
+- [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
 
 ## todo  <!-- omit from toc -->
-- [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
 - [cpp core guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#main)
 - [lost art of struct packing](http://www.catb.org/esr/structure-packing/)
 - [memory order](https://en.cppreference.com/w/c/atomic/memory_order)
@@ -815,8 +814,56 @@ three types: public (public & protected same as base), protected (both protected
       return 0;
   }
   ```
-- **spiral rule:**
-  ```cpp
+- **spiral/right-left rule:**
+  ```
+  read these symbols as
+  *          pointer of        - always on left side
+  []         array of          - always on right side
+  ()         pointer of        - always on right side
+
+  step1: find the identifier, this is the starting point
+  step2: look at symbols on the right of identifier, continue until you run out of symbols or hit `)`
+  step3: look at the symbols to the left of identifier, continue until you run out of symbols ot hit `(`
+  step4: repeat step 2 & 3 still complete declaration is formed
+  ```
+    - ```cpp
+      int *p[];
+
+      int *p[];         // step1
+          ^             // p is
+
+      int *p[];         // step2, cant move right
+            ^^          // p is array of
+
+      int *p[];         // step3
+          ^             // p is array of pointer to
+
+      int *p[];         // step3
+      ^^^               // p is array of pointer to int
+      ```
+    - ```cpp
+      int *(*func())();
+
+      int *(*func())();   // step1
+             ^^^^         // func is
+
+      int *(*func())();   // step2, cant move right
+                 ^^       // func is function returning
+
+      int *(*func())();   // step3, cant move left
+            ^             // func is function returning pointer to
+
+      int *(*func())();   // step2, cant move right
+                    ^^    // func is function returning pointer to function returning
+
+      int *(*func())();   // step3
+          ^               // func is function returning pointer to function returning pointer to
+
+      int *(*func())();   // step3
+      ^^^                 // func is function returning pointer to function returning pointer to int
+      ```
+      [continue from second example](https://cseweb.ucsd.edu/~gbournou/CSE131/rt_lt.rule.html)
+- ```cpp
   int a;              // int
   int *a;             // pointer to int
   int **a;            // pointer to pointer to int

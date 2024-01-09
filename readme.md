@@ -17,7 +17,7 @@ cmake .. -G "Visual Studio 17 2022"
 - [ ] [programming](./notes/programming.md)
 - [ ] [computer architecture](./notes/computer_architecture.md)
 - [ ] [operating systems](./notes/operating_system.md)
-- [ ] [C++](./notes/cpp.md)
+- [x] [C++](./notes/cplusplus.md)
 
 ### teachyourselfcs
 - [ ] [math](https://www.youtube.com/playlist?list=PLB7540DEDD482705B)
