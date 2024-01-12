@@ -11,6 +11,7 @@
 - [file \& string stream](#file--string-stream)
 - [memory](#memory)
 - [pointers](#pointers)
+- [templates](#templates)
 - [error handling](#error-handling)
 - [misc](#misc)
   - [cpp core guidelines](#cpp-core-guidelines)
@@ -816,10 +817,10 @@ three types: public (public & protected same as base), protected (both protected
   ```
 - **spiral/right-left rule:**
   ```
-  read these symbols as
-  *          pointer of        - always on left side
-  []         array of          - always on right side
-  ()         pointer of        - always on right side
+  read these symbols as:
+  *          pointer of           - always on left side
+  []         array of             - always on right side
+  ()         function returning   - always on right side
 
   step1: find the identifier, this is the starting point
   step2: look at symbols on the right of identifier, continue until you run out of symbols or hit `)`
@@ -862,17 +863,38 @@ three types: public (public & protected same as base), protected (both protected
       int *(*func())();   // step3
       ^^^                 // func is function returning pointer to function returning pointer to int
       ```
-      [continue from second example](https://cseweb.ucsd.edu/~gbournou/CSE131/rt_lt.rule.html)
-- ```cpp
-  int a;              // int
-  int *a;             // pointer to int
-  int **a;            // pointer to pointer to int
-  int a[10];          // array of 10 ints
-  int *a[10];         // array of 10 pointers to ints
-  int (*a)[10];       // pointer to array of 10 ints
-  int (*a)(int);      // pointer to function a that takes int argument & returns int
-  int (*a[10])(int);  // array of 10 pointers to functions that take int argument & return int
-  ```
+    - ```cpp
+      int (*(*fun_one)(char*,double))[9][20];
+      int (*(*fun_one)())[][];  // without arguments or array sizes
+      // fun_one is pointer to function expecting (char*, double) and 
+      // returning pointer to 2D array (size 9X20) of int
+      ```
+  - ```cpp
+    int i;           // an int
+    int *p;          // an int pointer (ptr to an int)
+    int a[];         // an array of ints
+    int f();         // a function returning an int
+    int **pp;        // a pointer to an int pointer (ptr to a ptr to an int)
+    int (*pa)[];     // a pointer to an array of ints
+    int (*pf)();     // a pointer to a function returning an int
+    int *ap[];       // an array of int pointers (array of ptrs to ints)
+    int aa[][];      // an array of arrays of ints
+    int *fp();       // a function returning an int pointer
+    int ***ppp;      // a pointer to a pointer to an int pointer
+    int (**ppa)[];   // a pointer to a pointer to an array of ints
+    int (**ppf)();   // a pointer to a pointer to a function returning an int
+    int *(*pap)[];   // a pointer to an array of int pointers
+    int (*paa)[][];  // a pointer to an array of arrays of ints
+    int *(*pfp)();   // a pointer to a function returning an int pointer
+    int **app[];     // an array of pointers to int pointers
+    int (*apa[])[];  // an array of pointers to arrays of ints
+    int (*apf[])();  // an array of pointers to functions returning an int
+    int *aap[][];    // an array of arrays of int pointers
+    int aaa[][][];   // an array of arrays of arrays of int
+    int **fpp();     // a function returning a pointer to an int pointer
+    int (*fpa())[];  // a function returning a pointer to an array of ints
+    int (*fpf())();  // a function returning a pointer to a function returning an int
+    ```
 
 ## templates
 - **generic programming:** seperate algorithms from data type
