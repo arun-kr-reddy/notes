@@ -7,6 +7,9 @@
   - [scheduling policies](#scheduling-policies)
   - [inter-process communication](#inter-process-communication)
 - [memory](#memory)
+  - [virtual memory](#virtual-memory)
+- [address translation](#address-translation)
+- [paging](#paging)
 - [concurrency](#concurrency)
 - [I/O and filesystems](#io-and-filesystems)
 
@@ -50,7 +53,7 @@
   - opens basic files (stdin, stdout, stderr)
   - initialize CPU registers (PC points to first instruction)
 - **process states:**  
-![](./media/operating_systems/process_states.png)
+  ![](./media/operating_systems/process_states.png)
   - **running:** currently executing on CPU
   - **ready:** waiting to be scheduled
   - **blocked:** suspended, not ready to run, waiting for some event like read from disk (disk will issue an interrupt when data is ready)
@@ -184,46 +187,44 @@ OS maintains a data structure (made up of PCBs) of all active processes
   - **message queue:** mailbox abstraction, process can open a mailbox at a specified location, processes can send/receive messages from mailbox, OS buffers messages between send & receive
 - **blocking vs non-blocking communication:** some IPC actions like reading from empty socket/pipe/message queue or writing to full socket/pipe/message queue can block, system calls to read/write have versions that return error code instead of blocking
 
-[continue](https://www.youtube.com/watch?v=2Xj2V8kYNWM&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=7)
-
 ## memory
 
-![](./media/operating_systems/actual_memory.png)
+### virtual memory
+- earlier memory had only code of one running process (& OS code), but now multiple active processes timeshare CPU so memory of many processes must be in memory (non-contiguous too)  
+  ![](./media/operating_systems/actual_memory.png)
+- **virtual address space:** every process assumes it has access to large contiguous space of memory from address 0 to MAX, to hide complexity of multiple processes non-contiguously sharing memory, contains program code, heap & stack (heap & stack grow runtime), setup during process creation  
+  ![](./media/operating_systems/virtual_memory.png)
+- **address translation:** CPU issues load/store to virtual addresses (VA) but memory hardware accesses physical addresses (PA), OS allocates memory and tracks location of processes, translation (VA to PA) done by memory management unit (MMU) hardware using necessary information from OS
+- **paging:** OS divides virtual address space into fixed size pages and physical memory into frames, to allocate memory a page is mapped to free physical frame, page table stores mapping from virtual page number to physical frame number for a process
+- **memory virtualization goals:**
+  - transparency: user programs should not be aware of the messy details
+  - efficiency: minimize overhead & wastage in terms of memory space & access time
+  - isolation & protection: user process should not be able to access anything outside its address space
+- **memory allocation system calls:**
+  - `malloc()` implemented by libc, to grow the heap `brk()`/`sbrk()` system calls used
+  - program can use `mmap()` to allocate page sized memory, gets anonymous page from OS
+- **OS address space:** OS is not a seperate process with its own address space, instead OS code is part of the address space of every process, process sees OS as part of its code, page table maps OS addresses to OS code
 
-**virtual address space:** every process assumes it has access to large contiguous space of memory from address 0 to MAX, to hide complexity of multiple processes non-contiguously sharing memory, contains program code, heap & stack (heap & stack grow runtime), setup during process creation
+## address translation
+- **address translation in simplified OS:** places entire memory image in one chunk, OS tells MMU the base (starting address) & bound (total size of process) values (needs privileged mode), MMU calculates PA from VA, MMU also checks if address is beyond bound, generates faults and traps to OS if access illegal (VA is out of bound), OS updates translation information upon context switch
+  ```
+  PA = VA + base
+  assert (PA < VA + base + bound)
+  ```
+- **role of OS in translation:**
+  - maintains free list of memeory
+  - allocated space to process during creation & cleans up when done
+  - maintains information of where space is allocated to each process (in PCB)
+  - sets address translation information in hardware & updates this on context switch
+  - handles traps due to illegal memory access
+- **segmentation:** generalized base & bounds, each segment of memory image placed seperately, multiple base & bound values stored in MMU, good for sparse address space, but variable sized allocation leads to external framentation due to small holes in memory left between segments  
+  ![](./media/operating_systems/segmentation.png)
+- **internal fragmentation:** unused part of memory block assigned to a process cannot be used by other processes, can be solved using dynamic partitioning to allocate space to process  
+**external fragmentation:** total memory space is enough to satisfy a request or to reside a process in it but it is not contiguous so it cannot be used  
+  ![](./media/operating_systems/fragmentation.png)
 
-![](./media/operating_systems/virtual_memory.png)
-
-**address translation:** CPU issues load/store to virtual addresses (VA) but memory hardware accesses physical addresses (PA), OS allocates memory and tracks location of processes, translation (VA to PA) done by memory management unit (MMU) with necessary information from OS
-
-**paging:** OS divides virtual address space into fixed size pages and physical memory into frames, to allocate memory a page is mapped to free physical frame, page table stores mapping from virtual page number to physical frame number for a process
-
-**memory virtualization goals:**
-1. **transparency:** user should not be aware of messy details
-2. **efficiency:** minimize overhead & wastage in terms of memory space & access time
-3. **isolation & protection:** user should not be able to access anything outside its address space
-
-**memory allocation system calls:**
-1. `malloc()` implemented by libc using `brk()`/`sbrk()` system call
-2. program can use `mmap()` to allocate page sized memory, gets anonymous page from OS
-
-**OS address space:** OS is not a seperate process with its own address space, instead OS code is part of the address space of every process, page table maps OS addresses to OS code
-
-**address translation in simplified OS:** places entire memory image in one chunk, OS tells MMU the base (starting address) & bound (total size of process) values (needs privileged mode), MMU calculates PA from VA, MMU also checks if address is beyond bound, generates faults and traps to OS if access illegal (VA out of bound), OS updates translation information upon context switch
-```
-PA = VA + base
-assert (PA < VA + base + bound)
-```
-
-**segmentation:** generalized base & bounds, each segment of memory image placed seperately, multiple base & bound values stored in MMU, good for sparse address space, but variable sized allocation leads to external framentation due to small holes in memory left between segments
-
-![](./media/operating_systems/segmentation.png)
-
-**internal fragmentation:** unused part of memory block assigned to a process cannot be used by other processes, can be solved using dynamic partitioning to allocate space to process
-
-**external fragmentation:** total memory space is enough to satisfy a request or to reside a process in it but it is not contiguous so it cannot be used
-
-![](./media/operating_systems/fragmentation.png)
+## paging
+[continue](https://www.youtube.com/watch?v=PTh2kL8ENzU&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=9)
 
 **paging:** allocate memory in fixed size chunks (pages), avoids external fragmentation but has internal fragmentation
 
