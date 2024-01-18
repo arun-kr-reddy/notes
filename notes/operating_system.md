@@ -8,8 +8,9 @@
   - [inter-process communication](#inter-process-communication)
 - [memory](#memory)
   - [virtual memory](#virtual-memory)
-- [address translation](#address-translation)
-- [paging](#paging)
+  - [address translation](#address-translation)
+  - [paging](#paging)
+  - [demand paging](#demand-paging)
 - [concurrency](#concurrency)
 - [I/O and filesystems](#io-and-filesystems)
 
@@ -205,7 +206,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
   - program can use `mmap()` to allocate page sized memory, gets anonymous page from OS
 - **OS address space:** OS is not a seperate process with its own address space, instead OS code is part of the address space of every process, process sees OS as part of its code, page table maps OS addresses to OS code
 
-## address translation
+### address translation
 - **address translation in simplified OS:** places entire memory image in one chunk, OS tells MMU the base (starting address) & bound (total size of process) values (needs privileged mode), MMU calculates PA from VA, MMU also checks if address is beyond bound, generates faults and traps to OS if access illegal (VA is out of bound), OS updates translation information upon context switch
   ```
   PA = VA + base
@@ -213,7 +214,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
   ```
 - **role of OS in translation:**
   - maintains free list of memeory
-  - allocated space to process during creation & cleans up when done
+  - allocate space to process during creation & clean up when done
   - maintains information of where space is allocated to each process (in PCB)
   - sets address translation information in hardware & updates this on context switch
   - handles traps due to illegal memory access
@@ -223,34 +224,31 @@ OS maintains a data structure (made up of PCBs) of all active processes
 **external fragmentation:** total memory space is enough to satisfy a request or to reside a process in it but it is not contiguous so it cannot be used  
   ![](./media/operating_systems/fragmentation.png)
 
-## paging
-[continue](https://www.youtube.com/watch?v=PTh2kL8ENzU&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=9)
+### paging
+- **paging:** allocate memory in fixed size chunks called pages, avoids external fragmentation, but since minimum allocation is page-sized it has internal fragmentation due to partially filled pages  
+64B address space in 128B physical memory with 16B page size  
+  ![](./media/operating_systems/paging.png)
+- **page table:** per process data structure to help VA-PA translation, array stores mappings from virtual page number (VPN) to physical frame number (PFN), part of OS memory (in PCB), MMU has access to page table and uses it for address translation, OS updates page table upon context switch
+- **page table entry (PTE):** simplest page table is linear page table, array of page table entries (one per virtual page), VPN is index in the array, each PTE contains PFN & few other bits like 
+  - **valid bit:** is this page used by process?
+  - **protection bits:** read/write permissions
+  - **present bit:** is this page in memory?
+  - **dirty bit:** has this page been modified?
+  - **accessed bit:** has this page been recently accessed?
+- **address translation in hardware:** most significant bits of VA give the VPN, page table maps VPN to PFN, PA is obtained from PFN and offset within a page, MMU stores physical address of start of page table then walks the page table to get relevant PTE, MMU just translates VPN to PFN and add the same offset  
+  ![](./media/operating_systems/address_translation.png)
+- **paging overhead:** when CPU requests data/code at a virtual address, MMU must translate VA to PA (by reading page table entry) adding overhead to memory access
+- **translation lookaside buffer (TLB):** to reduce overhead a cache of recent VA-PA mappings is maintained, for address translation MMU first looks up TLB, if TLB miss then MMU performs additional memory accesses to walk page table, TLB misses are expensive due to multiple memory accesses (locality of reference (defined below) improves hit rate), TLB entries may become invalid on context switch and change of page tables
+- **page tables in memory:** with 32 bit VA, 4KB pages we have `2^32/2^12 = 2^20` entries, if PTE is 4 bytes then each page table is 4MB, one page table per process, to reduce size of page tables:
+  - larger pages, so fewer entries, but leads to fragmentation
+  - page table is itself split into smaller chunks
+- **multilevel page tables:** page table is spread over many pages, page directory (outer page table) tracks the PFNs of the page table pages, depending on how large the page table is we may need more than 2 levels also (64bit arch may need 7 levels), in case of TLB miss multiple accesses to memory required to access all levels of page tables so very expensive  
+  ![](./media/operating_systems/linear_vs_multilevel_pagetable.png)
+    - **address translation:** first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs  
+      ![](./media/operating_systems/multilevel_pagetable_address.png)
 
-**paging:** allocate memory in fixed size chunks (pages), avoids external fragmentation but has internal fragmentation
-
-**page table:** per process data structure to help VA-PA translation, array stores mappings from virtual page number (VPN) to physical frame number (PFN), part of OS memory (in PCB), MMU has access to page table and uses it for address translation, OS updates page table upon context switch
-
-**page table entry (PTE):** simplest page table is linear page table, page table is array of page table entries (one per virtual page), VPN is index in the array, each PTE contains PFN & few other bits like 
-- **valid bit:** is this page used by process?
-- **protection bits:** read/write permissions
-- **present bit:** is this page in memory?
-- **dirty bit:** has this page been modified?
-- **accessed bit:** has this page been recently accessed?
-
-**address translation in hardware:** most significant bits of VA give the VPN, page table maps VPN to PFN, PA is obtained from PFN and offset within a page, MMU stores physical address of start of page table then walks the page table to get relevant PTE
-
-![](./media/operating_systems/address_translation.png)
-
-**translation lookaside buffer (TLB):** cache of VA-PA mappings, MMU first looks up TLB, if TLB miss then MMU performs additional memory accesses to walk page table, TLB misses are expensive (multiple memory accesses), TLB entries may become invalid on context switch and change of page tables
-
-**page tables in memory:** with 32 bit VA × 4KB pages × 4 bytes PTE each page table is 4MB, one page table per process, so page table is itself split into smaller chunks
-
-**multilevel page tables:** page table is spread over many pages, an outer page table (page directory) tracks the PFNs of the page table pages, depending on how large the page table is we may need more than 2 levels also, for address translation first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs, in case of TLB miss multiple accesses to memory required to access all levels of page tables
-
-![](./media/operating_systems/linear_vs_multilevel_pagetable.png)
-
-![](./media/operating_systems/multilevel_pagetable_address.png)
-
+[continue](https://youtu.be/r9NwqtqS2Ac?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
+### demand paging
 **demand paging:** main memory not always enough to store all the pages of all active processes, OS uses a part of disk (swap space) to store pages that are not in active use
 
 ![](./media/operating_systems/swap_space.png)
