@@ -18,7 +18,7 @@
 - [IITB 2018](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
 
 ## todo  <!-- omit from toc -->
-
+- [belady's anomaly](https://en.wikipedia.org/wiki/B%C3%A9l%C3%A1dy%27s_anomaly#:~:text=In%20computer%20storage%2C%20B%C3%A9l%C3%A1dy's%20anomaly,(FIFO)%20page%20replacement%20algorithm.)
 ## introduction
 - **operating system:** is a middleware that sits between user programs & system hardware and manage hardware for the user programs
   - **manage CPU:** provide process abstraction  
@@ -232,7 +232,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
 - **page table entry (PTE):** simplest page table is linear page table, array of page table entries (one per virtual page), VPN is index in the array, each PTE contains PFN & few other bits like 
   - **valid bit:** is this page used by process?
   - **protection bits:** read/write permissions
-  - **present bit:** is this page in memory?
+  - **present bit:** is this page in main memory?
   - **dirty bit:** has this page been modified?
   - **accessed bit:** has this page been recently accessed?
 - **address translation in hardware:** most significant bits of VA give the VPN, page table maps VPN to PFN, PA is obtained from PFN and offset within a page, MMU stores physical address of start of page table then walks the page table to get relevant PTE, MMU just translates VPN to PFN and add the same offset  
@@ -247,57 +247,52 @@ OS maintains a data structure (made up of PCBs) of all active processes
     - **address translation:** first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs  
       ![](./media/operating_systems/multilevel_pagetable_address.png)
 
-[continue](https://youtu.be/r9NwqtqS2Ac?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
+
 ### demand paging
-**demand paging:** main memory not always enough to store all the pages of all active processes, OS uses a part of disk (swap space) to store pages that are not in active use
+- **demand paging:** main memory not always enough to store all the pages of all active processes, OS uses a part of disk (swap space) to store pages that are not in active use  
+  ![](./media/operating_systems/swap_space.png)
+- **page fault:** if page not in main memory (present bit unset) during VA-PA translation MMU raises trap to OS, MMU cannot access the disk
+- **page fault handling:** moves CPU to kernel mode, OS fetches disk address of page and issues read to disk, disk fetch is slow so OS context switches to another process, once disk read completes OS updates page table of process and marks process as ready, when process scheduled again OS restarts the instruction that caused page fault
+- **memory access process:**
+  - CPU issues load to a VA, checks CPU cache first, goes to main memory in case of cache miss
+  - MMU looks up TLB for VA, if TLB hit obtains PA, fetches memory location & returns to CPU (via CPU caches)
+  - if TLB miss MMU accesses memory, walks page table & obtains PTE
+    - if present bit set in PTE, accesses memory
+    - if not present but valid, raises page fault, OS handles page fault & restarts the CPU load instruction
+    - if invalid page access, trap to OS for illegal access
+- **page replacement policies:** when servicing page fault if OS finds no free page then OS must swap out an existing page and then swap in faulting page, to prevent this much work OS proactively swap out pages to keep list of free pages handy
+  - **optimal:** replace page not needed for longest time in future, just theoretical, cannot calculate when page is needed (look into future)
+  - **first in first out (FIFO):** replace page that was brought into memory earliest, but that may be a popular page
+    - **belady's anomaly:** increasing number of page frames results in increase in number of page faults
+  - **least recently/frequently used (LRU/LFU):** replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active and inactive
+- **cold (compulsory) miss:** miss when the first access to a page happens
+- **locality of references:** tendency of computer progam to access instructions whose address are near one another
+  - **temporal locality:** same location will be referenced again in the near future
+  - **spatial locality:** nearby memory locations will be referenced in the near future
 
-![](./media/operating_systems/swap_space.png)
+# memory allocation algorithms
+- **variable sized allocation**: given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s & kernel for its internal data structures
+  - **headers:** every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
+    ![](./media/operating_systems/headers.png)
+  - **free list:** free space managed as a linked list, pointer to the next free chunk is embedded within current free chunk, library/kernel tracks the head of the list (next NULL at tail), allocation happens from the head, must split & coalesce free chunks to satisfy variable sized requests (external fragmentation)  
+    ![](./media/operating_systems/free_list.png)
+- **free list external fragmentation:**
+  - **splitting:** on an allocation request allocator will find a free chunk of memory that can satisfy the request and split it into two, first chunk returned to called & second chunk will remain on the free list
+  - **coalescing:** on a free request allocator will check if free chunk of memory being returned sits next to another free chunk, if yes then merge them into a single larger free chunk
+  - **example: non-coalesced free list:** suppose three allocations of 100 bytes are deallocated in the order: last, first, middle  
+    ![](./media/operating_systems/non_coalesced_free_list.png)
+- **buddy allocation**: allocate memory in size of power-of-2, used by kernel for easy coalescing, two free adjacent/buddy chunks can be merged to form a bigger power-of-2 chunk  
+  ![](./media/operating_systems/buddy_allocation.png)
+- **variable size allocation strategies:**
+  - **first fit:** allocate first free chunk that is sufficient
+  - **best fit:** allocate free chunk that is closest in size
+  - **worst fit:** allocate free chunk that is farthest in size, remaining chunk is bigger & more usable
+- **fixed size allocations:** memory allocation algorithms are much simpler with fixed size allocations, no issue with small holes left behind by fragmentation
+  - **page-sized allocations:** has free list of pages, pointer to next page stored in the free page itself
+  - **slab allocator:** used by kernel for small allocations like PCB, object caches for each type (size) of objects, within each cache only fixed size allocation, each cache made up of one or more pages/slabs with multiple fixed size objects  
+    ![](./media/operating_systems/slab_allocator.png)
 
-**page fault:** if page not in main memory (present bit) during VA-PA translation MMU raises trap to OS, MMU cannot access the disk
-
-**page fault handling:** moves CPU to kernel mode, OS fetches disk address of page and issues read to disk, disk fetch is slow so OS context switches to another process, once disk read completes OS updates page table of process and marks process as ready, when process scheduled again OS restarts the instruction that caused page fault
-
-**page replacement policies:** when servicing page fault if OS finds no free page then OS must swap out an existing page and then swap in faulting page, to prevent this much work OS proactively swap out pages to keep list of free pages handy
-1. **optimal:** replace page not needed for longest time in future, just theoretical, cannot calculate when page is needed
-2. **first in first out (FIFO):** replace page that was brought into memory earliest (maybe a popular page)
-3. **least recently/frequently used (LRU/LFU):** replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active and inactive
-
-**cold miss:** miss occur when the first access to a page happens
-
-**belady's anomaly:** increasing number of page frames results in increase in number of page faults
-
-**locality of references:** tendency of computer progam to access instructions whose address are near one another
-1. **temporal locality:** same location will be referenced again in the near future
-2. **spatial locality:** nearby memory locations will be referenced in the near future
-
-**variable sized allocation**: given a memory block how to allocate it to satisfy various memory allocation requests, used by C library for `malloc` & kernel for internal data structures
-
-**headers:** every allocated chunk has a header containing size of allocated region, may contain magic number for additional integrity checking
-
-**free list:** free space managed as a linked list, pointer to the next free chunk is embedded within current free chunk, library/kernel tracks the head of the list, allocation happens from the head, must split & coalesce free chunks to satisfy variable sized requests (external fragmentation)
-
-**splitting:** on a allocation request allocator will find a free chunk of memory that can satisfy the request and split it into two, first chunk returned to called & second chunk will remain on the free list
-
-**coalescing:** on a free request allocator will check if free chunk of memory being returned sits next to another free chunk, if yes then merge them into a single larger free chunk
-
-**example: non coalesced free list:** suppose three allocations of 100 bytes each happen, middle chunk freed first then third chunk then first chunk
-
-![](./media/operating_systems/non_coalesced_free_list.png)
-
-**buddy allocation**: allocate memory in size of power of 2, easy coalescing, two adjacent chunks can be merged to form a bigger power of 2 chunk
-
-![](./media/operating_systems/buddy_allocation.png)
-
-**variable size allocation strategies:**
-1. **first fit:** allocate first free chunk that is sufficient
-2. **best fit:** allocate free chunk that is closest in size
-3. **worst fit:** allocate free chunk that is farthest in size, remaining chunk is bigger & more usable
-
-**fixed size allocations:** memory allocation algorithms are much simpler with fixed size allocations
-1. **page-sized allocations:** kernel has free list of pages, pointer to next page stored in the free page itself
-2. **slab allocator:** used by kernel for small allocations like PCB, object caches for each type (size) of objects, within each cache only fixed size allocation, each cache made up of one or more slabs
-
-![](./media/operating_systems/slab_allocator.png)
+[CONTINUE](https://www.youtube.com/watch?v=SVHLonf5AGY&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=12)
 
 ## concurrency
 

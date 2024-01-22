@@ -1,16 +1,10 @@
 # readme
-- [code](#code)
 - [notes](#notes)
   - [teachyourselfcs](#teachyourselfcs)
   - [CV DSP engineer](#cv-dsp-engineer)
   - [mouli list](#mouli-list)
+- [code](#code)
 - [symbols](#symbols)
-
-## code
-```bash
-cd .\build\
-cmake .. -G "Visual Studio 17 2022"
-```
 
 ## notes
 
@@ -59,6 +53,12 @@ cmake .. -G "Visual Studio 17 2022"
 - 23 design patterns (gang of 4), HLD, LLD & TDD (unit test cases (gtest), functional & integration testing), dynamic programming
 - git commands, linux (proc virtual folder, cron job/tab), scripting (bash or python)
 - **maybe:** cmake, gdb, gprof, valgrind, thread sanitizers, BOOST & opencv lib
+
+## code
+```bash
+cd .\build\
+cmake .. -G "Visual Studio 17 2022"
+```
 
 ## symbols
 
