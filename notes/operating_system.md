@@ -270,7 +270,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
   - **temporal locality:** same location will be referenced again in the near future
   - **spatial locality:** nearby memory locations will be referenced in the near future
 
-# memory allocation algorithms
+### memory allocation algorithms
 - **variable sized allocation**: given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s & kernel for its internal data structures
   - **headers:** every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
     ![](./media/operating_systems/headers.png)
