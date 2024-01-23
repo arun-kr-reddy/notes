@@ -11,14 +11,17 @@
   - [address translation](#address-translation)
   - [paging](#paging)
   - [demand paging](#demand-paging)
+  - [memory allocation algorithms](#memory-allocation-algorithms)
 - [concurrency](#concurrency)
 - [I/O and filesystems](#io-and-filesystems)
 
 ## links  <!-- omit from toc -->
-- [IITB 2018](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
 
 ## todo  <!-- omit from toc -->
+- [operating system](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
 - [belady's anomaly](https://en.wikipedia.org/wiki/B%C3%A9l%C3%A1dy%27s_anomaly#:~:text=In%20computer%20storage%2C%20B%C3%A9l%C3%A1dy's%20anomaly,(FIFO)%20page%20replacement%20algorithm.)
+- multi-threading programming using pthread & cpp threads
+
 ## introduction
 - **operating system:** is a middleware that sits between user programs & system hardware and manage hardware for the user programs
   - **manage CPU:** provide process abstraction  
@@ -270,7 +273,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
   - **temporal locality:** same location will be referenced again in the near future
   - **spatial locality:** nearby memory locations will be referenced in the near future
 
-# memory allocation algorithms
+### memory allocation algorithms
 - **variable sized allocation**: given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s & kernel for its internal data structures
   - **headers:** every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
     ![](./media/operating_systems/headers.png)

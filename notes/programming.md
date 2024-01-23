@@ -4,15 +4,16 @@
 - [higher order procedures](#higher-order-procedures)
 
 ## links  <!-- omit from toc -->
-- [MIT 1986](https://www.youtube.com/playlist?list=PLE18841CABEA24090)
 - [scheme (lisp dialect) interpreter](https://inst.eecs.berkeley.edu/~cs61a/fa14/assets/interpreter/scheme.html)
-- [notes](https://mk12.github.io/sicp/lecture/2a.html)
 
 ## todo  <!-- omit from toc -->
+- [structure and interpretation of computer programs
+](https://www.youtube.com/playlist?list=PLE18841CABEA24090) ([notes](https://mk12.github.io/sicp/lecture/2a.html))
 - [iterative process for fibonacci & towers of hanoi](https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution)
+- dynamic programming
 
 ## introduction
-- > The key to understanding complicated things is to know what not to look at and what not to compute and what not to think
+- *The key to understanding complicated things is to know what not to look at and what not to compute and what not to think*
 - **declarative:** "what is true" knowledge, example: `y` is `sqrt(x)` if `y^2 = x`  
 **imperative:** "how to" knowledge, example: square-root by successive averaging of guess `g` & `x/g` until result doesn't change much
 - **techniques for controlling complexity:** make building very large programs possible
@@ -285,4 +286,4 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
   - to be returned as values of procedures
   - to be incorporating into data structures
 
-- [continue](https://www.youtube.com/watch?v=DrFkf-T-6Co&list=PLE18841CABEA24090&index=5)
+- [CONTINUE](https://www.youtube.com/watch?v=DrFkf-T-6Co&list=PLE18841CABEA24090&index=5)
