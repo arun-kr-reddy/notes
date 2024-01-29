@@ -11,6 +11,8 @@
 ](https://www.youtube.com/playlist?list=PLE18841CABEA24090) ([notes](https://mk12.github.io/sicp/lecture/2a.html))
 - [iterative process for fibonacci & towers of hanoi](https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution)
 - dynamic programming
+- [why is lisp different](https://www.paulgraham.com/diff.html)
+- [first BillG review](https://www.joelonsoftware.com/2006/06/16/my-first-billg-review/)
 
 ## introduction
 - *The key to understanding complicated things is to know what not to look at and what not to compute and what not to think*

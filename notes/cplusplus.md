@@ -31,6 +31,8 @@
 - STL
 - OOPs concepts
 - 23 design patterns (gang of 4)
+- [structure packing](http://www.catb.org/esr/structure-packing/)
+- [efficient c++](https://embeddedgurus.com/stack-overflow/category/efficient-cc/)
 
 ## introduction
 - **standard I/O channels:** one input (`stdin` as `cin`) & two output (`stdout` as `cout` & `stderr` as `cerr`)
