@@ -13,6 +13,8 @@
   - [demand paging](#demand-paging)
   - [memory allocation algorithms](#memory-allocation-algorithms)
 - [concurrency](#concurrency)
+  - [threads and concurrency](#threads-and-concurrency)
+  - [locks](#locks)
 - [I/O and filesystems](#io-and-filesystems)
 
 ## links  <!-- omit from toc -->
@@ -32,7 +34,7 @@
   each process thinks it has dedicated memory space (code, data, stack, heap) for itself  
   abstracts out details of actual location of memory, translates virtual addresses to actual physical addresses
   - **manage devices:** device driver (OS code) talks the language of hardware devices  
-  issues instruction to device (data fetch) & responds to device interrupts (key press)  
+  issues instruction to device (data fetch) and responds to device interrupts (key press)  
   persistent data organized as a filesystem on disk
 - **OS design goals:**
   - convenience, abstraction of hardware resources
@@ -74,7 +76,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
 
 ### process API
 - **application programming interface (API):** functions available to write user programs
-- **process API:** set of system calls provided by OS, some blocking system calls (disk read) can cause process to be blocked & descheduled
+- **process API:** set of system calls provided by OS, some blocking system calls (disk read) can cause process to be blocked and descheduled
 - **portable operating system interface (POSIX) API:** standard set of system calls that compliant OS must implement, ensures program portability, programming language libraries hide details of invoking system calls (`printf` calls `write` system call to write to screen)
   - **`fork()`:** create new child process  
   all processes created by forking from a parent, `init` process is ancestor of all processes
@@ -135,7 +137,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
   some instructions can execute only in kernel mode
   - kernel does not trust user stack, seperate kernel stack used in kernel mode
   - kernel does not trust user provided addresses to jump to  
-  interrupt descriptor table (IDT) has addresses of kernel functions to run for system calls & other events (set up at boot time)
+  interrupt descriptor table (IDT) has addresses of kernel functions to run for system calls and other events (set up at boot time)
 - **system call working:**
   - special trap instruction is run when system call is made (hidden from user by libc)  
   this will move CPU to higher privilege level, switch to kernel stack, save user context on kernel stack, look up IDT and jump to trap handler function in OS code
@@ -194,7 +196,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
 ## memory
 
 ### virtual memory
-- earlier memory had only code of one running process (& OS code), but now multiple active processes timeshare CPU so memory of many processes must be in memory (non-contiguous too)  
+- earlier memory had only code of one running process (and OS code), but now multiple active processes timeshare CPU so memory of many processes must be in memory (non-contiguous too)  
   ![](./media/operating_systems/actual_memory.png)
 - **virtual address space:** every process assumes it has access to large contiguous space of memory from address 0 to MAX, to hide complexity of multiple processes non-contiguously sharing memory, contains program code, heap & stack (heap & stack grow runtime), setup during process creation  
   ![](./media/operating_systems/virtual_memory.png)
@@ -217,9 +219,9 @@ OS maintains a data structure (made up of PCBs) of all active processes
   ```
 - **role of OS in translation:**
   - maintains free list of memeory
-  - allocate space to process during creation & clean up when done
+  - allocate space to process during creation and clean up when done
   - maintains information of where space is allocated to each process (in PCB)
-  - sets address translation information in hardware & updates this on context switch
+  - sets address translation information in hardware and updates this on context switch
   - handles traps due to illegal memory access
 - **segmentation:** generalized base & bounds, each segment of memory image placed seperately, multiple base & bound values stored in MMU, good for sparse address space, but variable sized allocation leads to external framentation due to small holes in memory left between segments  
   ![](./media/operating_systems/segmentation.png)
@@ -232,7 +234,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
 64B address space in 128B physical memory with 16B page size  
   ![](./media/operating_systems/paging.png)
 - **page table:** per process data structure to help VA-PA translation, array stores mappings from virtual page number (VPN) to physical frame number (PFN), part of OS memory (in PCB), MMU has access to page table and uses it for address translation, OS updates page table upon context switch
-- **page table entry (PTE):** simplest page table is linear page table, array of page table entries (one per virtual page), VPN is index in the array, each PTE contains PFN & few other bits like 
+- **page table entry (PTE):** simplest page table is linear page table, array of page table entries (one per virtual page), VPN is index in the array, each PTE contains PFN and few other bits like 
   - **valid bit:** is this page used by process?
   - **protection bits:** read/write permissions
   - **present bit:** is this page in main memory?
@@ -258,29 +260,29 @@ OS maintains a data structure (made up of PCBs) of all active processes
 - **page fault handling:** moves CPU to kernel mode, OS fetches disk address of page and issues read to disk, disk fetch is slow so OS context switches to another process, once disk read completes OS updates page table of process and marks process as ready, when process scheduled again OS restarts the instruction that caused page fault
 - **memory access process:**
   - CPU issues load to a VA, checks CPU cache first, goes to main memory in case of cache miss
-  - MMU looks up TLB for VA, if TLB hit obtains PA, fetches memory location & returns to CPU (via CPU caches)
-  - if TLB miss MMU accesses memory, walks page table & obtains PTE
+  - MMU looks up TLB for VA, if TLB hit obtains PA, fetches memory location and returns to CPU (via CPU caches)
+  - if TLB miss MMU accesses memory, walks page table and obtains PTE
     - if present bit set in PTE, accesses memory
-    - if not present but valid, raises page fault, OS handles page fault & restarts the CPU load instruction
+    - if not present but valid, raises page fault, OS handles page fault and restarts the CPU load instruction
     - if invalid page access, trap to OS for illegal access
 - **page replacement policies:** when servicing page fault if OS finds no free page then OS must swap out an existing page and then swap in faulting page, to prevent this much work OS proactively swap out pages to keep list of free pages handy
   - **optimal:** replace page not needed for longest time in future, just theoretical, cannot calculate when page is needed (look into future)
   - **first in first out (FIFO):** replace page that was brought into memory earliest, but that may be a popular page
     - **belady's anomaly:** increasing number of page frames results in increase in number of page faults
-  - **least recently/frequently used (LRU/LFU):** replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active and inactive
+  - **least recently/frequently used (LRU/LFU):** replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active/inactive
 - **cold (compulsory) miss:** miss when the first access to a page happens
 - **locality of references:** tendency of computer progam to access instructions whose address are near one another
   - **temporal locality:** same location will be referenced again in the near future
   - **spatial locality:** nearby memory locations will be referenced in the near future
 
 ### memory allocation algorithms
-- **variable sized allocation**: given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s & kernel for its internal data structures
+- **variable sized allocation**: given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s and kernel for its internal data structures
   - **headers:** every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
     ![](./media/operating_systems/headers.png)
   - **free list:** free space managed as a linked list, pointer to the next free chunk is embedded within current free chunk, library/kernel tracks the head of the list (next NULL at tail), allocation happens from the head, must split & coalesce free chunks to satisfy variable sized requests (external fragmentation)  
     ![](./media/operating_systems/free_list.png)
 - **free list external fragmentation:**
-  - **splitting:** on an allocation request allocator will find a free chunk of memory that can satisfy the request and split it into two, first chunk returned to called & second chunk will remain on the free list
+  - **splitting:** on an allocation request allocator will find a free chunk of memory that can satisfy the request and split it into two, first chunk returned to caller and second chunk will remain on the free list
   - **coalescing:** on a free request allocator will check if free chunk of memory being returned sits next to another free chunk, if yes then merge them into a single larger free chunk
   - **example: non-coalesced free list:** suppose three allocations of 100 bytes are deallocated in the order: last, first, middle  
     ![](./media/operating_systems/non_coalesced_free_list.png)
@@ -295,75 +297,76 @@ OS maintains a data structure (made up of PCBs) of all active processes
   - **slab allocator:** used by kernel for small allocations like PCB, object caches for each type (size) of objects, within each cache only fixed size allocation, each cache made up of one or more pages/slabs with multiple fixed size objects  
     ![](./media/operating_systems/slab_allocator.png)
 
-[CONTINUE](https://www.youtube.com/watch?v=SVHLonf5AGY&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=12)
-
 ## concurrency
 
-**thread:** is like another copy of a process that executes independently, threads share the same address space (code & heap), each thread has seperate PC and stack for independent function calls
-
-![](./media/operating_systems/single_vs_multi_threaded.png)
-
-**process vs thread:**
-- **parent forks a child:** P & C do not share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
-- **parent executes two threads:** T1 & T2 share parts of address space, global variables can be used for communication, smaller memory footprint
-
-**concurrency:** running multiple threads/processes at same time by interleaving their execution (even on single CPU core)
-
+### threads and concurrency
+- **thread:** is like another copy of a process that executes independently, excapt threads share the same address space (code & heap), each thread has seperate PC and stack for independent function calls
+  ![](./media/operating_systems/single_vs_multi_threaded.png)
+- **process vs thread:**
+  - **parent forks a child:** parent & child do not share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
+  - **parent executes two threads:** two threads share parts of address space, global variables can be used for communication, smaller memory footprint
+- **concurrency:** running multiple threads/processes at same time by interleaving their execution (even on single CPU core)  
 **parallelism:** running multiple threads/processes in parallel over different CPU cores
+- **why threads:** with parallelism a single process can effectively utilize multiple CPU cores, even without parallelism concurrency of threads ensures effective use of CPU when one of the threads blocked
+- **scheduling threads:** OS schedules threads that are ready to run independently (much like processes), context of a thread (PC, registers) is saved into/restored from thread control block (TCB), every PCB has one or more linked TCBs
+- **kernel threads:** threads that are scheduled independently by kernel, example: linux pthreads  
+**user-level threads:** procided by some libraries, library multiplexes large number of user threads over a smaller number of kernel threads, low overhead for switching (expensive context switch not required), but all user threads cannot run in parallel
+- **example: thread creation:**
+  ```cpp
+  #include <assert.h>
+  #include <pthread.h>
+  #include <stdio.h>
 
-**why threads:** single process can effectively utilize multiple CPU cores, even if no parallelism concurrency of threads ensures effective use of CPU when one of the threads blocked
+  void *mythread(void *arg)
+  {
+      printf("%s\n", (char *)arg);
+      return NULL;
+  }
 
-**scheduling threads:** OS schedules threads that are ready to run independently, context of a thread (PC, registers) is saved into/restored from thread control block (TCB), every PCB has one or more linked TCBs
+  int main(int argc, char *argv[])
+  {
+      pthread_t p1, p2;
+      int rc;
 
-**kernel threads:** threads that are schedules independently by kernel, example - linux pthreads
+      printf("main: begin\n");
+      rc = pthread_create(&p1, NULL, mythread, "A");
+      assert(rc == 0);
+      rc = pthread_create(&p2, NULL, mythread, "B");
+      assert(rc == 0);
 
-**user-level threads:** library multiplexes large number of user threads over a smaller number of kernel threads, low overhead of switching since no expensive context switch, but multiple user threads cannot run in parallel
+      // join waits for the threads to finish
+      rc = pthread_join(p1, NULL);
+      assert(rc == 0);
+      rc = pthread_join(p2, NULL);
+      assert(rc == 0);
+      printf("main: end\n");
 
-**example: thread creation:**
-```cpp
-#include <assert.h>
-#include <pthread.h>
-#include <stdio.h>
+      return 0;
+  }
+  ```
+- **race condition:** concurrent execution can lead to different results, when two or more threads can access shared data and try to change it at the same time
+  ```cpp
+  counter = counter + 1;
 
-void *mythread(void *arg)
-{
-    printf("%s\n", (char *)arg);
-    return NULL;
-}
+  // in assembly
+  // 100 mov    0x8049a1c, %eax
+  // 104 add    $0x1, %eax       <-- wrong value read by other thread if interrupted after this
+  // 108 mov    %eax, 0x8049a1c
+  ```
+- **critical section:** portion of code that can lead to race conditions
+- **mutual exclusion:** only one thread should be executing critical section at any time
+- **atomicity:** critical section should execute like one uninterrupible instruction
 
-int main(int argc, char *argv[])
-{
-    pthread_t p1, p2;
-    int rc;
-    printf("main: begin\n");
-    pthread_create(&p1, NULL, mythread, "A");
-    pthread_create(&p2, NULL, mythread, "B");
-    // join waits for the threads to finish
-    pthread_join(p1, NULL);
-    pthread_join(p2, NULL);
-    printf("main: end\n");
-    return 0;
-}
-```
-
-**race condition:** when two or more threads can access shared data and try to change it at the same time, concurrent execution can lead to different results
-
-**critical section:** portion of code that can lead to race conditions
-
-**mutual exclusion:** only one thread should be executing critical section at any time
-
-**atomicity:** critical section should execute like one uninterrupible instruction
-
-**lock:** is just a variable that is either available (no thread holds the lock) or acquired (one thread holds the lock, other threads waiting), makes sure only one thread is executing critical section
-
-**goals of lock implementation:**
-1. mutual exclusion
-2. fairness: all threads should eventually get the lock, no thread should starve
-3. low overhead: acquiring, releasing & waiting for lock should not consume too many resources
-
-**disabling interrupts:** this technique is used to implement locks on single processor systems inside the OS, disabling interrupt is a privileged instruction and program can misuse it (example - run forever), will not work on multiprocessor systems since another thread on another core can enter critical section
-
-**example: lock implementation using flag variable:** spin on a flag variable until it is unset, then set it to acquire lock, reset flag variable once done, race condition has moved to lock acquisition code (example - interrupt after loop but before set flag)
+### locks
+- **lock:** is just a variable that is either available (no thread holds the lock) or acquired (one thread holds the lock, other threads waiting), makes sure only one thread is executing critical section
+- **why locks:** all threads accessing a critical section share a lock, one thread succeeds in locking (owner of the lock), other threads that try to lock cannot proceed further until lock is released by the owner
+- **goals of lock implementation:**
+  - mutual exclusion
+  - fairness: all threads should eventually get the lock, no thread should starve
+  - low overhead: acquiring, releasing & waiting for lock should not consume too many resources
+- **is disabling interrupts enough:** this technique is used to implement locks on single processor systems inside the OS, disabling interrupt is a privileged instruction and malicious programs can misuse it (like run forever), will not work on multiprocessor systems since another thread on another core can enter critical section
+- [continue](https://youtu.be/EBevKfTDXUI?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&t=399)
+- **example: lock implementation using flag variable:** spin on a flag variable until it is unset, then set it to acquire lock, reset flag variable once done, race condition has moved to lock acquisition code (like interrupt after loop but before set flag)
 
 **hardware atomic instructions:** very hard to ensure atomicity only in software, modern architectures provide hardware atomic instructions
 1. **test-and-set:** update a variable and return old value all in one hardware instruction
@@ -375,7 +378,7 @@ int test_and_set(int *old_ptr, int new)
     return old;          // return the old value
 }
 ```
-2. **compare-and-swap:** update a variable only if equal to expected and return actual value all in one hardware instruction
+1. **compare-and-swap:** update a variable only if equal to expected and return actual value all in one hardware instruction
 ```cpp
 int compare_and_swap(int *ptr, int expected, int new)
 {
@@ -650,7 +653,7 @@ pthread_mutex_unlock(prevention);  // end
 2. **character devices:** produce/consume stream of bytes (keyboard)
 
 **OS read/write to registers:**
-1. **explicit I/O instructions:** privileged instruction used by OS to read & write to specific registers on device, example - on x86 `in` & `out`
+1. **explicit I/O instructions:** privileged instruction used by OS to read & write to specific registers on device, example: on x86 `in` & `out`
 2. **memory mapped I/O:** device makes registers appear like memory locations, OS simply reads/writes from memory (part of address space reserved for I/O devices), memory hardware routes accesses to these special memoru addresses to devices
 
 **example: simple execution of I/O requests:** polling status to see if device ready wastes CPU cycles, CPU explicitly copies data to/from device (programmed I/O)
@@ -674,7 +677,7 @@ while (STATUS == BUSY)
 
 ![](./media/operating_systems/direct_memory_access.png)
 
-**device driver:** part of OS code that talks to specific device, gives commands and handles interrupts, most OS code abstracts the device details, example - file system code is written on top of generic block device
+**device driver:** part of OS code that talks to specific device, gives commands and handles interrupts, most OS code abstracts the device details, example: file system code is written on top of generic block device
 
 ![](./media/operating_systems/device_driver.png)
 
@@ -741,7 +744,7 @@ lrwxrwxrwx 1 remzi remzi 4 May 3 19:10 file2 -> file
 1. **data blocks:** file data stored in one or more blocks
 2. **inode blocks:** each block has one or more inodes, metadata about every file stored in inode
 3. **bitmaps:** indicate which inodes/data blocks are free, `i` & `d` in picture
-4. **superblock:** holds master plan of all other blocks, example - which are inodes, which are data blocks, `S` in picture
+4. **superblock:** holds master plan of all other blocks, example: which are inodes, which are data blocks, `S` in picture
 
 ![](./media/operating_systems/file_system_organization.png)
 
@@ -792,7 +795,7 @@ lrwxrwxrwx 1 remzi remzi 4 May 3 19:10 file2 -> file
 
 **hard disk internals:** a set of 512 byte blocks (sectors) that can be read/written atomically, one or more platters connected by a spindle spin at ~10K rpm, each plater has a disk head & arm attached to it, a platter is divided into multiple tracks and each track into 512 byte sectors
 
-**hard disk sector access:** seek to correct track while waiting for disk to rotate, example - sector 30 to 11
+**hard disk sector access:** seek to correct track while waiting for disk to rotate, example: sector 30 to 11
 
 ![](./media/operating_systems/hard_disk_sector_access.png)
 
@@ -803,7 +806,7 @@ lrwxrwxrwx 1 remzi remzi 4 May 3 19:10 file2 -> file
 
 **disk scheduling:** requests to disk are not served in FIFO, they are reordered with other pending requests in order to read blocks in sequence as far as possible (to minimize seek time & rotational delay), OS does not know internal geometry of disk so scheduling done mostly by disk controller
 
-**shortest seek time first (SSTF):** access block that we can seek to fastest, problem - some requests that are far from current position or head may never get served (starvation), example - from 30 go to 21 before 2
+**shortest seek time first (SSTF):** access block that we can seek to fastest, problem - some requests that are far from current position or head may never get served (starvation), example: from 30 go to 21 before 2
 
 ![](./media/operating_systems/shortest_seek_time_first.png)
 
@@ -812,7 +815,7 @@ lrwxrwxrwx 1 remzi remzi 4 May 3 19:10 file2 -> file
 2. **c-scam:** sweep only one direction and circle back to start again, sweeping back & forth favors middle tracks more
 3. **f-scan:** freeze queue while scanning, avoid starving far away requests
 
-**shortest positioning time first (SPTF):** considers both seek time & rotational latency, example - better to serve 8 before 16 even though seek time is higher but 16 incurs a much higher rotational latency
+**shortest positioning time first (SPTF):** considers both seek time & rotational latency, example: better to serve 8 before 16 even though seek time is higher but 16 incurs a much higher rotational latency
 
 ![](./media/operating_systems/shortest_positioning_time_first.png)
 
