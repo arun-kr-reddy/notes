@@ -15,12 +15,13 @@
 - [concurrency](#concurrency)
   - [threads and concurrency](#threads-and-concurrency)
   - [locks](#locks)
+  - [conditional variables](#conditional-variables)
 - [I/O and filesystems](#io-and-filesystems)
 
 ## links  <!-- omit from toc -->
 
 ## todo  <!-- omit from toc -->
-- [operating system](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
+- [[lectures] operating system](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
 - [belady's anomaly](https://en.wikipedia.org/wiki/B%C3%A9l%C3%A1dy%27s_anomaly#:~:text=In%20computer%20storage%2C%20B%C3%A9l%C3%A1dy's%20anomaly,(FIFO)%20page%20replacement%20algorithm.)
 - multi-threading programming using pthread & cpp threads
 
@@ -91,17 +92,17 @@ OS maintains a data structure (made up of PCBs) of all active processes
   ```cpp
   int main(int argc, char *argv[])
   {
-      int ret = fork();                                             // ret is child process PID
+      int ret = fork();  // ret is child process PID
 
-      if (ret < 0)                                                  // fork failed
+      if (ret < 0)  // fork failed
       {
           printf("fork failed\n";)
       }
-      else if (ret == 0)                                            // child process
+      else if (ret == 0)  // child process
       {
           printf("child process %d\n", getpid());
       }
-      else                                                          // parent process
+      else  // parent process
       {
           printf("parent process %d of child %d\n", getpid(), ret);
       }
@@ -350,8 +351,8 @@ OS maintains a data structure (made up of PCBs) of all active processes
 
   // in assembly
   // 100 mov    0x8049a1c, %eax
-  // 104 add    $0x1, %eax       <-- wrong value read by other thread if interrupted after this
-  // 108 mov    %eax, 0x8049a1c
+  // 104 add    $0x1, %eax       <-- wrong value read by other thread if
+  // interrupted after this 108 mov    %eax, 0x8049a1c
   ```
 - **critical section:** portion of code that can lead to race conditions
 - **mutual exclusion:** only one thread should be executing critical section at any time
@@ -365,48 +366,66 @@ OS maintains a data structure (made up of PCBs) of all active processes
   - fairness: all threads should eventually get the lock, no thread should starve
   - low overhead: acquiring, releasing & waiting for lock should not consume too many resources
 - **is disabling interrupts enough:** this technique is used to implement locks on single processor systems inside the OS, disabling interrupt is a privileged instruction and malicious programs can misuse it (like run forever), will not work on multiprocessor systems since another thread on another core can enter critical section
-- [continue](https://youtu.be/EBevKfTDXUI?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&t=399)
-- **example: lock implementation using flag variable:** spin on a flag variable until it is unset, then set it to acquire lock, reset flag variable once done, race condition has moved to lock acquisition code (like interrupt after loop but before set flag)
+- **example: lock implementation using flag variable:** spin on a flag variable until it is unset, then set it to acquire lock, reset flag variable once done, race condition has moved to lock acquisition code, if thread context switched after spin wait but before setting flag, then both threads acquire the lock
+  ```cpp
+  typedef struct _lock_t(int flag;) lock_t;
 
-**hardware atomic instructions:** very hard to ensure atomicity only in software, modern architectures provide hardware atomic instructions
-1. **test-and-set:** update a variable and return old value all in one hardware instruction
-```cpp
-int test_and_set(int *old_ptr, int new)
-{
-    int old = *old_ptr;  // fetch old value at old_ptr
-    *old_ptr = new;      // store new into old_ptr
-    return old;          // return the old value
-}
-```
-1. **compare-and-swap:** update a variable only if equal to expected and return actual value all in one hardware instruction
-```cpp
-int compare_and_swap(int *ptr, int expected, int new)
-{
-    int actual = *ptr;
-    if (actual == expected)
-        *ptr = new;
-    return actual;
-}
-```
+  void init(lock_t *mutex)
+  {
+      // 0 -> lock is available, 1 -> held
+      mutex->flag = 0;
+  }
 
-**spinlock:** spin until lock is acquired
-```cpp
-while (test_and_set(&lock->flag, 1) == 1)
-while (compare_and_swap(&lock->flag, 0, 1) == 1)
-```
+  void lock(lock_t *mutex)
+  {
+      while (mutex->flag == 1)  // test the flag
+          ;                     // spin wait
+      mutex->flag = 1;          // now set it
+  }
 
-**sleeping mutex:** a contending thread could simply give up the CPU and check back later instead of spinning for a lock, `yield` moves thread from running to ready state
-```cpp
-void lock()
-{
-    while (test_and_set(&lock->flag, 1) == 1) 
-        yield()  // give up the CPU
-}
-```
+  void unlock(lock_t *mutex) { mutex->flag = 0; }
+  ```
+- **hardware atomic instructions:** very hard to ensure atomicity only in software, modern architectures provide hardware atomic instructions
+  - **test-and-set:** update a variable and return old value all in single hardware instruction
+    ```cpp
+    int test_and_set(int *old_ptr, int new)
+    {
+        int old = *old_ptr;  // fetch old value at old_ptr
+        *old_ptr = new;      // store new into old_ptr
+        return old;          // return the old value
+    }
+    ```
+  - **compare-and-swap:** update a variable only if equal to expected and return actual value all in single hardware instruction
+    ```cpp
+    int compare_and_swap(int *ptr, int expected, int new)
+    {
+        int actual = *ptr;
+        if (actual == expected) *ptr = new;
+        return actual;
+    }
+    ```
+- **spinlock:** spin until lock is acquired
+  ```cpp
+  while (test_and_set(&lock->flag, 1) == 1)
+  while (compare_and_swap(&lock->flag, 0, 1) == 1)
+  ```
+- **(sleeping) mutex:** a contending thread could simply give up the CPU and check back later instead of spinning for a lock, `yield` moves thread from running to ready state
+  ```cpp
+  void lock()
+  {
+      while (test_and_set(&lock->flag, 1) == 1)
+          yield()  // give up the CPU
+  }
+  ```
+- **spinlock vs mutex:** 
+    - userspace: most lock implementations are (sleeping) mutex since CPU wasted by spinning contending threads
+    - OS: uses spinlocks since OS is default software layer and has no other thread to yield to, OS must disable interrupts while lock is held since an interrupt handler could request same lock leading to deadlock, OS must never perform any blocking operation (go to sleep) with a locked spinlock
+- **coarse-grained locking:** one big lock for all shared data, example: one lock for any change in entire linked-list  
+**fine-grained locking:** seperate locks for individual shared data, allows more parallelism, but multiple locks may be harder to manage, example: individual locks for each linked-list element
 
-**spinlock vs sleeping mutex:** most userspace lock implementations are sleeping mutex since CPU wasted by spinning contending threads, OS uses spinlocks since OS is default software layer and has no other thread to yield to, OS must disable interrupt while lock is held since an interrupt handler could request same lock leading to deadlock, OS must never go to sleep with a locked spinlock (perform blocked operation)
-
-**conditional variables:** is a queue that a thread can put itself into when waiting on some condition, another thread that makes the condition true can signal the conditional variable to wake up a waiting thread, signal wakes up one thread & broadcast wakes up all waiting threads
+[continue](https://www.youtube.com/watch?v=rMpOfbaP2PQ&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=14)
+### conditional variables
+- **conditional variables:** is a queue that a thread can put itself into when waiting on some condition, another thread that makes the condition true can signal the conditional variable to wake up a waiting thread, signal wakes up one thread & broadcast wakes up all waiting threads
 
 **example: parent waits for child:** lock must be held when calling wait & signal with conditional variable, wait function releases the lock before putting thread to sleep
 ```cpp

@@ -18,7 +18,7 @@
   - [standard template library](#standard-template-library)
 
 ## links  <!-- omit from toc -->
-- [modern C++](https://www.youtube.com/playlist?list=PLgnQpQtFTOGR50iIOtO36nK6aNPtVq98C)
+- [[lectures] modern C++](https://www.youtube.com/playlist?list=PLgnQpQtFTOGR50iIOtO36nK6aNPtVq98C)
 - [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
 
 ## todo  <!-- omit from toc -->

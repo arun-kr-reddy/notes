@@ -35,21 +35,3 @@ int main(void)
 
     return 0;
 }
-
-int main(int argc, char *argv[])
-{
-    int ret = fork();  // ret is child process PID
-
-    if (ret < 0)  // fork failed
-    {
-        printf("fork failed\n";)
-    }
-    else if (ret == 0)  // child process
-    {
-        printf("child process %d\n", getpid());
-    }
-    else  // parent process
-    {
-        printf("parent process %d of child %d\n", getpid(), ret);
-    }
-}
