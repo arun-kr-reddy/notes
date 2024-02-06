@@ -25,18 +25,19 @@
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms
-- **levels of transformation:** higher level only needs to know about the interface to lower level, (not implemention), creates abstractions  
+- **abstraction:** higher level only needs to know about the interface to the lower level, not how the lower level is implemented
+- **levels of transformation:** improves productivity by creates abstractions, no need to worry about decisions made in underlying levels  
   ![](./media/computer_architecture/levels_of_transformation.png)
-
-[continue](https://www.youtube.com/watch?v=_D0D0m2fBks&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=2)
-
-- **example: meltdown & spectre:** speculative execution is doing something before you know it is needed to improve performance but it leaves traces of data in processor's cache, a malicious program can inspect the contents of the cache to infer secret data
-- **example: rowhammer:** repeatedly opening & closing a DRAM row (aggressor row) enough times within a refresh interval induces disturbance errors in adjacent rows (victim row) due to electrical interference  
+- **example: meltdown & spectre:** speculative execution is doing something before you know it is needed to improve performance, but it leaves traces of data that was not supposed to be accessed in processor's cache, a malicious program can inspect the contents of the cache to infer secret data
+- **example: rowhammer:** repeatedly opening & closing a DRAM row (aggressor row) enough times within a refresh interval induces disturbance errors due to charge getting drained out in adjacent rows (victim row), happens due to electrical interference, malicious program can flip protection bit in page table entries to access some privileged location  
   *"it's like breaking into an apartment by repeatedly slamming a neighbor's door until vibrations open the door you were after"*  
   ![](./media/computer_architecture/rowhammer.png)
+
+[continue](https://www.youtube.com/watch?v=345xVgiBr-E&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=3)
+
 - **example: memory performance attacks:** in a multi-core system to increase throughput DRAM controller services row-hit access first so programs with good memory spatial locality are preferred, DRAM controller vulnerable to denial of service attacks  
   ![](./media/computer_architecture/dram_controller.png)
-- **example: DRAM refresh:** a DRAM cell consists of a capacitor & an access transistor, data stored in terms of charge status of capacitor but charge leaks over time, memory controller needs to refresh each row periodically to restore charge, increases energy consumption & DRAM bank unavailable while refreshing, only small % have low retention time (manufacturing process variation), check bins to determine refresh rate of a row once profiling (retention time of all DRAM rows) is done  
+- **example: DRAM refresh:** a DRAM cell consists of a capacitor & an access transistor, data is stored in terms of charge status of capacitor but charge leaks over time, memory controller needs to refresh each row periodically to restore charge, increases energy consumption & DRAM bank unavailable while refreshing, only small % have low retention time (manufacturing process variation), check bins to determine refresh rate of a row once profiling (retention time of all DRAM rows) is done  
   ![](./media/computer_architecture/dram_cell.png)
   - **Bloom filter:** memory efficient probabilistic data structure that compactly represents set membership, test set membership using hash functions (unique identifier generator), never false negative & never overflows (but `num elements ∝ false positives rate`)
 - **Hamming code:** powers-of-2 bits are regular parity bits used to track the parity of the other bits whose position have a 1 in the same place, 0th message bit used as overall parity, can correct 1-bit errors (regular parity incorrect & overall parity incorrect) & detect 2-bit errors (regular parity incorrect & overall parity correct)  

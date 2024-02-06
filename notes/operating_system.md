@@ -16,6 +16,8 @@
   - [threads and concurrency](#threads-and-concurrency)
   - [locks](#locks)
   - [conditional variables](#conditional-variables)
+  - [semaphores](#semaphores)
+  - [concurrency bugs](#concurrency-bugs)
 - [I/O and filesystems](#io-and-filesystems)
 
 ## links  <!-- omit from toc -->
@@ -423,243 +425,259 @@ OS maintains a data structure (made up of PCBs) of all active processes
 - **coarse-grained locking:** one big lock for all shared data, example: one lock for any change in entire linked-list  
 **fine-grained locking:** seperate locks for individual shared data, allows more parallelism, but multiple locks may be harder to manage, example: individual locks for each linked-list element
 
-[continue](https://www.youtube.com/watch?v=rMpOfbaP2PQ&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=14)
 ### conditional variables
-- **conditional variables:** is a queue that a thread can put itself into when waiting on some condition, another thread that makes the condition true can signal the conditional variable to wake up a waiting thread, signal wakes up one thread & broadcast wakes up all waiting threads
+- other than mutex, another common requirement in multi-threaded applications is waiting & signaling, can accomplish using busy-wait but inefficient, example: thread T1 wants to continue only after T2 has finished some task
+- **conditional variables:** is a queue that a thread can put itself into when waiting on some condition, another thread that makes the condition true can signal the conditional variable to wake up a waiting thread
+  - signal: wake up one thread
+  - broadcast: wake up all waiting threads
+- **example: parent waits for child:** mutex is there to protect the process of sleeping & waiting
+  ```cpp
+  int done = 0;
+  pthread_mutex_t m = pthread_MUTEX_INITIALIZER;
+  pthread_cond_t c = pthread_COND_INITIALIZER;
 
-**example: parent waits for child:** lock must be held when calling wait & signal with conditional variable, wait function releases the lock before putting thread to sleep
-```cpp
-int done = 0;
-pthread_mutex_t m = pthread_MUTEX_INITIALIZER;
-pthread_cond_t c = pthread_COND_INITIALIZER;
+  void thr_exit()
+  {
+      pthread_mutex_lock(&m);
+      done = 1;
+      pthread_cond_signal(&c);
+      pthread_mutex_unlock(&m);
+  }
 
-void thr_exit()
-{
-    pthread_mutex_lock(&m);
-    done = 1;
-    pthread_cond_signal(&c);
-    pthread_mutex_unlock(&m);
-}
+  void *child(void *arg)
+  {
+      printf("child\n");
+      thr_exit();
+      return NULL;
+  }
 
-void *child(void *arg)
-{
-    printf("child\n");
-    thr_exit();
-    return NULL;
-}
+  void thr_join()
+  {
+      // why check condition before calling wait?
+      // in case child has already run & `done` is true then no one will wake parent thread
 
-void thr_join()
-{
-    // without mutex race condition, parent checks condition then interrupted
-    //child sets to 0 and signals but no one sleeping yet
-    // parent resumes now and goes to sleep forver
-    pthread_mutex_lock(&m);
-    // wait only if child not run
-    while (done == 0)  // don't use if, corner case condition is false when wait returns
-        pthread_cond_wait(&c, &m);
-    pthread_mutex_unlock(&m);
-}
+      // why while instead of if?
+      // to avoid corner cases of parent thread being woken up
+      // even when condition not true (due to issue in implementation)
 
-int main(int argc, char *argv[])
-{
-    printf("parent: begin\n");
-    pthread_t p;
-    pthread_create(&p, NULL, child, NULL);
-    thr_join();
-    printf("parent: end\n");
-    return 0;
-}
-```
+      // why mutex lock?
+      // possible race condition (missed wakeup), parent checks condition then interrupted
+      // child sets to 0 and signals but no one sleeping yet
+      // parent resumes now and goes to sleep forver
+      // mutex lock must be held when calling wait & signal
+      // wait function implementation releases the lock before putting thread to sleep
 
-**example: producer/consumer problem:** one or more producer threads, one or more consumer threads, a shared buffer of bounded size
-```cpp
-cond_t empty, fill;
-mutex_t mutex;
+      pthread_mutex_lock(&m);
+      while (done == 0)
+          pthread_cond_wait(&c, &m);
+      pthread_mutex_unlock(&m);
+  }
 
-void *producer(void *arg)
-{
-    int i;
-    for (i = 0; i < loops; i++)
-    {
-        pthread_mutex_lock(&mutex);
-        while (count == MAX)
-            pthread_cond_wait(&empty, &mutex);  // 
-        put(i);
-        pthread_cond_signal(&fill);
-        pthread_mutex_unlock(&mutex);
-    }
-}
+  int main(int argc, char *argv[])
+  {
+      printf("parent: begin\n");
+      pthread_t p;
+      pthread_create(&p, NULL, child, NULL);
+      thr_join();
+      printf("parent: end\n");
+      return 0;
+  }
+  ```
+- **example: producer/consumer problem:** one or more producer threads and one or more consumer threads sharing a buffer of bounded size  
+  ![](./media/operating_systems/producer_consumer.png)  
+  ```cpp
+  cond_t empty, fill;
+  mutex_t mutex;
 
-void *consumer(void *arg)
-{
-    int i;
-    for (i = 0; i < loops; i++)
-    {
-        pthread_mutex_lock(&mutex);
-        while (count == 0)
-            pthread_cond_wait(&fill, &mutex);
-        int tmp = get();
-        pthread_cond_signal(&empty);
-        pthread_mutex_unlock(&mutex);
-        printf("%d\n", tmp);
-    }
-}
-```
+  void *producer(void *arg)
+  {
+      int i;
+      for (i = 0; i < loops; i++)
+      {
+          pthread_mutex_lock(&mutex);
+          while (count == MAX)
+              pthread_cond_wait(&empty, &mutex);  // set 1
+          put(i);
+          pthread_cond_signal(&fill);             // set 2
+          pthread_mutex_unlock(&mutex);
+      }
+  }
 
-**semaphores:** variable with an underlying counter, two functions - up/post increments counter and down/wait decrements counter and blocks calling thread if resulting value negative, binary semaphore (initial value 1) acts as a simple mutex lock
+  void *consumer(void *arg)
+  {
+      int i;
+      for (i = 0; i < loops; i++)
+      {
+          pthread_mutex_lock(&mutex);
+          while (count == 0)
+              pthread_cond_wait(&fill, &mutex);   // set 2
+          int tmp = get();
+          pthread_cond_signal(&empty);            // set 1
+          pthread_mutex_unlock(&mutex);
+          printf("%d\n", tmp);
+      }
+  }
+  ```
 
-**example: semaphore parent child:**
-```cpp
-sem_t s;
+### semaphores
+- **semaphores:** is a variable with an underlying counter (not visible to user), two functions - up/post increments and down/wait decrements counter, calling thread blocked if resulting value negative, binary semaphore (init value 1) acts as a mutex
+- **example: binary semaphore:**
+  ```cpp
+  semt_t m;
+  sem_init(&m, 0, 1);
 
-void *child(void *arg)
-{
-    printf("child\n");
-    sem_post(&s);  // signal here: child is done
-    return NULL;
-}
+  sem_wait (&m);  // refcount 0, any other thread calling wait blocked
+  // critical section
+  sem_post(&m);
+  ```
+- **example: parent child with semaphore:**
+  ```cpp
+  sem_t s;
 
-int main(int argc, char *argv[])
-{
-    sem_init(&s, 0, X); // initial value X = 0
-    printf("parent: begin\n");
-    pthread_t c;
-    pthread_create(&c, NULL, child, NULL);
-    sem_wait(&s);  // wait here for child
-    printf("parent: end\n");
-    return 0;
-}
-```
+  void *child(void *arg)
+  {
+      printf("child\n");
+      sem_post(&s);                           // signal here: child is done
+      return NULL;
+  }
 
-**example: semaphore producer/consumer problem:** need two semaphore for signalling full & empty, need one semaphore to act as mutex for buffer
-```cpp
-sem_t empty;
-sem_t full;
-sem_t mutex;
+  int main(int argc, char *argv[])
+  {
+      sem_init(&s, 0, 0);
+      printf("parent: begin\n");
+      pthread_t c;
+      pthread_create(&c, NULL, child, NULL);
+      sem_wait(&s);                           // blocked, wait here for child
+      printf("parent: end\n");
+      return 0;
+  }
+  ```
+- **example: producer/consumer with semaphore:** need two semaphore for signaling full & empty and one binary semaphore to act as mutex for buffer
+  ```cpp
+  sem_t empty;
+  sem_t full;
+  sem_t mutex;
 
-void *producer(void *arg)
-{
-    int i;
-    for (i = 0; i < loops; i++)
-    {
-        // if mutex before wait, waiting thread sleeps with mutex
-        // signalling thread cannot proceed and wake it up
-        sem_wait(&empty);
-        sem_wait(&mutex);
-        put(i);
-        sem_post(&mutex);
-        sem_post(&full);
-    }
-}
+  void *producer(void *arg)
+  {
+      int i;
+      for (i = 0; i < loops; i++)
+      {
+          // why mutex after sem_wait?
+          // if mutex before wait, waiting thread sleeps with mutex
+          // signaling thread cannot acquire lock and wake it up
+          sem_wait(&empty);      // set 1
+          sem_wait(&mutex);
+          put(i);
+          sem_post(&mutex);
+          sem_post(&full);       // set 2
+      }
+  }
 
-void *consumer(void *arg)
-{
-    int i;
-    for (i = 0; i < loops; i++)
-    {
-        sem_wait(&full);
-        sem_wait(&mutex);
-        int tmp = get();
-        sem_post(&mutex);
-        sem_post(&empty);
-        printf("%d\n", tmp);
-    }
-}
+  void *consumer(void *arg)
+  {
+      int i;
+      for (i = 0; i < loops; i++)
+      {
+          sem_wait(&full);       // set 2
+          sem_wait(&mutex);
+          int tmp = get();
+          sem_post(&mutex);
+          sem_post(&empty);      // set 1
+          printf("%d\n", tmp);
+      }
+  }
 
-int main(int argc, char *argv[])
-{
-    // ...
-    sem_init(&empty, 0, MAX);  // MAX buffers are empty
-    sem_init(&full, 0, 0);     // 0 buffers are full
-    sem_init(&mutex, 0, 1);    // binary semaphore
-    // ...
-}
-```
+  int main(int argc, char *argv[])
+  {
+      // ...
+      sem_init(&empty, 0, MAX);  // MAX buffers are empty
+      sem_init(&full, 0, 0);     // 0 buffers are full
+      sem_init(&mutex, 0, 1);    // binary semaphore
+      // ...
+  }
+  ```
 
+### concurrency bugs
 **concurrency bugs:** are non-deterministic and occur based on execution order of threads, very hard to debug
-1. **non-deadlock bugs:** non-deadlock but incorrect results when threads execute
-   1. **atomicity bugs:** atomicity assumptions made by programmer are violated during execution of concurrent threads, fix - locks for mutual exclusion
-   2. **order-violation bugs:** desired order of memory access if flipped during concurrent execution, fix - conditional variables
-2. **deadlocks:** threads cannot execute any further and wait for each other, all four of below conditions must hold for a deadlock to occur
-   1. **mutual exclusion:** a thread claims exclusive control of a resource
-   2. **hold-and-wait:** thread holds a resource and is waiting for another, to prevent acquire all locks at once by acquiring a master lock first
-   3. **no preemption:** thread cannot be made to give up its resource
-   4. **circular wait:** there exists a cycle in the resource dependency graph, to prevent always acquire locks in certain fixed order, total ordering (or partial ordering on related locks) must be followed
+  - **non-deadlock bugs:** not blocking but incorrect results when threads execute
+    - **atomicity bugs:** atomicity assumptions made by programmer are violated during execution of concurrent threads, fix: use locks for mutual exclusion
+    - **order-violation bugs:** desired order of memory access is flipped during concurrent execution, fix: use conditional variables
+  - **deadlocks:** threads cannot execute any further and wait for each other, all four of below conditions must hold for a deadlock to occur
+    - **mutual exclusion:** a thread claims exclusive control of a resource
+    - **hold-and-wait:** thread holds a resource and is waiting for another, to prevent acquire all locks at once by acquiring a master lock first
+    - **no preemption:** thread cannot be made to give up its resource
+    - **circular wait:** there exists a cycle in the resource dependency graph, to prevent always acquire locks in certain fixed order, total ordering (or partial ordering on related locks) must be followed
+- **example: atomicity bug:** one threads reads & prints a shared data item while another concurrently modifies it
+  ``` cpp
+  // thread 1
+  if (thd->proc_info)
+  {
+      // ...
+      fputs(thd->proc_info, ...);
+      // ...
+  }
 
-**example: atomicity bug:** one threads reads & prints a shared data item while another concurrently modifies it
-``` cpp
-// thread 1
-if (thd->proc_info)
-{
-    // ...
-    fputs(thd->proc_info, ...);
-    // ...
-}
+  // thread 2
+  thd->proc_info = NULL;
+  ```
+- **example: order-violation bug:** thread1 assumes thread2 has already run
+  ```cpp
+  // thread 1
+  void init()
+  {
+      // ... 
+      m_thread = createthread(m_main, ...);
+      // ...
+  }
 
-// thread 2
-thd->proc_info = NULL;
-```
+  // thread 2
+  void m_main(...)
+  {
+      // ...
+      m_state = m_thread->state;
+      // ...
+  }
+  ```
+- **example: deadlock:** thread1 holds lock1 and is waiting for lock2, thread2 holds lock2 and is waiting for lock1
+  ```cpp
+  // thread 1
+  pthread_mutex_lock(l1);
+  pthread_mutex_lock(l2);
 
-**example: order-violation bug:** thread1 assumes thread2 has already run
-```cpp
-// thread 1
-void init()
-{
-    // ... 
-    m_thread = createthread(m_main, ...);
-    // ...
-}
+  // thread 2
+  pthread_mutex_lock(l2);
+  pthread_mutex_lock(l1);
+  ```  
+  ![](./media/operating_systems/deadlock_dependency.png)
+- **example: cicular wait prevention: total ordering:**
+  ```cpp
+  // grab locks in high-to-low address order
+  // code assumes m1 != m2
+  if (m1 > m2)
+  {
+      pthread_mutex_lock(m1);
+      pthread_mutex_lock(m2);
+  }
+  else
+  {
+      pthread_mutex_lock(m2);
+      pthread_mutex_lock(m1);
+  }
+  ```
+- **example: hold-and-wait prevention: master lock:**
+  ```cpp
+  pthread_mutex_lock(prevention);  // begin lock acquisition
+  pthread_mutex_lock(l1);
+  pthread_mutex_lock(l2);
+  // ...
+  pthread_mutex_unlock(prevention);  // end
+  ```
+- **other solutions to deadlocks:**
+  - **deadlock avoidance:** if OS knew which process needs which locks then it can schedule the processes in a way that deadlock will not occur, impractical in real lift to assume OS having this knowledge
+  - **detect and recover:** reboot system or kill deadlocked processes
 
-// thread 2
-void m_main(...)
-{
-    // ...
-    m_state = m_thread->state;
-    // ...
-}
-```
-
-**example: deadlock:** thread1 holds lock1 and is waiting for lock2, thread2 holds lock2 and is waiting for lock1
-```cpp
-// thread 1
-pthread_mutex_lock(l1);
-pthread_mutex_lock(l2);
-
-// thread 2
-pthread_mutex_lock(l2);
-pthread_mutex_lock(l1);
-```
-
-![](./media/operating_systems/deadlock_dependency.png)
-
-**example: cicular wait prevention - total ordering:**
-```cpp
-// grab locks in high-to-low address order
-// code assumes m1 != m2
-if (m1 > m2)
-{
-    pthread_mutex_lock(m1);
-    pthread_mutex_lock(m2);
-}
-else
-{
-    pthread_mutex_lock(m2);
-    pthread_mutex_lock(m1);
-}
-```
-
-**example: hold-and-wait prevention - master lock:**
-```cpp
-pthread_mutex_lock(prevention);  // begin lock acquisition
-pthread_mutex_lock(l1);
-pthread_mutex_lock(l2);
-// ...
-pthread_mutex_unlock(prevention);  // end
-```
-
-**other solutions to deadlocks:**
-1. **deadlock avoidance:** if OS knew which process needs which locks it can schedule the processes in that deadlock will not occur
-2. **detect and recover:** reboot system or kill deadlocked processes
+[continue](https://www.youtube.com/watch?v=7F4qQOSJGDw&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=17)
 
 ## I/O and filesystems
 
