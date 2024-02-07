@@ -19,13 +19,18 @@
   - [semaphores](#semaphores)
   - [concurrency bugs](#concurrency-bugs)
 - [I/O and filesystems](#io-and-filesystems)
+  - [communication with I/O devices](#communication-with-io-devices)
+  - [files \& directories](#files--directories)
+  - [file system implementation](#file-system-implementation)
+  - [hard disk internals](#hard-disk-internals)
 
 ## links  <!-- omit from toc -->
+- [[lectures] operating system](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
 
 ## todo  <!-- omit from toc -->
-- [[lectures] operating system](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
 - [belady's anomaly](https://en.wikipedia.org/wiki/B%C3%A9l%C3%A1dy%27s_anomaly#:~:text=In%20computer%20storage%2C%20B%C3%A9l%C3%A1dy's%20anomaly,(FIFO)%20page%20replacement%20algorithm.)
 - multi-threading programming using pthread & cpp threads
+- IPC using cpp
 
 ## introduction
 - **operating system:** is a middleware that sits between user programs & system hardware and manage hardware for the user programs
@@ -677,185 +682,169 @@ OS maintains a data structure (made up of PCBs) of all active processes
   - **deadlock avoidance:** if OS knew which process needs which locks then it can schedule the processes in a way that deadlock will not occur, impractical in real lift to assume OS having this knowledge
   - **detect and recover:** reboot system or kill deadlocked processes
 
-[continue](https://www.youtube.com/watch?v=7F4qQOSJGDw&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=17)
-
 ## I/O and filesystems
 
-![](./media/operating_systems/system_architecture.png)
+### communication with I/O devices
+- **port:** point of connection to the system, I/O devices connect to the CPU & memory via a bus to a port on the machine
+- **simple device model:** block devices store a set of numbered blocks (disks), character devices produce/consume stream of bytes (keyboard), devices expose an interface of memory registers (like current status of device, command to excute, data to transfer), internals of device are usually hidden
+- **OS registers read/write:**
+  - **explicit I/O instructions:** privileged instructions used by OS to read & write to specific registers on device
+  - **memory mapped I/O:** device makes registers appear like memory locations, OS simply reads/writes from memory (part of address space reserved for I/O devices), memory hardware routes accesses to these special memory addresses to devices
+- **example: simple execution of I/O requests:** polling status to see if device ready, wastes CPU cycles, CPU explicitly copies data to/from device (programmed I/O)
+  ```cpp
+  while (STATUS == BUSY)
+      ;                               // wait until device is not busy
+  write data to DATA register;        // programmed I/O
+  write command to COMMAND register;  // starts the device and executes the command
+  while (STATUS == BUSY)
+      ;                               // wait until device is done with your request
+  ```
+- **interrupt request (IRQ):** polling wastes CPU cycles, instead OS can put process to sleep and switch to another process, when I/O request completes device raises interrupt  
+  ![](./media/operating_systems/interrupt_request.png)
+- **interrupt handler:** interrupt switches process to kernel mode, interrupt descriptor table (IDT) stores pointers to interrupt handlers (interrupt service routines (ISR)), IRQ number identifies the interrupt handler to run for a device, interrupt handler acts upon device notification and unblocks the process waiting for I/O (if any) then starts next I/O request (if any pending), handling interrupts imposes kernel mode transition overheads (polling may be faster than interrupts if device is fast)
+- **direct memory access (DMA):** cpu cycles wasted in copying data to/from device, instead special piece of hardware (DMA engine) copies from main memory to device, CPU gives DMA engine the memory location, size & destination of data, in case of read interrupt raised after DMA completes, in case of write disk starts writing after DMA completes  
+  ![](./media/operating_systems/direct_memory_access.png)
+- **device driver:** part of OS code that talks to specific device, gives commands and handles interrupts, most OS code abstracts the device details, example: file system code is written on top of a generic block device
+  ![](./media/operating_systems/device_driver.png)
 
-**port:** point of connection to the system, I/O devices connect to the CPU & memory via a bus to a port on the machine
+### files & directories
+- **file:** linear array of bytes, stored persistently, identified with filename (human readable) and a OS level identifier index node (inode) number, inode number is unique within a filesystem
+- **directory:** contains other subdirectories and files along with their inode numbers, stored like a file whose contents are filename-to-inode mappings
+- **directory tree:** files & directories arranged in a tree starting with root (/)
+  ![](./media/operating_systems/directory_tree.png)
+- **file operations:**
+  - **create:** `open()` system call with flag to create, returns a numbers called file descriptor (fd)
+  - **open:** existing files must be opened before they can be read/written, also uses `open()` system call and returns fd, all further operations on files uses the fd
+  - **closing:** `close()` system call closes the file
+  - **read/write:** `read()`/`write()` system calls, reading/writing happens sequentially by default (successive read/write calls fetch from current offset), `lseek()` system call lets you seek to random offset, writes are buffered in memory temporarily so `fsync()` system call flushes all writes to disk
+  - **other operations:** rename file delete (unlink) file, get statistics of a file
+- **directory operations:** directory can also be accessed like files, operations like create, open, read & close
+- **example: `ls` program:** `ls` program opens and reads all directory entries
+  ```cpp
+  int main(int argc, char *argv[])
+  {
+      DIR *dp = opendir(".");
+      assert(dp != NULL);
+      struct dirent *d;
+      while ((d = readdir(dp)) != NULL)
+      {
+          printf("%lu %s\n", (unsigned long)d->d_ino, d->d_name);
+      }
+      closedir(dp);
+      return 0;
+  }
+  ```
+- **hard link:** creates another file that points to the same inode number and hence same underlying data, even if one file deleted the file data can be accessed through the other links, inode maintains a link count, file data deleted only when no further links to it, you can only unlink, OS decides when to delete, linking created using `ln` command
+  ```sh
+  # same data
+  $ echo hello > file
+  $ cat file
+  hello
+  $ ln file file2  # command
+  $ cat file 2
+  hello
 
-**device types:** devices expose an interface of memory registers (current status of device, command to excute & data to transfer), internals of device usually hidden
-1. **block devices:** store a set of numbered blocks (disks)
-2. **character devices:** produce/consume stream of bytes (keyboard)
+  # same inode number
+  $ ls -i file file2
+  67158084 file
+  67158084 file2
 
-**OS read/write to registers:**
-1. **explicit I/O instructions:** privileged instruction used by OS to read & write to specific registers on device, example: on x86 `in` & `out`
-2. **memory mapped I/O:** device makes registers appear like memory locations, OS simply reads/writes from memory (part of address space reserved for I/O devices), memory hardware routes accesses to these special memoru addresses to devices
+  # link count
+  $ rm file
+  removed 'file'
+  $ cat file2
+  hello
+  ```
+- **soft/symbolic link:** is a file that simply stores a pointer to another filename, if main file is deleted then the link points to invalid entry (dangling reference)
+  ```sh
+  $ ls -al
+  drwxr-x--- 2 remzi remzi 29 May 3 19:10 ./
+  drwxr-x--- 27 remzi remzi 4096 May 3 15:14 ../
+  -rw-r----- 1 remzi remzi 6 May 3 19:10 file
+  lrwxrwxrwx 1 remzi remzi 4 May 3 19:10 file2 -> file  # soft linking,
+                                                        # note small size of soft link
 
-**example: simple execution of I/O requests:** polling status to see if device ready wastes CPU cycles, CPU explicitly copies data to/from device (programmed I/O)
-```cpp
-while (STATUS == BUSY)
-    ;  // wait until device is not busy
-write data to DATA register;
-write command to COMMAND register;  // starts the device and executes the command
-while (STATUS == BUSY)
-    ;  // wait until device is done with your request
+  # same data
+  $ echo hello > file
+  $ ln -s file file2  # command
+  $ cat file2
+  hello
 
-```
+  # no link count
+  $ rm file
+  $ cat file2
+  cat: file2: no such file or directory
+  ```
+- **mounting a file system:** mounting a file system connects the files to a specific point in the directory tree, several devices & file systems are mounted on a typical machine, using `mount` command
+  ```sh
+  $ mount -t ext3 /dev/sda1 /home/users
+  $ ls /home/users/
+  a b
+  ```
+- **memory mapping a file:** alternate way of accessing a file instead of using fd & read/write syscalls, `mmap()` allocates a page in virtual address space of a process, when file is mmaped file data copied into one or more pages in memory, can be accessed like any other memory location in program
+  - **anonymous page:** used to store program data
+  - **file-backed page:** contains data of file, filename provided as arg to `mmap()`
 
-**interrupt (IRQ):** polling wastes CPU cycles, instead OS can put process to sleep and switch to another process, when I/O request completes device raises interrupt
+### file system implementation
+- **file system:** an organization of files & directories on disk, OS has one or more file systems, disk exposes set of blocks (usually 512 bytes), file system organizes files onto blocks, two main aspects of file systems are
+  - data structures to organize data & metadata on disk
+  - implementation of system calls like open, read, write using data structures
+- **simple file system organization:**
+  - **data blocks:** file data stored in one or more blocks
+  - **inode:** stores metadata about every file
+  - **inode blocks:** each block has one or more inodes
+  - **bitmaps:** indicate which inodes/data blocks are free, `i` & `d` in picture
+  - **superblock:** holds master plan of all other blocks, example: which are inodes, which are data blocks, `S` in picture  
+  ![](./media/operating_systems/file_system_organization.png)
+- **inode table:** inodes usually stored in array, inode number of a file is index into this array, inode stores file metadata (like permissions, last accessed time) & pointers (disk block numbers) of file data
+  ![](./media/operating_systems/inode_table.png)
+- **inode structure:** file data not stored contiguously on disk, so need to track multiple block numbers of file, inode tracks disk block bumbers using
+  - **direct pointers:** numbers of first few blocks are stored in inode itself, enough for small files
+  - **indirect block:** for larger files inode stores number of indirect blocks which has block numbers of file data
+  - similarly double & triple indirect blocks (multi-level index)
+- **file allocation table (FAT):** alternate way to track file blocks, FAT stores next block pointer for each block, each disk block has one entry with number of next file block (or null if last block), pointer to first block stored in inode, similar to a linked list
+- **directory structure:** directory stores records mapping filename to inode number, this mapping can be done using algoriths like linked list or hash table or binary search tree, directory is a special type of file and has inode & data blocks (which store the file records)
+- **free space management:** to track free blocks
+  - **bitmap:** store one bit per data block to indicate if free or not
+  - **free list:** super block stores pointer to first free block which inturn stores address of next free block
+- **opening a file:** to have the inode readily available (in memory) for future operations (read/write) on file
+  - pathname of file is traversed starting from root, inode of root is known
+  - recursively do: fetch inode of parent directory ⟶ read its data blocks ⟶ get inode number of each child ⟶ fetch inode of child, repeat till end of path
+  - if new file: new inode & data blocks will have to be allocated using bitmap and directory entry updated
+- **open file table:** set of data structures to track open files
+  - **global open file table:** one entry for every file opened (even sockets & pipes), entry points to in-memory copy of inode
+  - **per-process open file table:** array of files opened by process, fd number is index into this array, per-process table entry points to global open file table entry, every process has three files open by default: std in, std out & std err (fd 0, 1 & 2), `open()` system call creates entries in both tables and returns fd number
+- **reading/writing a file:**
+  - access in-memory inode via fd
+  - find location of data block at current read/write offset
+  - fetch data from disk and perform operation
+  - writes may need to allocate new blocks from disk using bitmap of free blocks
+  - update time of access & other metadata in inode
+- **virtual file system (VFS):** file systems differ in implementations of data structures, hence linux supports VFS abstraction, VFS looks a file systems as objects (files, directories, inodes, superblock) and operations on these objects (like lookup filename in directory), system call logic is written on VFS objects, to develop a new file system simply implement functions on VFS objects and provide pointers to these functions to kernel, syscall implementation does not have to change with file system implementation details
+- **disk buffer cache:** results of recently fetched disk blocks are cached, file system issues block read/write requests via buffer cache, served from cache if cache hit, else block fetched to cache and returned to file system, unified page cache: free pages allocated to both processes and disk buffer cache from common pool, writes are applied to cache block either
+  - **synchronously (write-through):** cache writes to disk immediately
+  - **asynchronously (write-back):** cache stores dirty block in memory and writes back after delay
+- **disk buffer benefits:**
+  - improved performance due to reduced disk I/O
+  - single copy of block in memory, so no inconsistency across processes
 
-**interrupt handler:** interrupt switches process to kernel mode, interrupt descriptor table (IDT) stores pointers to interrupt handlers (interrupt service routine (ISR)), IRQ number identifies the interrupt handler to run for a device, interrupt handler acts upon device notification and unblocks the process waiting for I/O (if any) then starts next I/O request (if any pending), handling interrupts imposes kernel mode transition overheads (polling may be faster than interrupts if device is fast)
-
-![](./media/operating_systems/interrupt_handler.png)
-
-**direct memory access (DMA):** cpu cycles wasted in copying data to/from device, instead special piece of hardware (DMA engine) copied from main memory to device, CPU gives DMA engine the memory location, size & destination of data, interrupt raised after DMA completes
-
-![](./media/operating_systems/direct_memory_access.png)
-
-**device driver:** part of OS code that talks to specific device, gives commands and handles interrupts, most OS code abstracts the device details, example: file system code is written on top of generic block device
-
-![](./media/operating_systems/device_driver.png)
-
-**file:** linear array of bytes, stored persistently, identified with filename (human readable) and a OS level identifier (index node (inode) number), inode number unoque within a filesystem
-
-**directory:** contains other subdirectories and files along with their inode numbers, stored like a file whose contents are filename-to-inode mappings
-
-**directory tree:** files & directories arranged in a tree starting with root (/)
-
-![](./media/operating_systems/directory_tree.png)
-
-**file operations:**
-1. **creating** `open` system call with flag to create, returns a numbers called file descriptor (fd)
-2. **opening:** existing files must be opened before they can be read/written, also uses `open` system call and returns fd, all further operations on files uses the fd
-3. **closing:** `close` system call closes the file
-4. **read/write:** `read`/`write` system calls, arguments - fd, buffer with data, size, reading/writing happens sequentially by default, successive read/write calls fetch from current offset, `lseek` system call to seek to random offset, writes are buffered in memory temporarily so `fsync` system call flushes all writes to disk
-5. **other operations:** rename file delete (unlink) file, get statistics of a file
-
-**directory operations:** directory can also be accessed like files, operations like create, open, read & close
-
-**example: `ls`:** `ls` progeam opens and reads all directory entries
-```cpp
-int main(int argc, char *argv[])
-{
-    DIR *dp = opendir(".");
-    assert(dp != NULL);
-    struct dirent *d;
-    while ((d = readdir(dp)) != NULL)
-    {
-        printf("%lu %s\n", (unsigned long)d->d_ino, d->d_name);
-    }
-    closedir(dp);
-    return 0;
-}
-```
-
-**hard link:** creates another file that points to the same inode number and hence same underslying data, if one file deleted - file data can be accessed through the other links, inode maintains a link count, file data deleted only when no further links to it, you can only unlink OS decides when to delete
-```shell
-$ ls -i file file2
-67158084 file
-67158084 file2
-```
-
-**soft/symbolic link:** is a file that simply stores a pointer to another filename, if main file is deleted then the link points to invalid entry (dangling reference)
-```shell
-$ ls -al
-drwxr-x--- 2 remzi remzi 29 May 3 19:10 ./
-drwxr-x--- 27 remzi remzi 4096 May 3 15:14 ../
--rw-r----- 1 remzi remzi 6 May 3 19:10 file
-lrwxrwxrwx 1 remzi remzi 4 May 3 19:10 file2 -> file
-```
-
-**mounting a file system:** mounting a file system connects the files to a specific point in the directory tree, several devices & file systems are mounted on a typical machine
-
-**memory mapping a file:** alternate way of accessing a file instead of using fd & read/write syscalls, `mmap` allocates a page in virtual address space of a process, when file is mmap - file data copied into one or more pages in memory, can be accessed like any other memory location in program
-1. **anonymous page:** used to store program data
-2. **file-backed page:** contains data of file, filename provided as arg to `mmap`
-
-**file system:** an organization of files & directories on disk, OS has one or more file systems, disk exposes set of blocks (usually 512 bytes), file system organizes files onto blocks, two main aspects of file systems are
-1. data structures to organize data & metadata on disk
-2. implementation of system calls like open, read, write using data structures
-
-**file system organization:**
-1. **data blocks:** file data stored in one or more blocks
-2. **inode blocks:** each block has one or more inodes, metadata about every file stored in inode
-3. **bitmaps:** indicate which inodes/data blocks are free, `i` & `d` in picture
-4. **superblock:** holds master plan of all other blocks, example: which are inodes, which are data blocks, `S` in picture
-
-![](./media/operating_systems/file_system_organization.png)
-
-**inode table:** inodes usually stored in array, inode number of a file is index into this array, inode stores
-1. file metadata like permissions, access time
-2. pointers (disk block numbers) of file data
-
-![](./media/operating_systems/inode_table.png)
-
-**inode structure:** file data not stored contiguously on disk so need to track multiple block numbers of file, inode tracks disk block bumbers using
-1. **direct pointers:** numbers of first few blocks are stored in inode itself, suffices for small files
-2. **indirect block:** for larger files inode stores number of indirect blocks which has block numbers of file data
-3. similarly double & triple indirect blocks (multi-level index)
-
-**file allocation table (FAT):** alternate wat to track file blocks, FAT stores next block pointer for each block, each disk block has one entry with number of next file block (or null if last block), pointer to first block stored in inode
-
-**directory structure:** directory stores records mapping filename to inode number, directory is a special type of file and has inode & data blocks (which store the file records)
-
-**free space management:**
-1. **bitmap:** store one bit per block to indicate if free or not
-2. **free list:** super block stores pointer to first free block which inturn stores address of next free block
-
-**opening a file:** to have the inode readily available in mmeory for future operations on file
-1. pathname of file is traversed starting from root, inode of root is known
-2. recursively do - fetch inode of parent directory ⟶ read its data blocks ⟶ get inode number of each child ⟶ fetch inode of child, repeat till end of path
-3. if new file - new inode & data blocks will have to be allocated using bitmap and directory entry updated
-
-**open file table:**
-1. **global open file table:** one entry for every file opened (even sockets & pipes), entry points to in-memory copy of inode
-2. **per-process open file table:** array of files opened by process, fd is index into this array, per-process table entry points to global open file table entry, every process has three files open by default - std in, std out & std err (fd 0, 1 & 2), open system call creates entries in both tables and returns fd
-
-**reading/writing a file:**
-1. access in-memory inode via fd
-2. find location of data block at current read/write offset
-3. fetch data from disk and perform operation
-4. writes may need to allocate new blocks from disk using bitmap of free blocks
-5. update time of access & other metadata in inode
-
-**virtual file system (VFS):** file systems differ in implementations of data structures, hence linux supports VFS abstraction, VFS looks a file systems as objects (files, directories, inodes, superblock) and operationf on these objects (lookup filename in directory), system call logic is written on VFS objects, to develop a new file system simply implement functions on VFS objects and provide pointers to these functions to kernel, syscall implementation does not have to change with file system implementation details
-
-**disk buffer cache:** results of recently fetched disk blocks are cached, file system issues block read/write requests via buffer cache, served from cache id block in cache, else block fetched to cache and returned to file system, free pages allocated to both processes & disk buffer cache from common pool (unified page cache in OS), writes are applied either
-1. **synchronously (write-through):** cache writes to disk immediately
-2. **asynchronously (write-back):** cache stores dirty block in memory and writes back after delay
-
-**disk buffer benefits:**
-1. improved performance due to reduced disk I/O
-2. single copy of block in memory, so no inconsistency across processes
-
-**hard disk internals:** a set of 512 byte blocks (sectors) that can be read/written atomically, one or more platters connected by a spindle spin at ~10K rpm, each plater has a disk head & arm attached to it, a platter is divided into multiple tracks and each track into 512 byte sectors
-
-**hard disk sector access:** seek to correct track while waiting for disk to rotate, example: sector 30 to 11
-
-![](./media/operating_systems/hard_disk_sector_access.png)
-
-**time taken for I/O operation:** given high seek & rotational latency usually rate of sequential access > rate of random access
-1. seek time to get to right track (few ms)
-2. rotational latency for disk to spin to correct sector (few ms)
-3. data transfer time to read sector (few tens μs)
-
-**disk scheduling:** requests to disk are not served in FIFO, they are reordered with other pending requests in order to read blocks in sequence as far as possible (to minimize seek time & rotational delay), OS does not know internal geometry of disk so scheduling done mostly by disk controller
-
-**shortest seek time first (SSTF):** access block that we can seek to fastest, problem - some requests that are far from current position or head may never get served (starvation), example: from 30 go to 21 before 2
-
-![](./media/operating_systems/shortest_seek_time_first.png)
-
-**elevator/scan algorithm:** disk head does one sweep over tracks and serves requests that fall on the path
-1. **elevator/scan:** sweep outer to inner then inner to outer
-2. **c-scam:** sweep only one direction and circle back to start again, sweeping back & forth favors middle tracks more
-3. **f-scan:** freeze queue while scanning, avoid starving far away requests
-
-**shortest positioning time first (SPTF):** considers both seek time & rotational latency, example: better to serve 8 before 16 even though seek time is higher but 16 incurs a much higher rotational latency
-
-![](./media/operating_systems/shortest_positioning_time_first.png)
-
-**error detection/correction:** bits stored on disk with some error detection/correction bits, correct random bit flips or detect corruption of data, disk controller or OS can handle some errors (blacklisting certain sectors), if errors cannot be masked user perceives hard disk failures
-
-**redundant array of inexpensive disks (RAID):** provide high reliability & performance by replicating across multiple disks
+### hard disk internals
+- **hard disk internals:** a set of 512 byte blocks (sectors) that can be read/written atomically, one or more platters connected by a spindle spin at ~10K rpm, each plater has a disk head & arm attached to it, a platter is divided into multiple tracks and each track into 512 byte sectors  
+  ![](./media/operating_systems/hard_disk_internals.png)
+- **hard disk sector access:** seek to the correct track while waiting for disk to rotate, example: sector 30 to 11  
+  ![](./media/operating_systems/hard_disk_sector_access.png)
+- **time taken for I/O operation:** given high seek & rotational latency usually rate of sequential access is much higher than random access
+  - seek time to get to right track (few ms)
+  - rotational latency for disk to spin to correct sector (few ms)
+  - data transfer time to read sector (few tens μs)
+- **disk scheduling:** requests to disk are not served in FIFO, they are reordered with other pending requests in order to read blocks in sequence as far as possible (to minimize seek time & rotational delay), OS does not know internal geometry of disk so scheduling done mostly by disk controller
+  - **shortest seek time first (SSTF):** access block that we can seek to fastest, problem: some requests that are far from current position or head may never get served (starvation), example: from 30 go to 21 before 2  
+    ![](./media/operating_systems/shortest_seek_time_first.png)
+  - **elevator/SCAN algorithm:** disk head does one sweep over tracks and serves requests that fall on the path
+    - **elevator/SCAN:** sweep outer to inner then inner to outer
+    - **circular-SCAN:** sweep only one direction and circle back to start again, sweeping back & forth favors middle tracks more
+    - **freeze-SCAN:** freeze queue while scanning to avoid starving far away requests
+  - **shortest positioning time first (SPTF):** considers both seek time & rotational latency, example: better to serve 8 before 16 even though seek time is higher but 16 incurs a much higher rotational latency  
+    ![](./media/operating_systems/shortest_positioning_time_first.png)
+- **error detection/correction:** bits stored on disk with some error detection/correction bits, correct random bit flips or detect corruption of data, disk controller or OS can handle some errors (blacklisting certain sectors), if errors cannot be masked user perceives hard disk failures
+- **redundant array of inexpensive disks (RAID):** provide high reliability & performance by replicating across multiple disks
