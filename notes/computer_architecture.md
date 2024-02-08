@@ -32,9 +32,6 @@
 - **example: rowhammer:** repeatedly opening & closing a DRAM row (aggressor row) enough times within a refresh interval induces disturbance errors due to charge getting drained out in adjacent rows (victim row), happens due to electrical interference, malicious program can flip protection bit in page table entries to access some privileged location  
   *"it's like breaking into an apartment by repeatedly slamming a neighbor's door until vibrations open the door you were after"*  
   ![](./media/computer_architecture/rowhammer.png)
-
-[continue](https://www.youtube.com/watch?v=345xVgiBr-E&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=3)
-
 - **example: memory performance attacks:** in a multi-core system to increase throughput DRAM controller services row-hit access first so programs with good memory spatial locality are preferred, DRAM controller vulnerable to denial of service attacks  
   ![](./media/computer_architecture/dram_controller.png)
 - **example: DRAM refresh:** a DRAM cell consists of a capacitor & an access transistor, data is stored in terms of charge status of capacitor but charge leaks over time, memory controller needs to refresh each row periodically to restore charge, increases energy consumption & DRAM bank unavailable while refreshing, only small % have low retention time (manufacturing process variation), check bins to determine refresh rate of a row once profiling (retention time of all DRAM rows) is done  
