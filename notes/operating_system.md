@@ -260,6 +260,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
     - **address translation:** first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs  
       ![](./media/operating_systems/multilevel_pagetable_address.png)
 
+
 ### demand paging
 - **demand paging:** main memory not always enough to store all the pages of all active processes, OS uses a part of disk (swap space) to store pages that are not in active use  
   ![](./media/operating_systems/swap_space.png)
@@ -307,7 +308,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
 ## concurrency
 
 ### threads and concurrency
-- **thread:** is like another copy of a process that executes independently, excapt threads share the same address space (code & heap), each thread has seperate PC and stack for independent function calls  
+- **thread:** is like another copy of a process that executes independently, excapt threads share the same address space (code & heap), each thread has seperate PC and stack for independent function calls
   ![](./media/operating_systems/single_vs_multi_threaded.png)
 - **process vs thread:**
   - **parent forks a child:** parent & child do not share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
@@ -703,7 +704,7 @@ OS maintains a data structure (made up of PCBs) of all active processes
 - **interrupt handler:** interrupt switches process to kernel mode, interrupt descriptor table (IDT) stores pointers to interrupt handlers (interrupt service routines (ISR)), IRQ number identifies the interrupt handler to run for a device, interrupt handler acts upon device notification and unblocks the process waiting for I/O (if any) then starts next I/O request (if any pending), handling interrupts imposes kernel mode transition overheads (polling may be faster than interrupts if device is fast)
 - **direct memory access (DMA):** cpu cycles wasted in copying data to/from device, instead special piece of hardware (DMA engine) copies from main memory to device, CPU gives DMA engine the memory location, size & destination of data, in case of read interrupt raised after DMA completes, in case of write disk starts writing after DMA completes  
   ![](./media/operating_systems/direct_memory_access.png)
-- **device driver:** part of OS code that talks to specific device, gives commands and handles interrupts, most OS code abstracts the device details, example: file system code is written on top of a generic block device  
+- **device driver:** part of OS code that talks to specific device, gives commands and handles interrupts, most OS code abstracts the device details, example: file system code is written on top of a generic block device
   ![](./media/operating_systems/device_driver.png)
 
 ### files & directories
