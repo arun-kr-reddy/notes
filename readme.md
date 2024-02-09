@@ -9,12 +9,12 @@
 ## notes
 
 ### completed
+- [C++](./notes/cplusplus.md)
+- [operating systems](./notes/operating_system.md)
 
 ### in progress
 - [programming](./notes/programming.md)
 - [computer architecture](./notes/computer_architecture.md)
-- [operating systems](./notes/operating_system.md)
-- [C++](./notes/cplusplus.md)
 - [tools](./notes/tools.md)
 
 ### todo

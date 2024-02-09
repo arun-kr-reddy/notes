@@ -187,8 +187,7 @@ this is possible through recursion because we always count down here & 0 high to
             (single move n from to)          ; move "n"th disk "from" to "to"
             (move (-1+ n) spare to from))))  ; move "n-1" disks "spare" to "to" using "from" as spare
   ```  
-  ![](media/programming/towers_of_hanoi_1.png)  
-  ![](media/programming/towers_of_hanoi_2.png)
+  ![](media/programming/towers_of_hanoi.png)  
 
 ## higher order procedures
 - whenever trying to make complicated systems and understand them, it is crucual to divide the things up into as many pieces as I can, each of which I understand separately  
