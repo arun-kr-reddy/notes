@@ -28,7 +28,7 @@
 - [[lectures] operating system](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
 
 ## todo  <!-- omit from toc -->
-- [belady's anomaly](https://en.wikipedia.org/wiki/B%C3%A9l%C3%A1dy%27s_anomaly#:~:text=In%20computer%20storage%2C%20B%C3%A9l%C3%A1dy's%20anomaly,(FIFO)%20page%20replacement%20algorithm.)
+- [Belady's anomaly](https://en.wikipedia.org/wiki/B%C3%A9l%C3%A1dy%27s_anomaly#:~:text=In%20computer%20storage%2C%20B%C3%A9l%C3%A1dy's%20anomaly,(FIFO)%20page%20replacement%20algorithm.)
 - multi-threading programming using pthread & cpp threads
 - IPC using cpp
 
