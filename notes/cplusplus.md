@@ -69,7 +69,7 @@
   # argv[] == {"exe_main", "command", "line", "arguments"}
   ```
 - **compiler:** preprocessor ⟶ compiler ⟶ assembler ⟶ linker  
-  ![](./media/cpp/compilation_stages.png)
+  ![](./media/cplusplus/compilation_stages.png)
   ```sh
   -std=c++11        # set C++ standard
   -Wall             # all warnings
@@ -107,18 +107,18 @@
   A<<2  = 1111 0000     RSH
   A>>2  = 0000 1111     LSH
   ```
-  - **example: XOR number swap:**
-    ```cpp
-    x = x ^ y;  // x == x ^ y
-    y = x ^ y;  // y == (x ^ y) ^ y ⟶ (y ^ y) ^ x ⟶ 0 ^ x ⟶ x
-    x = x ^ y;  // x == (x ^ y) ^ x ⟶ (x ^ x) ^ y ⟶ 0 ^ y ⟶ y
-    ```
-  - **example: bit manipulation:**
-    ```cpp
-    #define setBit(num, idx) (num |= (0x1 << idx))     // num |= 1 << idx;
-    #define clearBit(num, idx) (num &= ~(0x1 << idx))  // num &= ~(1 << idx);
-    #define flipBit(num, idx) (num ^= (0x1 << idx))    // num ^= 1 << idx;
-    ```
+  example: XOR number swap:
+  ```cpp
+  x = x ^ y;  // x == x ^ y
+  y = x ^ y;  // y == (x ^ y) ^ y ⟶ (y ^ y) ^ x ⟶ 0 ^ x ⟶ x
+  x = x ^ y;  // x == (x ^ y) ^ x ⟶ (x ^ x) ^ y ⟶ 0 ^ y ⟶ y
+  ```
+  example: bit manipulation:
+  ```cpp
+  #define setBit(num, idx) (num |= (0x1 << idx))     // num |= 1 << idx;
+  #define clearBit(num, idx) (num &= ~(0x1 << idx))  // num &= ~(1 << idx);
+  #define flipBit(num, idx) (num ^= (0x1 << idx))    // num ^= 1 << idx;
+  ```
 - **ranged for loop:**
   ```cpp
   int a[] = {0, 1, 5};
@@ -128,12 +128,11 @@
       std::cout << n << " "; // 0 1 5
   }
   ```
-- **infinite loop:**
-  ```cpp
+- ```cpp
   for (;;)   // K&R style, no warning
   while (1)  // readable but compiler warning for condition always true
   ```
-- ```cpp
+  ```cpp
   while (i = 0)   // set i, use i as condition (0 here)
   while (i == 0)  // use (i == 0) condition
   ```
@@ -168,20 +167,20 @@
   // definition: implementation
   void printSum(int a, int b) { std::cout << a + b << std::endl; }
   ```
-  - **overloading:** pick from all function with same name but different arguments (not return type), picked at compile-time
+  - overloading: pick from all function with same name but different arguments (not return type), picked at compile-time
     ```cpp
     void printSum(int a, int b);
     void printSum(double a, double b);
     ```
-  - **default arguments:** only in declaration, after mandatory arguments
+  - default arguments: only in declaration, after mandatory arguments
     ```cpp
     int printSum(int a, int b, int c = 0, int d = 0);
     ```
 - **argument passing:** use pass-by-reference (pointer or reference) to prevent copying of large objects, const reference to prevent copy & modification  
-  ![](./media/cpp/pass_by_reference_vs_value.gif)
+  ![](./media/cplusplus/pass_by_reference_vs_value.gif)
 
 - **library:** logically connected multiple object files
-  - **static:** linked into final executable, faster, takes lot of space, `*.a`
+  - static: linked into final executable, faster, takes lot of space, `*.a`
     ```sh
     ar rcs lib.a module1.o module2.o
     # rcs: replace, create, sort
@@ -189,7 +188,7 @@
     # r: replace old files within library (if already exists)
     # s: create sorted index of library
     ```
-  - **dynamic:** loaded every time executable is executed, slower, can be copied, `*.so`
+  - dynamic: loaded every time executable is executed, slower, can be copied, `*.so`
     ```sh
     gcc -c -fPIC main.c -o main.o
     gcc -shared main.o -o libmain.so
@@ -202,10 +201,10 @@
   *itr         // current element
   ++itr        // next element
   ```  
-  ![](./media/cpp/iterator.png)
+  ![](./media/cplusplus/iterator.png)
 
 ### sequence
-- **sequence containers:** data structures that can be accessed sequentially
+- sequence containers: data structures that can be accessed sequentially
 - **string:**
   ```cpp
   #include <string>
@@ -250,7 +249,7 @@
   ```
 
 ### associative
-- **associative containers:** sorted data structures that can be quickly searched
+- associative containers: sorted data structures that can be quickly searched
 - **pair:**
   ```cpp
   #include <utility>
@@ -270,7 +269,7 @@
   ```
 
 ### unordered associative
-- **unordered associative containers:** unsorted hashed data structures that can be quickly searched
+- unordered associative containers: unsorted hashed data structures that can be quickly searched
 - **unordered map:** similar to map but unsorted, instead organized into buckets based on hash of its key
   ```cpp
   #include <unordered_map>
@@ -286,13 +285,13 @@
   // instead of
   using namespace std;  // especially in headers
   ```
-  - **nameless namespace:** local to translation unit, like static but can also take user defined types,
-    ```cpp
-    namespace
-    {
-    const int SIZE = 100;
-    }
-    ```
+  nameless namespace: local to translation unit, like static but can also take user defined types
+  ```cpp
+  namespace
+  {
+  const int SIZE = 100;
+  }
+  ```
 - **`class`:** to encapsulate data along with methods to process them, `this` is pointer to current object
   ```cpp
   class someClass
@@ -325,57 +324,57 @@
   someClass var_2{10, 11};     // custom constructor with argument type checking
   someClass var_3 = {10, 11};  // same as var_2
   ```
-- **`static`:** must be defined in *.cpp file
-  - **member variable:** exists once per class (not per object), value equal across all objects, example: reference counter
-    ```cpp
-    class countedClass
-    {
-        countedClass() { countedClass::count++; }
-        ~countedClass() { countedClass::count--; }
+- **`static`**:
+  static variable: exists once per class (not per object), value equal across all objects, example: reference counter, must be defined in *.cpp file
+  ```cpp
+  class countedClass
+  {
+      countedClass() { countedClass::count++; }
+      ~countedClass() { countedClass::count--; }
 
-        static int count;
-    }
-    ```
-  - **member function:** doesn't need an object, only needs an object to access private members
-    ```cpp
-    // static member function call
-    someClass::staticFunc(args);
-    ```
-- **`struct`:** `class` where everything is `public`
-  - **braced initialization:** struct members should be uninitialized for this
-    ```cpp
-    struct someStruct
-    {
-        int a;
-        string b;
-    };
+      static int count;
+  }
+  ```
+  static function: doesn't need an object, only needs an object to access private members, must be defined in *.cpp file
+  ```cpp
+  // static member function call
+  someClass::staticFunc(args);
+  ```
+- **`struct`:** is a `class` where everything is `public`  
+  braced initialization: struct members should be uninitialized for this
+  ```cpp
+  struct someStruct
+  {
+      int a;
+      string b;
+  };
 
-    void printStruct(someStruct& s)
-    {
-        cout << s.a << s.b << endl;
-    }
+  void printStruct(someStruct& s)
+  {
+      cout << s.a << s.b << endl;
+  }
 
-    int main()
-    {
-        printStruct({10, "world"});  // braced initialization
-        return 0;
-    }
-    ```
-  - **struct padding:** align members to natural address boundaries  
-    **struct packing:** prevent padding
-  - **struct bitfields:** pointer not possible since size can be smaller than granularity allowed by pointers
-    ```cpp
-    typedef struct
-    {
-        uint8_t a : 4;
-        uint8_t b : 4;
-    } two_nibbles;
+  int main()
+  {
+      printStruct({10, "world"});  // braced initialization
+      return 0;
+  }
+  ```
+  padding: align members to natural address boundaries  
+  packing: prevent padding
+  bitfields: pointer not possible since size can be smaller than granularity allowed by pointers
+  ```cpp
+  typedef struct
+  {
+      uint8_t a : 4;
+      uint8_t b : 4;
+  } two_nibbles;
 
-    two_nibbles temp;
-    temp.a = 5;
-    temp.b = 17;
-    printf("%u %u %u\n", sizeof(temp), temp.a, temp.b);  // 1 5 1 (b overflowed)
-    ```
+  two_nibbles temp;
+  temp.a = 5;
+  temp.b = 17;
+  printf("%u %u %u\n", sizeof(temp), temp.a, temp.b);  // 1 5 1 (b overflowed)
+  ```
 - **resource acquisition is initialization (RAII):** resource allocation/acquisition/initialization is done by the constructor, while resource deallocation/release/deinitialization is done by the destructor
 - **forward declaration:**
   ```cpp
@@ -397,9 +396,9 @@
 - **lvalue:** occupies memory  
   **rvalue:** everything else, defined using `&&`
 - **`std::move`:** converts lvalue to rvalue, transfers ownership, dont access moved variable (undefined by cpp standard), performance better than copying but worse than passing by reference
-    ```cpp
-    int b = std::move(a)  // memory tranferred to b
-    ```
+  ```cpp
+  int b = std::move(a)  // memory tranferred to b
+  ```
 - **copy/move constructor/assignment operator:** use move constructor/assignment operator to take ownership of another object
   ```cpp
   myClass(myClass &other) {}              // copy constructor
@@ -407,7 +406,7 @@
   myClass(myClass &&other) {}             // move constructor
   myClass &operator=(myClass &&other) {}  // move assignment operator
   ```
-- ```cpp
+  ```cpp
   myClass a;      // default constructor
   myClass b(a);   // copy constructor
   myClass c = a;  // copy constructor
@@ -417,25 +416,23 @@
   myClass c = std::move(b);  // move constructor
   a = std::move(b);          // move assign operator
   ```
-- **rule of all or nothing:** define all 6 special functions (destructor + constructor + above 4) or define none, if none defined `default` functions used  
-if class has constant data member then above 4 functions are implicitly marked `delete` by compiler
+- **rule of all or nothing:** define all 6 special functions (destructor + constructor + above 4) or define none, if none defined `default` functions used, if class has constant data member then above 4 functions are implicitly marked `delete` by compiler
   ```cpp
   myClass() = default;               // autogenerated functions, may use shallow copy
   myClass(myClass &other) = delete;  // compilation error if called
   ```
-  - `delete` can be used to disallow certain functions as well (alternative to `{ }`)
-    ```cpp
-    class someClass
-    {
-    public:
-        int someFunc(int num) {}
-        int someFunc(double size) = delete;
-    }
-    ```
+- `delete` can be used to disallow certain functions as an alternative to `{ }`
+  ```cpp
+  class someClass
+  {
+  public:
+      int someFunc(int num) {}
+      int someFunc(double size) = delete;
+  }
+  ```
 
 ### inheritance
-- **inheritance:** inherit public & protected data & functions from another class, seperate 6 special functions & private members  
-three types: public (public & protected same as base), protected (both protected) & private (both private)
+- **inheritance:** inherit public & protected data & functions from another class, seperate 6 special functions & private members
   ```cpp
   class rectangleClass
   {
@@ -453,14 +450,18 @@ three types: public (public & protected same as base), protected (both protected
       squareClass(size) : rectangleClass(size, size) {}
   };
   ```
-- **composition:** combining simpler objects to make more complex ones
-  - inheritance is `is a` relationship, example: square is a rectangle
-  - composition is `has a` relationship, example: car has a wheel
+- types:
+  - `public`: public & protected same as base
+  - `protected`: both protected
+  -  `private`: both private
+- **composition:** combining simpler objects to make more complex ones  
+  inheritance is `is a` relationship, example: square is a rectangle  
+  composition is `has a` relationship, example: car has a wheel
 
 ### polymorphism
 - **polymorphism:** ability to present same interface for differing underlying implementations, inherited classes may have different functionality but share a common interface
-  - **compile-time:** function & operator overloading
-  - **run-time:** function overriding, used for generic class references
+  - compile-time: function & operator overloading
+  - run-time: function overriding, used for generic class references
     ```cpp
     derivedClass1 a;
     derivedClass2 b;
@@ -501,10 +502,8 @@ three types: public (public & protected same as base), protected (both protected
   ```cpp
   virtual myFunc() = 0;
   ```
-- **abstract class:** class with atleast one pure virtual function, cannot create object
-- **interface:** class with only pure virtual functions & no data members
-- **example: strategy pattern:** encapsulate a family of algorithms into separate classes that implement a common interface  
-  ![](./media/cpp/strategy_pattern.png)
+  **abstract class:** class with atleast one pure virtual function, cannot create object  
+  **interface:** class with only pure virtual functions & no data members
 
 ## file & string stream
 - **fstream:** read/write file
@@ -512,17 +511,17 @@ three types: public (public & protected same as base), protected (both protected
   #include <fstream>
   std::fstream file(string& filename, Mode std::ios_base::mode);
   ```
-  - **modes:**
-    ```cpp
-    in      // for reading
-    out     // for writing
-    binary  // in binary mode
-    app     // append output
-    ate     // seek to EOF when opened
-    trunc   // overwrite existing file
-    ```
-- **`ifstream`:** `fstream` with default mode `in`  
-  **`ofstream`:** `fstream` with default mode `out`
+  ```cpp
+  // modes
+  in      // for reading
+  out     // for writing
+  binary  // in binary mode
+  app     // append output
+  ate     // seek to EOF when opened
+  trunc   // overwrite existing file
+  ```
+  `ifstream`: file stream with default mode `in`  
+  `ofstream`: file stream with default mode `out`
 - ```cpp
   // read one line at a time
   while (getline(ifstream, string))
@@ -530,16 +529,16 @@ three types: public (public & protected same as base), protected (both protected
       // process line
   }
   ```
-- ```cpp
+  ```cpp
   // binary data
   std::ofstream output_file("output.bin", ios_base::out | ios_base::binary);
   output_file.write(reinterpret_cast<char*>(data), sizeof(data));
   ```
-- **example: read regular columns:** that every line should have all columns
+- example: read regular columns: every line should have all columns
   ```cpp
-  // 1 one   0.1
-  // 2 two   0.2
-  // 3 three 0.3
+  // 1   one     0.1
+  // 2   two     0.2
+  // 3   three   0.3
 
   int a;
   string b;
@@ -574,10 +573,10 @@ three types: public (public & protected same as base), protected (both protected
 
 ## memory
 - **type qualifiers:** C++ only has first two
-  - **`const`:** read-only
-  - **`volatile`:** value can be changed by something beyond the program, no caching, `const volatile` for read-only status register
-  - **`restrict`:** optimization hint to compiler that during its lifetime no other pointer will be used to access the same memory
-  - **`_Atomic`:** read-modify-write operators guaranteed in single instruction, free from data races
+  - `const`: read-only
+  - `volatile`: value might be changed by something beyond the program, no caching, use `const volatile` for read-only status register
+  - `restrict`: optimization hint to compiler that during its lifetime no other pointer will be used to access the same memory
+  - `_Atomic`: read-modify-write operators guaranteed in single instruction, free from data races
     ```cpp
     #include <iostream>
     #include <sstream>
@@ -590,10 +589,10 @@ three types: public (public & protected same as base), protected (both protected
     const _Atomic(int) *p3;  // same
     ```
 - **storage class specifier:**
-  - **`auto`:** default
-  - **`register`:** hint to compiler to place it in processor's register
-  - **`static`:** local static variable keeps its value between invocations, global static variable/function local to translation unit
-  - **`extern`:** used for external linkages, only mention specifier for declarations & keep them in header, cross checking between translation units
+  - `auto`: default
+  - `register`: hint to compiler to place it in processor's register
+  - `static`: local static variable keeps its value between invocations, global static variable/function local to translation unit
+  - `extern`: used for external linkages, only mention specifier for declarations & keep them in header, cross checking between translation units
     ```cpp
     // header.h
     extern int g_val;
@@ -609,30 +608,31 @@ three types: public (public & protected same as base), protected (both protected
     printf("%d\n", g_val);        // 77
     printf("%d\n", increment());  // 78
     ```
-  - **`mutable`:** C++ only, to allow a particular data member of const object to be modified, example: mutexes
-- **1s complement:** invert all bits  
-  **2s complement:** add 1 to 1s complement
-- **integer representation:** negative numbers stored as 2s complement
-  - **signed:** `-2^(n-1)` to `2^(n-1) - 1`  
-    both `128` & `-128` have same 8-bit 2s complement (`10000000`), `-128` assumed since all bit-patterns with MSB set are negative
-  - **unsigned:** `0` to `2^(n) - 1`
-    ```cpp
-    00011001  //  25
-    11100110  //     (1s complement)
-    11100111  // -25 (2s complement)
-    ```
-- **integer promotion:** `signed` promoted to `unsigned` when mixed
+  - `mutable`: C++ only, to allow a particular data member of const object to be modified, example: mutexes
+- 1s complement: invert all bits  
+  2s complement: add 1 to 1s complement
+  ```cpp
+  00011001  //  25
+  11100110  //     (1s complement)
+  11100111  // -25 (2s complement)
+  ```
+- **integer representation:** negative numbers stored as 2s complement  
+  signed: `-2^(n-1)` to `2^(n-1) - 1`  
+  unsigned: `0` to `2^(n) - 1`  
+  integer promotion: `signed` promoted to `unsigned` when mixed
   ```cpp
   unsigned int a = 6;
   int b = -20;
   (a + b > 6) ? printf(">6") : printf("<=6");  // >6
   ```
-- **sign extension:** preserving sign while increasing number of bits of a binary number
+  sign extension: preserving sign while increasing number of bits of a binary number
   ```cpp
   1001 0110            //  8 bit (-106)
   1111 1111 1001 0110  // 16 bit (-106)
   ```
-- **float representation (IEEE 754):** single precision `1 + 8 + 23`, double precision `1 + 1 + 53`, half precision `1 + 5 + 10`  
+  both `128` & `-128` have same 8-bit 2s complement (`10000000`), so `-128` assumed since all bit-patterns with MSB set are negative
+- **float representation (IEEE 754):** single precision `1 + 8 + 23`, double precision `1 + 1 + 53`  
+  ![](./media/cplusplus/IEEE754.png)
   ```cpp
   263.3                            // floating number
   100000111.0100110011...          // binary
@@ -644,15 +644,14 @@ three types: public (public & protected same as base), protected (both protected
   mant = 00000111010011001100110   // bits after leading bit
 
   0 10000111 00000111010011001100110
-  ```  
-  ![](./media/cpp/IEEE754.png)
+  ```
 - **endianness:** order in which a sequence of bytes is stored in computer memory
   ```cpp
   value:          0x12345678
   big endian:     12, 34, 56, 78  // most significant byte at smallest memory address
   little endian:  78, 56, 34, 12  // least significant byte at smallest memory address
   ```
-- **example: endianness conversion:**
+  swap endianness:
   ```cpp
   uint32_t num = 9;
   uint32_t b0, b1, b2, b3;
@@ -666,8 +665,7 @@ three types: public (public & protected same as base), protected (both protected
   res = b0 | b1 | b2 | b3;
   ```
 - **memory layout:** each of the six different segments stores different parts of code and have their own read & write permissions  
-**segmentation fault:** error from a program trying to access the value stored in any segment differently than it is supposed to  
-  ![](./media/cpp/memory_layout.png)  
+  ![](./media/cplusplus/memory_layout.png)
   - **text:** read only instructions, `.rodata` read only const global data
   - **data:** initialized `global` & `static` variables (but `static` function in text)
   - **bss (b​lock started by symbol):** uninitialized, only size mentioned in executable, allocated after program load, initialized with 0 after allocation
@@ -675,25 +673,30 @@ three types: public (public & protected same as base), protected (both protected
     ```cpp
     float* f_ptr = new float[num];  // allocate array
     delete[] f_ptr;                 // delete array
-    ```
-    - **memory leak:** heap not dealloced or address lost (pointer reassigned)
-    - **dangling pointer:** pointing to dealloced memory
-    - **wild pointer:** pointing to random address
-  - **stack:** simple last-in-first-out (LIFO) structure, stores local variables, function params & inheritance virtual function table
-    - **stack pointer:** keeps track of top of the stacj
-    - **stack overflow:** program attempts to use more memory than is available on stack, usually due to deep/infinite recursion leading to stack shortage
-    - **stack frame:** function data (return addr, args, local vars) pushed onto stack, on ARM first 4 args stored `r0` to `r3`  
+    ```  
+    memory leak: heap not dealloced or address lost (pointer reassigned)  
+    dangling pointer: pointing to dealloced memory  
+    wild pointer: pointing to random address
+  - **stack:** simple last-in-first-out (LIFO) structure, stores local variables, function params & inheritance virtual function table  
+    stack pointer: keeps track of top of the stack  
+    stack overflow: program attempts to use more memory than is available on stack, usually due to deep/infinite recursion leading to stack shortage  
+    stack frame: function data (return addr, args, local vars) pushed onto stack, on ARM first 4 args stored `r0` to `r3`  
     `ebp` (frame pointer) is used to backup `esp` (stack pointer), while `esp` is being modified by the current function  
-    ![](./media/cpp/stack.png)
-- **fragmentation:**
-  - **internal:** total memory space is enough but it is allocated in large number of non-contiguous blocks leaving large part of total memory unallocated but unusable
-  - **external:** memory page assigned to a process is larger than what is being allocated & unused part cannot be used by another process
+    ![](./media/cplusplus/stack.png)
+- **segmentation fault:** error from a program trying to access the value stored in any segment differently than it is supposed to
 - **shallow copying:** just copy pointers, not data (default copy constructor/assignment op), can lead to dangling pointer when object shallow copied  
   **deep copying:** copy data, create new pointers
 
 ## pointers
-- **pointer vs reference:** own memory vs alias, no init required vs init in declaration, can reassign vs cannot, can be NULL vs cannot, indirection (levels of pointers) vs single level, can apply arithematic operations vs cannot, can store in vector/array vs cannot
-- **`->` operator:** `obj->myFunc()` is same as `(*obj).myFunc()`
+- pointer vs reference:  
+  own memory vs alias  
+  no init required vs init in declaration  
+  can reassign vs cannot  
+  can be NULL vs cannot  
+  indirection (levels of pointers) vs single level  
+  can apply arithematic operations vs cannot  
+  can store in vector/array vs cannot
+- **arrow operator:** `obj->myFunc()` is same as `(*obj).myFunc()`
 - **pointer polymorphism:** used for strategy pattern, initialize to NULL & check interface pointer before calling its methods
   ```cpp
   derivedClass a;
@@ -711,13 +714,13 @@ three types: public (public & protected same as base), protected (both protected
   #include <memory>
   sPtr.get();  // get raw pointer
   ```
-  - **unique:** can be moved but cannot be copied, memory always owned by single unique pointer
+  - unique: can be moved but cannot be copied, memory always owned by single unique pointer
     ```cpp
     auto uPtr = std::unique_ptr<myType>(new myType);        // default constructor
     auto uPtr = std::unique_ptr<myType>(new myType(args));  // custom constructor
     auto uPtr = std::make_unique<myType>(args);             // C++14
     ```
-  - **shared:** `std::shared_ptr`, can be copied, `usage_count` incremented/decremented when copied/destructed, mem freed when `usage_count == 0`
+  - shared: `std::shared_ptr`, can be copied, `usage_count` incremented/decremented when copied/destructed, mem freed when `usage_count == 0`
     ```cpp
     auto sPtr = std::shared_ptr<myType>(new myType);        // default constructor
     auto sPtr = std::shared_ptr<myType>(new myType(args));  // custom constructor
@@ -748,13 +751,13 @@ three types: public (public & protected same as base), protected (both protected
         return 0;                                           // dead
     }
     ```
-- **example: smart pointer with local variable:** both stack & smart pointer will try to dealloc that memory leading to error
+- example: smart pointer with local variable: both stack & smart pointer will try to dealloc that memory leading to error
   ```cpp
       int a = 0;
       auto a_ptr = std ::unique_ptr<int>(&a);
       return 0;  // *** Error in `file ': free (): invalid pointer: 0 x00007fff30a9a7bc ***
   ```
-- **example: smart pointer polymorphism:** good way of using smart pointer
+- example: smart pointer polymorphism: good way of using smart pointer
   ```cpp
   std::vector<unique_ptr<baseClass>> vec;
 
@@ -768,13 +771,13 @@ three types: public (public & protected same as base), protected (both protected
   return 0;  // both dealloced
   ```
 - **type casting:** converting expression of given type into another type
-  - **implicit:** change types without changing the value, happens automatically, lower data type converted to higher type
+  - implicit: change types without changing the value, happens automatically, lower data type converted to higher type
     ```cpp
     short a = 1024;
     int b = 5;
     b = a;  // implicit conversion
     ```
-  - **explicit:** force type conversion, two types
+  - explicit: force type conversion, two types
     ```cpp
     float a = 1.2;
     int b = (int)a + 1;  // C-like notation explicit coversion
@@ -783,14 +786,14 @@ three types: public (public & protected same as base), protected (both protected
     ```cpp
     unsigned char u = (unsigned char)(-9);  // same bit pattern (2s complement), 247
     ```
-  - **type casting operators:**
-    ```cpp
-      // newType new_var = static_cast<newType>(var);
-      static_cast       // compile-time implicit convertion
-      const_cast        // remove const from const ref of non-const variable
-      reinterpret_cast  // reinterpret bytes of one type as another type
-      dynamic_cast      // runtime convertion of derivedClass pointer to baseClass pointer, nullptr if failed
-      ```
+- **type casting operators:**
+  ```cpp
+    // newType new_var = static_cast<newType>(var);
+    static_cast       // compile-time implicit convertion
+    const_cast        // remove const from const ref of non-const variable
+    reinterpret_cast  // reinterpret bytes of one type as another type
+    dynamic_cast      // runtime convertion of derivedClass pointer to baseClass pointer, nullptr if failed
+    ```
 - **function pointer:**
   ```cpp
   int foo(int);     // function
@@ -832,102 +835,102 @@ three types: public (public & protected same as base), protected (both protected
   step3: look at the symbols to the left of identifier, continue until you run out of symbols ot hit `(`
   step4: repeat step 2 & 3 still complete declaration is formed
   ```
-    - ```cpp
-      int *p[];
+  ```cpp
+  int *p[];
 
-      int *p[];         // step1
-          ^             // p is
+  int *p[];         // step1
+      ^             // p is
 
-      int *p[];         // step2, cant move right
-            ^^          // p is array of
+  int *p[];         // step2, cant move right
+        ^^          // p is array of
 
-      int *p[];         // step3
-          ^             // p is array of pointer to
+  int *p[];         // step3
+      ^             // p is array of pointer to
 
-      int *p[];         // step3
-      ^^^               // p is array of pointer to int
-      ```
-    - ```cpp
-      int *(*func())();
+  int *p[];         // step3
+  ^^^               // p is array of pointer to int
+  ```
+  ```cpp
+  int *(*func())();
 
-      int *(*func())();   // step1
-             ^^^^         // func is
+  int *(*func())();   // step1
+          ^^^^         // func is
 
-      int *(*func())();   // step2, cant move right
-                 ^^       // func is function returning
+  int *(*func())();   // step2, cant move right
+              ^^       // func is function returning
 
-      int *(*func())();   // step3, cant move left
-            ^             // func is function returning pointer to
+  int *(*func())();   // step3, cant move left
+        ^             // func is function returning pointer to
 
-      int *(*func())();   // step2, cant move right
-                    ^^    // func is function returning pointer to function returning
+  int *(*func())();   // step2, cant move right
+                ^^    // func is function returning pointer to function returning
 
-      int *(*func())();   // step3
-          ^               // func is function returning pointer to function returning pointer to
+  int *(*func())();   // step3
+      ^               // func is function returning pointer to function returning pointer to
 
-      int *(*func())();   // step3
-      ^^^                 // func is function returning pointer to function returning pointer to int
-      ```
-    - ```cpp
-      int (*(*fun_one)(char*,double))[9][20];
-      int (*(*fun_one)())[][];  // without arguments or array sizes
-      // fun_one is pointer to function expecting (char*, double) and 
-      // returning pointer to 2D array (size 9X20) of int
-      ```
-  - ```cpp
-    int i;           // an int
-    int *p;          // an int pointer (ptr to an int)
-    int a[];         // an array of ints
-    int f();         // a function returning an int
-    int **pp;        // a pointer to an int pointer (ptr to a ptr to an int)
-    int (*pa)[];     // a pointer to an array of ints
-    int (*pf)();     // a pointer to a function returning an int
-    int *ap[];       // an array of int pointers (array of ptrs to ints)
-    int aa[][];      // an array of arrays of ints
-    int *fp();       // a function returning an int pointer
-    int ***ppp;      // a pointer to a pointer to an int pointer
-    int (**ppa)[];   // a pointer to a pointer to an array of ints
-    int (**ppf)();   // a pointer to a pointer to a function returning an int
-    int *(*pap)[];   // a pointer to an array of int pointers
-    int (*paa)[][];  // a pointer to an array of arrays of ints
-    int *(*pfp)();   // a pointer to a function returning an int pointer
-    int **app[];     // an array of pointers to int pointers
-    int (*apa[])[];  // an array of pointers to arrays of ints
-    int (*apf[])();  // an array of pointers to functions returning an int
-    int *aap[][];    // an array of arrays of int pointers
-    int aaa[][][];   // an array of arrays of arrays of int
-    int **fpp();     // a function returning a pointer to an int pointer
-    int (*fpa())[];  // a function returning a pointer to an array of ints
-    int (*fpf())();  // a function returning a pointer to a function returning an int
-    ```
+  int *(*func())();   // step3
+  ^^^                 // func is function returning pointer to function returning pointer to int
+  ```
+  ```cpp
+  int (*(*fun_one)(char*,double))[9][20];
+  int (*(*fun_one)())[][];  // without arguments or array sizes
+  // fun_one is pointer to function expecting (char*, double) and 
+  // returning pointer to 2D array (size 9X20) of int
+  ```
+  ```cpp
+  int i;           // an int
+  int *p;          // an int pointer (ptr to an int)
+  int a[];         // an array of ints
+  int f();         // a function returning an int
+  int **pp;        // a pointer to an int pointer (ptr to a ptr to an int)
+  int (*pa)[];     // a pointer to an array of ints
+  int (*pf)();     // a pointer to a function returning an int
+  int *ap[];       // an array of int pointers (array of ptrs to ints)
+  int aa[][];      // an array of arrays of ints
+  int *fp();       // a function returning an int pointer
+  int ***ppp;      // a pointer to a pointer to an int pointer
+  int (**ppa)[];   // a pointer to a pointer to an array of ints
+  int (**ppf)();   // a pointer to a pointer to a function returning an int
+  int *(*pap)[];   // a pointer to an array of int pointers
+  int (*paa)[][];  // a pointer to an array of arrays of ints
+  int *(*pfp)();   // a pointer to a function returning an int pointer
+  int **app[];     // an array of pointers to int pointers
+  int (*apa[])[];  // an array of pointers to arrays of ints
+  int (*apf[])();  // an array of pointers to functions returning an int
+  int *aap[][];    // an array of arrays of int pointers
+  int aaa[][][];   // an array of arrays of arrays of int
+  int **fpp();     // a function returning a pointer to an int pointer
+  int (*fpa())[];  // a function returning a pointer to an array of ints
+  int (*fpf())();  // a function returning a pointer to a function returning an int
+  ```
 
 ## templates
 - **generic programming:** seperate algorithms from data type
-- **templates:** compile-time type-independent/generic algorithms, `<T>` macro expanded, no definition till expansion (linker error)
-  - **template function:** can use any type that is copy constructable, assignable & defined by the time template compiled (custom classes)
-    ```cpp
-    template <typename T>  // can use typename or class keyword
-    T func1(const T &arg1)
-    {
-    }
+- **templates:** compile-time type-independent/generic algorithms, `<T>` macro expanded, no definition till expansion is done (linker error)  
+  template function: can use any type that is copy constructable, assignable & defined by the time template compiled (custom classes)
+  ```cpp
+  template <typename T>  // can use typename or class keyword
+  T func1(const T &arg1)
+  {
+  }
 
-    func(10);     // type infered by compiler
-    func<int>();  // explicit type (in case data type cannot be determined by compiler)
-    ```
-  - **template class:** used for meta programming (programs that modify programs), compiler generates objects based on types we passed
-    ```cpp
-    template <typename T>
-    class myClass
-    {
-    public:
-        myClass(const T &var) : var_(var){};
+  func(10);     // type infered by compiler
+  func<int>();  // explicit type (in case data type cannot be determined by compiler)
+  ```
+  template class: used for meta programming (programs that modify programs), compiler generates objects based on types we passed
+  ```cpp
+  template <typename T>
+  class myClass
+  {
+  public:
+      myClass(const T &var) : var_(var){};
 
-    private:
-        T var_;
-    }
+  private:
+      T var_;
+  }
 
-    myClass<int> my_object(10);
-    ```
+  myClass<int> my_object(10);
+  ```
 - **specialization:** different template function/class implementation for a specific type
   ```cpp
   template <typename T>  // generic
@@ -943,18 +946,17 @@ three types: public (public & protected same as base), protected (both protected
   func<int>();     // specialized
   func<double>();  // generic
   ```
-- **template classes headers/source:** always declare & define in same `*.h` file, concrete template classes are generated at compile time, linker does not know about the implementation
-  - workaround: not scalable but declare in `*.h` file, implement in `*.cpp` but at the end create objects for types you expect to use
+- template classes headers/source: always declare & define in same `*.h` file, concrete template classes are generated at compile time, linker does not know about the implementation
 
 ## error handling
-- **exception:** thrown when there is an error, constructor of exception received a string error message, `what()` to get exception string
+- **exception:** thrown when there is an error, constructor of exception receives a string error message, use `what()` to get exception string
   - `logic_error`
   - `invalid_argument`
   - `domain_error`: not defined for certain domain
   - `length_error`: exceeds max size
   - `out_of_range`: access out of bounds
   - `runtime_error`
-  - `range_error`: requested operation doesn't make mathematical sense in the domain considered, *e.g.* `srqt(negative_number)` in real domain
+  - `range_error`: requested operation doesn't make mathematical sense in the domain considered, example: `srqt(negative_number)` in real domain
   - `overflow_error`/`underflow_error`: result exceeds capacity of underlying type
 - **`try`** ⟶ **`throw`** ⟶ **`catch`**
   ```cpp
@@ -1006,7 +1008,7 @@ three types: public (public & protected same as base), protected (both protected
   type2 c, d;  // both "c" & "d" pointer
   ```
 - **name mangling:** encoding of function/variable names so linker can seperate common names (overloading, namespaces)  
-to link C code use
+  to link C code use:
   ```cpp
   extern "C"
   {
@@ -1039,29 +1041,29 @@ to link C code use
   LL  // long long int, ULL
   F   // float
   ```
-- **enum:** assign names to integral constants, by default starts with 0
-  - **unscoped:** can implicitly convert
-  - **scoped:** implicit convertion leads to error, use `static_cast` if required
-    ```cpp
-    enum uFoo  // unscoped
-    {
-        a,
-        b,
-        c = 1,
-        d = b + c
-    };
+- **enum:** assign names to integral constants, by default starts with 0  
+  unscoped: can implicitly convert  
+  scoped: implicit convertion leads to error, use `static_cast` if required
+  ```cpp
+  enum uFoo  // unscoped
+  {
+      a,
+      b,
+      c = 1,
+      d = b + c
+  };
 
-    enum class sFoo  // scoped
-    {
-        a,
-        b,
-        c = 1,
-        d = b + c
-    };
+  enum class sFoo  // scoped
+  {
+      a,
+      b,
+      c = 1,
+      d = b + c
+  };
 
-    int enumValue = uFoo::a;  // implicit convertion
-    int enumValue = sFoo::a;  // error
-    ```
+  int enumValue = uFoo::a;  // implicit convertion
+  int enumValue = sFoo::a;  // error
+  ```
 - **union:** different variables of different types in same memory location
   ```cpp
   union unn
@@ -1117,14 +1119,14 @@ to link C code use
   ```
 
 ### cpp core guidelines
-- **basics:**
+- basics:
   ```cpp
   int some_random_var;  // snake case
   int some-random-var;  // kebab case
   int someRandomVar;    // camel case
   int SomeRandomVar;    // pascal case
   ```
-- **naming:**
+- naming:
   ```cpp
   // snake_case: variables
   int some_var;

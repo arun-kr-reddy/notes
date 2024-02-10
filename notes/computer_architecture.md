@@ -13,7 +13,6 @@
 - [fine-grained multithreading](#fine-grained-multithreading)
 - [single instruction multiple data](#single-instruction-multiple-data)
 
-
 ## links  <!-- omit from toc -->
 
 ## todo  <!-- omit from toc -->
@@ -22,149 +21,138 @@
 - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
 - [hamming code](https://harryli0088.github.io/hamming-code/)
 - [ARM assembly](http://www.cburch.com/books/arm/)
+- [future computing architectures](https://www.youtube.com/watch?v=kgiZlSOcGFM)
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms
-- **abstraction:** higher level only needs to know about the interface to the lower level, not how the lower level is implemented
-- **levels of transformation:** improves productivity by creates abstractions, no need to worry about decisions made in underlying levels  
+- **abstraction:** higher level only needs to know about the interface to the lower level, not how the lower level is implemented  
+  levels of transformation: improves productivity by creates abstractions, no need to worry about decisions made in underlying levels  
+  *breaking the abstraction layers and knowing what is underneath enables you to understand & solve problems*  
   ![](./media/computer_architecture/levels_of_transformation.png)
-- *breaking the abstraction layers and knowing what is underneath enables you to understand & solve problems*
-- **example: meltdown & spectre:** speculative execution is doing something before you know it is needed to improve performance, but it leaves traces of data that was not supposed to be accessed in processor's cache, a malicious program can inspect the contents of the cache to infer secret data
-- **example: rowhammer:** repeatedly opening & closing a DRAM row (aggressor row) enough times within a refresh interval induces disturbance errors due to charge getting drained out in adjacent rows (victim row), happens due to electrical interference, malicious program can flip protection bit in page table entries to access some privileged location  
+- **meltdown & spectre:** speculative execution is doing something before you know it is needed to improve performance, but it leaves traces of data that was not supposed to be accessed in processor's cache  
+  a malicious program can inspect the contents of the cache to infer secret data
+- **rowhammer:** repeatedly opening & closing a DRAM row (aggressor row) enough times within a refresh interval induces disturbance errors due to charge getting drained out in adjacent rows (victim row), happens due to electrical interference, malicious program can flip protection bit in page table entries to access some privileged location  
   *"it's like breaking into an apartment by repeatedly slamming a neighbor's door until vibrations open the door you were after"*  
   ![](./media/computer_architecture/rowhammer.png)
-- **example: memory performance attacks:** in a multi-core system DRAM controller to increase throughput services row-hit memory access first (then service older accesses) so programs with more requests and good memory spatial locality are preferred, malicious streaming (sequential memory access) program used for denial of service attacks  
+- **memory performance attacks:** in a multi-core system DRAM controller to increase throughput services row-hit memory access first (then service older accesses) so programs with more requests and good memory spatial locality are preferred, malicious streaming (sequential memory access) program used for denial of service attacks  
   ![](./media/computer_architecture/dram_controller.png)
-- **example: DRAM refresh:** a DRAM cell consists of a capacitor & an access transistor, applying high voltage to wordline (row enable) allows us to read data (capacitor chargeas a bit) in the bitline, but capacitor charge leaks over time, memory controller needs to refresh each row periodically to restore charge, increases energy consumption & DRAM bank unavailable while refreshing, but only small % have low retention time (manufacturing process variation) so don't need to refresh every row frequently, once profiling (retention time of all DRAM rows) is done check (Bloom filters) bins to determine refresh rate of a row  
+- **DRAM refresh:** a DRAM cell consists of a capacitor & an access transistor, applying high voltage to wordline (row enable) allows us to read data (capacitor chargeas a bit) in the bitline, but capacitor charge leaks over time, memory controller needs to refresh each row periodically to restore charge, increases energy consumption & DRAM bank unavailable while refreshing, but only small % have low retention time (manufacturing process variation) so don't need to refresh every row frequently, once profiling (retention time of all DRAM rows) is done check (Bloom filters) bins to determine refresh rate of a row  
   ![](./media/computer_architecture/dram_cell.png)
-  - **Bloom filter:** memory efficient probabilistic data structure that compactly represents set membership, test set membership using hash functions (unique identifier generator), never false negative & never overflows (but `num elements ∝ false positives rate`)
+  - **Bloom filter:** memory efficient probabilistic data structure that compactly represents set membership, test set membership using hash functions (unique identifier generator), no false negatives & never overflows (but `num elements ∝ false positives rate`), three operations: insert, test & remove all elements, removing one particular element is not easy (can lead to removal of other elements)
 - **Hamming code:** powers-of-2 bits are regular parity bits used to track the parity of the other bits whose position have a 1 in the same place, 0th message bit used as overall parity, can correct 1-bit errors (regular parity incorrect & overall parity incorrect) & detect 2-bit errors (regular parity incorrect & overall parity correct)  
+  Hamming distance: number of locations at which two equal-length strings are different  
   ![](./media/computer_architecture/hamming_code.png)
-- **Hamming distance:** number of locations at which two equal-length strings are different
 - **field programable gate array (FPGA):** is a reconfigurable substrate (functions, interconnections, I/O) that can be programmed for a specific use, faster than software & more flexible than hardware, programmed using hardware description language (HDL) like Verilog & VHDL  
   ![](./media/computer_architecture/field_programmable_gate_array.png)
-
-[continue](https://www.youtube.com/watch?v=6rpxEQQg01E&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=5)
+- **Moore's law:** number of transistors on an integrated circuit will double every two years, is an observation and projection of historical trend
 
 ## combinational logic
+- **truth table:** what would be the logical output of the circuit for each possible input  
+  ![](./media/computer_architecture/truth_table.png)
+- **combinational logic:** outputs are strictly dependent on combination of input values that are applied to circuit right now (memoryless)
+- simple equations:
+  - `OR`: (`+`)
+  - `AND`: (`·`)
+- **Boolean algebra:**
+  - commutative: `A + B = B + A`, `A · B = B · A`
+  - indentities: `A + 0 = A`, `A · 1 = A`
+  - distributive: ` A + (B · C) = (A + B) · (A + C)`, `A · (B + C) = (A · B) + (A · C)`
+  - complement: `A + ~A = 1`, `A · ~A = 0`
+  - duality: replace `+` with `·` and `0` with `1`
+- **DeMorgan's law:**
+  ```cpp
+  ~(X + Y) == ~X · ~Y
+  ~(X · Y) == ~X + ~Y
+  ```
+- complement: `~A, ~B, ~C`  
+  literal: variable or its complement `A, ~A, B, ~B, C, ~C `  
+  implicant: `AND` of literals `(A · B · ~C), (~A · C)`  
+  minterm: `AND` of all input's literals `(A · B · ~C), (~A · ~B · C)`  
+  maxterm: `OR` of all input's literals `(A + B + ~C), (~A + ~B + C)`
+- **canonical form:** standard form for a Boolean expression  
+  **minimal form:** most simplified representation of a function
+- **sum of products (SOP) form:** sum of all input variable combinations (minterms) that result in a `1` output, is a canonical form
 
-**combinational logic:** output strictly dependent on current inputs (memoryless)
+[continue](https://youtu.be/_qqTWslNkJQ?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2409)
 
-**duality:** replace `OR` ⟷ `AND` & `0` ⟷ `1`
-
-**demorgan's law:**
-```cpp
-~(X + Y) == ~X · ~Y
-~(X · Y) == ~X + ~Y
-```
-
-**complement:** *e.g.* `~A, ~B, ~C`  
-**literal:** variable or its complement, *e.g.* `A, ~A, B, ~B, C, ~C `  
-**implicant:** `AND` of literals, *e.g.* `(A · B · ~C), (~A · C)`  
-**minterm:** `AND` of all inputs, *e.g.* `(A · B · ~C), (~A · ~B · C)`  
-**maxterm:** `OR` of all inputs, *e.g.* `(A + B + ~C), (~A + ~B + C)`
-
-**sum of products form:** sum of all minterms for which output is `1`
-
-**uniting theorem:** eliminate input that can change without changing output
-
-**gray code:** only one bit changes, `00` ⟷ `01` ⟷ `11` ⟷ `10` ⟷ `00`
-
-**karnaugh maps:** group `2^n` number of adjacent `1`s (to eliminate varying literals), to simplify boolean expressions wrap around adjacency, `X` (dont care) can be used as either `1`/`0` for simpler equation
-
-![](./media/computer_architecture/karnaugh_map.png)
-
-**multiplexer:** select one of `2^n` inputs & route to single output
-
-**demultiplexer:** route single input to one of `2^n` outputs
+- **multiplexer:** select one of `2^n` inputs & route to single output  
+  **demultiplexer:** route single input to one of `2^n` outputs  
+  **decoder:** select which one of `2^n` outputs set to `1`
+- **gray code:** only one bit changes, `00` ⟷ `01` ⟷ `11` ⟷ `10` ⟷ `00`
+- **uniting theorem:** eliminate input that can change without changing output
+- **karnaugh maps:** group `2^n` number of adjacent `1`s (to eliminate varying literals), to simplify Boolean expressions wrap around adjacency, `X` (dont care) can be used as either `1`/`0` for simpler equation, output is minimal form  
+  ![](./media/computer_architecture/k_map.png)
 
 ## sequential logic
-
-**sequential logic:** output dependent on previous & current inputs (memory)
-
-**R-S latch:** if `S == 0` then `Q = 1`, if `R == 0` then `~Q = 1`, if `R == S == 0` then `Q = ~Q = 1`
-
-![](media/computer_architecture/rs_latch.png)
-
-**gated D latch:** `Q = D` when `WE == 1`
-
-![](media/computer_architecture/gated_d_latch.png)
-
-**D flip flop:** state change only on clock edge & data available full cycle, clock low ⟶ master sends `D` ⟶ clock high ⟶ slave stores `D` in `Q` (rising edge `Q = D`)
-
-![](media/computer_architecture/d_flip_flop.png)
-
-**finite state machines (FSM):** discrete time model of system, *e.g.* snail looking for `1101` pattern
-1. **moore:** output depends on current state
-2. **mealy:** output depends on current input & current state
-
-![](media/computer_architecture/finite_state_machines.png)
+- **sequential logic:** outputs are determined by previous & current values of inputs (has memory)  
+- **R-S latch:** if `S == 0` then `Q = 1`, if `R == 0` then `~Q = 1`, if `R == S == 0` then `Q = ~Q = 1`  
+  ![](./media/computer_architecture/r_s_latch.png)
+- **gated D latch:** `Q = D` when `write_enable == 1`  
+  ![](./media/computer_architecture/gated_d_latch.png)
+- **D flip flop:** state change only on clock edge & data available full cycle, clock low ⟶ master sends `D` ⟶ clock high ⟶ slave stores `D` in `Q`, so on rising edge `Q = D`  
+  ![](./media/computer_architecture/d_flip_flop.png)
+- **finite state machines (FSM):** abstract machine that can be in exactly one of finite states at any given time
+  - **Moore:** output depends on current state only
+  - **Mealy:** output depends on current input & current state
+- **example: snail looking for `1101` pattern:**  
+  ![](./media/computer_architecture/finite_state_machine.png)
 
 ## timing & verification
-
-**combinational circuit delay:** output doesn't change instantaneously with input
-
-**glitch:** one input transition causes multiple output transitions, visible on K-maps (resolve by adding `~A · C`)
-
-![](./media/computer_architecture/glitch_k_map.png)
+- **functional specification:** describes relationship between inputs & outputs  
+**timing specification:** describes delay between inputs changinf and  outputs responding
+- **combinational circuit delay:** circuit outputs change some time after the inputs change
+- **glitch:** one input transition causes multiple output transitions, visible on K-maps (resolve by adding `~A · C`, ensures no transition)  
+  ![](./media/computer_architecture/timing_glitch.png)
 
 ## instruction set architecture
-
-**instruction set architecture (ISA):** interface between software & hardware, defines set of instructions supported by the processor
-
-**data flow model:** instruction fetched & executed when its operands are ready, inherently more parallel  
-**von-neumann model:** stored program (intr & data memory unified), sequential instruction processing (one instruction processing at a time)
-
-**instruction cycle:** fetch ⟶ decode ⟶ evaluate address ⟶ fetch operands ⟶ execute ⟶ store result
-
-**important registers:**
-1. **stack pointer (`SP`):** address of top of stack
-2. **link register (`LR`):** return address
-3. **program counter (`PC`):** address of current instruction
-4. **program status register (`PSR`):** zero (`Z`), negative (`N`), carry (`C`), overflow (`V`)
-5. **memory address register (`MAR`):** address to read/write
-6. **memory data/buffer register (`MDR`/`MBR`):** data from read/write
-
-**opcode/instruction:** most can postfix `S` to modify PSR flags, can be classified into
-1. operate
-2. data movement
-3. control flow
-```
-AND regd, rega, argb    ; regd ⟵ rega & argb
-EOR regd, rega, argb    ; regd ⟵ rega ^ argb
-SUB regd, rega, argb    ; regd ⟵ rega - argb
-RSB regd, rega, argb    ; regd ⟵ argb - rega, REVERSE SUB
-ADD regd, rega, argb    ; regd ⟵ rega + argb
-ADC regd, rega, argb    ; regd ⟵ rega + argb + carry
-SBC regd, rega, argb    ; regd ⟵ rega - argb - !carry
-RSC regd, rega, argb    ; regd ⟵ argb - rega - !carry
-TST rega, argb          ; set flags for rega & argb, result discarded, TEST
-TEQ rega, argb          ; set flags for rega ^ argb, result discarded, TEST EQUIVALENCE
-CMP rega, argb          ; set flags for rega - argb, COMPARE
-CMN rega, argb          ; set flags for rega + argb, COMPARE NEGATIVE
-ORR regd, rega, argb    ; regd ⟵ rega | argb
-MOV regd, arg           ; regd ⟵ arg
-BIC regd, rega, argb    ; regd ⟵ rega & ~argb, BIT CLEAR
-MVN regd, arg           ; regd ⟵ ~argb, MOV NOT
-B                       ; BRANCH
-LDR regd, [rega]        ; regd ⟵ *rega, LDRB for 8bit
-STR regd, [rega]        ; regd ⟶ *rega, STRB for 8bit
-```
-
-**condition flags:**
-```
-EQ              equal                           Z
-NE              not equal                       !Z
-MI              minus/negative                  N
-PL              plus/positive or zero           !N
-VS              overflow set                    V
-VC              overflow clear                  !V
-GE              signed greater than or equal    N == V
-LT              signed less than                N != V
-GT              signed greater than             !Z && (N == V)
-LE              signed greater than or equal    Z || (N != V)
-AL/omitted      always                          true
-```
+- **instruction:** smallest piece of work in a computer
+- **instruction set architecture (ISA):** interface between software & hardware, defines set of instructions supported by the processor
+- **data flow model:** instruction fetched & executed when its operands are ready, inherently more parallel  
+  **von-neumann model:** stored program (instruction & data memory unified), sequential instruction processing (one instruction processed at a time)
+- **instruction cycle:** fetch ⟶ decode ⟶ evaluate address ⟶ fetch operands ⟶ execute ⟶ store result
+- **important registers:**
+  - **stack pointer (`SP`):** address of top of the stack
+  - **link register (`LR`):** return address
+  - **program counter (`PC`):** address of current instruction
+  - **program status register (`PSR`):** zero (`Z`), negative (`N`), carry (`C`), overflow (`V`)
+  - **memory address register (`MAR`):** address to read/write
+  - **memory data/buffer register (`MDR`/`MBR`):** data from read/write
+- **opcode/instruction:** most can modify PSR flags by postfixing `S`, three types: operate, data movement & control flow
+  ```
+  AND regd, rega, argb  ; regd ⟵ rega & argb
+  EOR regd, rega, argb  ; regd ⟵ rega ^ argb
+  SUB regd, rega, argb  ; regd ⟵ rega - argb
+  RSB regd, rega, argb  ; regd ⟵ argb - rega, REVERSE SUB
+  ADD regd, rega, argb  ; regd ⟵ rega + argb
+  ADC regd, rega, argb  ; regd ⟵ rega + argb + C (carry in PSR)
+  SBC regd, rega, argb  ; regd ⟵ rega - argb - !C
+  RSC regd, rega, argb  ; regd ⟵ argb - rega - !C
+  TST rega, argb        ; set flags for rega & argb, result discarded, TEST
+  TEQ rega, argb        ; set flags for rega ^ argb, result discarded, TEST_EQUIVALENCE
+  CMP rega, argb        ; set flags for rega - argb, COMPARE
+  CMN rega, argb        ; set flags for rega + argb, COMPARE_NEGATIVE
+  ORR regd, rega, argb  ; regd ⟵ rega | argb
+  MOV regd, arg         ; regd ⟵ arg
+  BIC regd, rega, argb  ; regd ⟵ rega & ~argb, BIT_CLEAR
+  MVN regd, arg         ; regd ⟵ ~argb, MOV_NOT
+  B target_addr         ; BRANCH
+  LDR regd, [rega]      ; regd ⟵ *rega, LDRB for 8bit
+  STR regd, [rega]      ; regd ⟶ *rega, STRB for 8bit
+  ```
+- **condition flags:**
+  ```
+  EQ          equal                         Z
+  NE          not equal                     !Z
+  MI          minus/negative                N
+  PL          plus/positive or zero         !N
+  VS          overflow set                  V
+  VC          overflow clear                !V
+  GE          signed greater than or equal  N == V
+  LT          signed less than              N != V
+  GT          signed greater than           !Z && (N == V)
+  LE          signed greater than or equal  Z || (N != V)
+  AL/omitted  always                        true
+  ```
 
 **addressing modes:**
 1. **immediate offset:** `[Rn, #±imm]` offset to address in `Rn`
