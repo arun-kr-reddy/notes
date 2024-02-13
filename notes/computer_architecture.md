@@ -47,12 +47,12 @@
 - **Moore's law:** number of transistors on an integrated circuit will double every two years, is an observation and projection of historical trend
 
 ## combinational logic
+- outputs are strictly dependent on combination of input values that are applied to circuit right now (memoryless)
 - **truth table:** what would be the logical output of the circuit for each possible input  
   ![](./media/computer_architecture/truth_table.png)
-- **combinational logic:** outputs are strictly dependent on combination of input values that are applied to circuit right now (memoryless)
 - simple equations:
-  - `OR`: (`+`)
-  - `AND`: (`·`)
+  - OR: (`+`)
+  - AND: (`·`)
 - **Boolean algebra:**
   - commutative: `A + B = B + A`, `A · B = B · A`
   - indentities: `A + 0 = A`, `A · 1 = A`
@@ -78,10 +78,10 @@
   **canonical form:** standard form for a Boolean expression, example: sum of products form  
   **minimal form:** most simplified representation of a function, example: using Karnaugh maps  
   original boolean expression may not be optimal, so reduce it to a equivalent expression with fewer terms to reduce number of gates/inputs and hence the implementation cost
-- **sum of products (SOP) form:** sum of all input variable combinations (minterms) that result in a `1` output, leads to two-level logic (`AND` of minterm literals `OR`ed)
+- **sum of products (SOP) form:** sum of all input variable combinations (minterms) that result in a `1` output, leads to two-level logic (AND of minterm literals ORed)
 - **multiplexer:** route one of `2^n` inputs to a single output using `n` select/control lines  
   **demultiplexer:** route single input to one of `2^n` outputs using  `n` select lines
-- **programmable logic array (PLA):** an array of `AND` gates followed by `OR` gates, used to implement combinational logic circuits by connecting output of an `AND` gate to input of an `OR` gate if the corresponsing minterm is included in SOP, used in FPGAs  
+- **programmable logic array (PLA):** an array of AND gates followed by OR gates, used to implement combinational logic circuits by connecting output of an AND gate to input of an OR gate if the corresponsing minterm is included in SOP, used in FPGAs  
   ![](./media/computer_architecture/programmable_logic_array.png)
 - example: 1-bit addition (full adder):  
   ![](./media/computer_architecture/full_adder.png)
@@ -93,25 +93,78 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   ![](./media/computer_architecture/k_map.png)
 
 ## sequential logic
-- **sequential logic:** outputs are determined by previous & current values of inputs (has memory)  
-- **R-S latch:** if `S == 0` then `Q = 1`, if `R == 0` then `~Q = 1`, if `R == S == 0` then `Q = ~Q = 1`  
+- outputs are determined by previous & current values of inputs (has memory)  
+  ![](./media/computer_architecture/sequential_circuit.png)
+- **R-S latch:** two NAND gates with outputs feeding into each other's input (cross-coupled), data is stored at `Q`
+  - idle: `S` & `R`set to `1` so output determined by data stored (`Q` or `~Q`)
+  - set: drive `S` to `0` (keeping `R==1`) to change `Q` to `1`
+  - reset: drive `R` to `0` (keeping `S==1`) to change `~Q` to `1`
+  - invalid: if both `R` & `S` are `0` then both `Q` & `~Q` are `1`, this is not possible  
   ![](./media/computer_architecture/r_s_latch.png)
-- **gated D latch:** `Q = D` when `write_enable == 1`  
+- **gated D latch:** to guarantee correct operation of R-S latch add two more NAND gates  
+  `Q` takes the value of `D` when `write_enable` set to `1`  
   ![](./media/computer_architecture/gated_d_latch.png)
-- **D flip flop:** state change only on clock edge & data available full cycle, clock low ⟶ master sends `D` ⟶ clock high ⟶ slave stores `D` in `Q`, so on rising edge `Q = D`  
-  ![](./media/computer_architecture/d_flip_flop.png)
-- **finite state machines (FSM):** abstract machine that can be in exactly one of finite states at any given time
-  - **Moore:** output depends on current state only
-  - **Mealy:** output depends on current input & current state
-- **example: snail looking for `1101` pattern:**  
+- **register:** structure that holds more than one bit and can be read from & written to  
+  **memory:** is comprised of locations that can be written to or read from  
+  **address:** unique value to index each location in memory  
+  **addressability:** the number of bits of information stored in each location  
+  **address space:** full set of unique locations in memory
+- **state:** of a system is a snapshot of all relevant elements of the system at the moment of the snapshot  
+  **clock:** is a general mechanism that triggers transition from one state to another in a sequential circuit, synchronizes state changes across sequential circuit elements  
+  combinational logic evaluates for the length of the clock cycle, so clock cycle should be chosen to accomodate maximum combinational circuit delay
+- **finite state machines (FSM):** discrete-time model of a stateful system, each state represents a snapshot of the system at a given time, pictorially shows all possible states and how system transitions from one state to another  
+  at the beginning of the clock cycle, next state is latched into the state register  
   ![](./media/computer_architecture/finite_state_machine.png)
+- FSM constituents:
+  - sequential circuits: for state registers, store current state and load next state at clock edge
+  - combinational circuits: for next state & output logic, determine the next state and generate the output
+- state register implementation:
+  - need to store data at the beginning of every clock cycle
+  - data must be available during the entire clock cycle  
+  ![](./media/computer_architecture/fsm_sequential.png)
+- why not latch: is we simply wire a clock to `WE` of a latch, when the clock is low `Q` will not take `D`'s value, when the clock is high the latch will propagate `D` to `Q`  
+  ![](./media/computer_architecture/fsm_latch.png)
+- **D flip flop:** `D` is observable at `Q` only at the beginning of next clock cycle and `Q` is available for the full clock cycle  
+  clock low ⟶ master sends `D` (`Q` unchanged) ⟶ clock high ⟶ slave latches `D` in `Q`  
+  so at rising/positive edge of clock `Q` get assigned `D`  
+  ![](./media/computer_architecture/d_flip_flop.png)
+- **FSM types:**
+  - **Moore:** output depends only on current state
+  - **Mealy:** output depends on the current state and the inputs  
+  ![](./media/computer_architecture/fsm_types.png)
+- example: snail looking for `1101` pattern:  
+  ![](./media/computer_architecture/fsm_example.png)
+- **FSM state encoding:**
+  - **fully encoded:** minimize number of flip flops but not necessarily output & next state logic, example: `00`, `01`, `10`, `11`
+  - **1-hot encoded:** maximize flipflops and minimize next state logic, use `num_states` bits to represent states, example: `0001`, `0010`, `0100`, `1000`
+  - **output encoded:** minimize output logic, output can be deduced from state encoding, only works for Moore machines, example: `001` (red), `010` (yellow), `100` (green), `110`(red & yellow)
 
 ## timing & verification
 - **functional specification:** describes relationship between inputs & outputs  
-**timing specification:** describes delay between inputs changinf and  outputs responding
-- **combinational circuit delay:** circuit outputs change some time after the inputs change
-- **glitch:** one input transition causes multiple output transitions, visible on K-maps (resolve by adding `~A · C`, ensures no transition)  
+  **timing specification:** describes delay between inputs changinf and  outputs responding
+- **combinational circuit delay:** circuit outputs change some time after the inputs change due to capacitance & resistance in a circuit and finite speed of light  
+  ![](./media/computer_architecture/combinational_circuit_delay.png)
+- **contamination delay:** minimum delay  
+  **propagation delay:** maximum delay  
+  **cross hatching:** output could be changing (centre part)  
+  **critical path:** path with longest propagation delay  
+  ![](./media/computer_architecture/delay_types.png)
+- **glitch:** one input transition causes multiple output transitions, visible on K-maps since it shows reults of a change in a single input  
+  resolve the glitch by adding the consensus term (`~A · C`) to ensure no transition  
   ![](./media/computer_architecture/timing_glitch.png)
+- **sequential circuit timing:** `D` & `Q` in a D flip flop have their own timing requirement
+  - input: `D` must be stable when sampled at rising clock edge  
+    ![](./media/computer_architecture/sequential_timing_input.png)  
+    **metastability:** flip flop output is stuck somewhere between `1` & `0` if `D` is changing, output eventually settles non-deterministically  
+    ![](./media/computer_architecture/metastability.png)
+  - output: Q changes between the contamination & propagation delay clock-to-q  
+    ![](./media/computer_architecture/sequential_timing_output.png)
+- **clock skew:** time difference between two clock edges, because clock does not reach all parts of the chip at the same time  
+  ![](./media/computer_architecture/clock_skew.png)  
+  requires intelligent clock network across a chip, so clock arrives at all locations at roughly the same time  
+  ![](./media/computer_architecture/clock_network.png)  
+
+[continue](https://www.youtube.com/watch?v=AAPwKjm_CpA&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=9)
 
 ## instruction set architecture
 - **instruction:** smallest piece of work in a computer
