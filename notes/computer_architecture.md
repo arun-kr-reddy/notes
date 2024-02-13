@@ -26,8 +26,8 @@
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms
 - **abstraction:** higher level only needs to know about the interface to the lower level, not how the lower level is implemented  
-  levels of transformation: improves productivity by creates abstractions, no need to worry about decisions made in underlying levels  
-  *breaking the abstraction layers and knowing what is underneath enables you to understand & solve problems*  
+  **levels of transformation:** improves productivity by creates abstractions, no need to worry about decisions made in underlying levels  
+  ***breaking the abstraction layers and knowing what is underneath enables you to understand & solve problems***  
   ![](./media/computer_architecture/levels_of_transformation.png)
 - **meltdown & spectre:** speculative execution is doing something before you know it is needed to improve performance, but it leaves traces of data that was not supposed to be accessed in processor's cache  
   a malicious program can inspect the contents of the cache to infer secret data
@@ -64,23 +64,32 @@
   ~(X + Y) == ~X · ~Y
   ~(X · Y) == ~X + ~Y
   ```
-- complement: `~A, ~B, ~C`  
-  literal: variable or its complement `A, ~A, B, ~B, C, ~C `  
-  implicant: `AND` of literals `(A · B · ~C), (~A · C)`  
-  minterm: `AND` of all input's literals `(A · B · ~C), (~A · ~B · C)`  
-  maxterm: `OR` of all input's literals `(A + B + ~C), (~A + ~B + C)`
-- **canonical form:** standard form for a Boolean expression  
-  **minimal form:** most simplified representation of a function
-- **sum of products (SOP) form:** sum of all input variable combinations (minterms) that result in a `1` output, is a canonical form
-
-[continue](https://youtu.be/_qqTWslNkJQ?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2409)
-
-- **multiplexer:** select one of `2^n` inputs & route to single output  
-  **demultiplexer:** route single input to one of `2^n` outputs  
-  **decoder:** select which one of `2^n` outputs set to `1`
-- **gray code:** only one bit changes, `00` ⟷ `01` ⟷ `11` ⟷ `10` ⟷ `00`
-- **uniting theorem:** eliminate input that can change without changing output
-- **karnaugh maps:** group `2^n` number of adjacent `1`s (to eliminate varying literals), to simplify Boolean expressions wrap around adjacency, `X` (dont care) can be used as either `1`/`0` for simpler equation, output is minimal form  
+- **complement:** inverse of a variable  
+  `~A, ~B, ~C`  
+  **literal:** variable or its complement  
+  `A, ~A, B, ~B, C, ~C `  
+  **implicant:** product of literals  
+  `(A · B · ~C), (~A · C)`  
+  **minterm:** product that includes all input's literals  
+  `(A · B · ~C), (~A · ~B · C)`  
+  **maxterm:** sum that includes all input's literals  
+  `(A + B + ~C), (~A + ~B + C)`
+- many alternative Boolean expresssions (logic gate realization) may have the same truth table (function)  
+  **canonical form:** standard form for a Boolean expression, example: sum of products form  
+  **minimal form:** most simplified representation of a function, example: using Karnaugh maps  
+  original boolean expression may not be optimal, so reduce it to a equivalent expression with fewer terms to reduce number of gates/inputs and hence the implementation cost
+- **sum of products (SOP) form:** sum of all input variable combinations (minterms) that result in a `1` output, leads to two-level logic (`AND` of minterm literals `OR`ed)
+- **multiplexer:** route one of `2^n` inputs to a single output using `n` select/control lines  
+  **demultiplexer:** route single input to one of `2^n` outputs using  `n` select lines
+- **programmable logic array (PLA):** an array of `AND` gates followed by `OR` gates, used to implement combinational logic circuits by connecting output of an `AND` gate to input of an `OR` gate if the corresponsing minterm is included in SOP, used in FPGAs  
+  ![](./media/computer_architecture/programmable_logic_array.png)
+- example: 1-bit addition (full adder):  
+  ![](./media/computer_architecture/full_adder.png)
+- **Gray code:** only one bit changes  
+  `00` ⟷ `01` ⟷ `11` ⟷ `10` ⟷ `00`
+- **uniting theorem:** eliminate input in minterm that can change without changing the output
+- **Karnaugh maps:** method of representing the truth table that helps visualize adjacencies to minimise the Boolean expression, numbering scheme along the axis is Gray code, physical adjacency is logical adjacency  
+find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate varying inputs from the minterm, can also wrap around corners & edges (imagine K-map as a sphere), `X` (dont care) can be used as either `1`/`0` for simpler equation  
   ![](./media/computer_architecture/k_map.png)
 
 ## sequential logic

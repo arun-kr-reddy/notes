@@ -82,7 +82,7 @@
   - `exec()`: make process execute a given executable
   - `exit()`: terminate a process
   - `wait()`: causes parent to block until child terminates
-- **`fork` working:**
+- **fork working:**
   - new process created by making a copy of parent's memory image
   - new process is added to OS process list and scheduled
   - parent & child resume execution from the same point just after fork (with different return values)
@@ -107,13 +107,13 @@
   }
   ```
 - **child process handling:**
-  - process termination scenarios are:  
-    by calling `exit()` (automatically called at the end of main) or  
-    OS terminates a misbehaving process
+  - process termination scenarios are:
+    - by calling `exit()` (automatically called at the end of main) or
+    - OS terminates a misbehaving process
   - terminated process exists as a zombie
   - zombie child is cleaned up (reaped) when parent called `wait()`, wait blocks in parent until child terminates (non-blocking ways also exist)
   - `init` process adopts orphans and reaps them if parent terminates before child
-- **`exec()` working:**
+- **exec working:**
   - load another executable into child memory image, so child can run different program from parent
   - variants of exec where arguments to new executable passed
 - example: shell working:
@@ -135,10 +135,10 @@
   - kernel does not trust user provided addresses to jump to, interrupt descriptor table (IDT) has addresses of kernel functions to run for system calls and other events (set up at boot time)
 - **system call working:**
   - special trap instruction is run when system call is made (hidden from user by libc), this will move CPU to higher privilege level, switch to kernel stack, save user context on kernel stack, look up IDT and jump to trap handler function in OS code
-  - trap usecases:  
-    system call: program needs OS service  
-    program fault: program does something illegal, example: access memory it doesn't have access to  
-    interrupt: external device needs attention of OS, example: network packet arrived on network card
+  - trap usecases:
+    - system call: program needs OS service
+    - program fault: program does something illegal, example: access memory it doesn't have access to
+    - interrupt: external device needs attention of OS, example: network packet arrived on network card
   - before calling trap, a number stored in a CPU register to identify which IDT entry to use
   - when OS is done, it calls special return-from-trap instruction, this will restore user context on kernel stack, change CPU privilege from kernel mode to user mode, restore PC and jump to user code after trap
   - before returning to user mode, OS checks if it must switch to different process (context switch):  
@@ -146,8 +146,8 @@
     process made a blocking system call (waiting for disk data)  
     process has run for too long (CPU timesharing)
 - **CPU scheduler mechanism types:**
-  - non-preemptive (cooperative): switch only if process blocked or terminated
-  - preemptive (non-cooperative): switch even when process is ready to continue, CPU generates periodic timer interrupt, after servicing this interrupt OS checks if current process has run for too long
+  - **non-preemptive (cooperative):** switch only if process blocked or terminated
+  - **preemptive (non-cooperative):** switch even when process is ready to continue, CPU generates periodic timer interrupt, after servicing this interrupt OS checks if current process has run for too long
 - **CPU scheduler mechanism working:**
   - process A has moved from user to kernel mode, OS has decided it must switch from process A to B
   - save kernel context of A on kernel stack
@@ -174,13 +174,13 @@
 
 ### inter-process communication
 - **inter-process communication (IPC):** mechanisms to share information between processes, processes do not share any memory with each other
-  - shared memory: both processes can read/write same region of memory via `int shmget(key,size, shmflg)` system call to communicate, by providing same key two processes can get same segment of memory
-  - signals: can be sent to a process by OS or another process, some signals have fixed meaning (`ctrl + C` send `SIGINT` signal), every process has a default code to execute for each signal (signal handler) like exit on terminate signal, some signal handlers can be overriden to do other things
-  - sockets: can be used for two processes on same machine (Unix sockets) or different machine (TCP/UDP sockets) to communicate, two processes open sockets and connect them to each other, messages written into one socket can be read from another, OS transfers data across socket buffers
-  - pipes: one-way communication (half-duplex), pipe system call returns two handles (file descriptors), data written in write handle can be read through read handle, pipe data buffered in OS buffers between read & write  
+  - **shared memory:** both processes can read/write same region of memory via `int shmget(key,size, shmflg)` system call to communicate, by providing same key two processes can get same segment of memory
+  - **signals:** can be sent to a process by OS or another process, some signals have fixed meaning (`ctrl + C` send `SIGINT` signal), every process has a default code to execute for each signal (signal handler) like exit on terminate signal, some signal handlers can be overriden to do other things
+  - **sockets:** can be used for two processes on same machine (Unix sockets) or different machine (TCP/UDP sockets) to communicate, two processes open sockets and connect them to each other, messages written into one socket can be read from another, OS transfers data across socket buffers
+  - **pipes:** one-way communication (half-duplex), pipe system call returns two handles (file descriptors), data written in write handle can be read through read handle, pipe data buffered in OS buffers between read & write  
     regular pipes: both file descriptor are in same process, parent & child share file descriptor after fork, parent uses one end and child uses other end  
     named pipes: two endpoints in different processes
-  - message queue: mailbox abstraction, process can open a mailbox at a specified location, processes can send/receive messages from mailbox, OS buffers messages between send & receive
+  - **message queue:** mailbox abstraction, process can open a mailbox at a specified location, processes can send/receive messages from mailbox, OS buffers messages between send & receive
 - **blocking vs non-blocking communication:** some IPC actions like reading from empty socket/pipe/message queue or writing to full socket/pipe/message queue can block, system calls to read/write have versions that return error code instead of blocking
 
 ## memory
@@ -239,7 +239,7 @@
   - page table is itself split into smaller chunks
 - **multilevel page tables:** page table is spread over many pages, page directory (outer page table) tracks the PFNs of the page table pages, depending on how large the page table is we may need more than 2 levels also (64bit arch may need 7 levels), in case of TLB miss multiple accesses to memory required to access all levels of page tables so very expensive  
   ![](./media/operating_systems/linear_vs_multilevel_pagetable.png)  
-  address translation: first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs  
+  for address translation first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs  
   ![](./media/operating_systems/multilevel_pagetable_address.png)
 
 ### demand paging
@@ -255,35 +255,35 @@
     if not present but valid, raises page fault, OS handles page fault and restarts the CPU load instruction  
     if invalid page access, trap to OS for illegal access
 - **page replacement policies:** when servicing page fault if OS finds no free page then OS must swap out an existing page and then swap in faulting page, to prevent this much work OS proactively swap out pages to keep list of free pages handy
-  - optimal: replace page not needed for longest time in future, just theoretical, cannot calculate when page is needed (look into future)
-  - first in first out (FIFO): replace page that was brought into memory earliest, but that may be a popular page
-    - Belady's anomaly: increasing number of page frames results in increase in number of page faults
-  - least recently/frequently used (LRU/LFU): replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active/inactive
-- cold (compulsory) miss: miss when the first access to a page happens
+  - **optimal:** replace page not needed for longest time in future, just theoretical, cannot calculate when page is needed (look into future)
+  - **first in first out (FIFO):** replace page that was brought into memory earliest, but that may be a popular page
+    - **Belady's anomaly:** increasing number of page frames results in increase in number of page faults
+  - **least recently/frequently used (LRU/LFU):** replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active/inactive
+- **cold (compulsory) miss:** miss when the first access to a page happens
 - **locality of references:** tendency of computer progam to access instructions whose address are near one another
   - temporal: same location will be referenced again in the near future
   - spatial: nearby memory locations will be referenced in the near future
 
 ### memory allocation algorithms
 - **variable sized allocation**: given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s and kernel for its internal data structures
-  - headers: every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
+  - **headers:** every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
     ![](./media/operating_systems/headers.png)
-  - free list: free space managed as a linked list, pointer to the next free chunk is embedded within current free chunk, library/kernel tracks the head of the list (next NULL at tail), allocation happens from the head, must split & coalesce free chunks to satisfy variable sized requests (external fragmentation)  
+  - **free list:** free space managed as a linked list, pointer to the next free chunk is embedded within current free chunk, library/kernel tracks the head of the list (next NULL at tail), allocation happens from the head, must split & coalesce free chunks to satisfy variable sized requests (external fragmentation)  
     ![](./media/operating_systems/free_list.png)
 - **free list external fragmentation:**
-  - splitting: on an allocation request allocator will find a free chunk of memory that can satisfy the request and split it into two, first chunk returned to caller and second chunk will remain on the free list
-  - coalescing: on a free request allocator will check if free chunk of memory being returned sits next to another free chunk, if yes then merge them into a single larger free chunk  
+  - **splitting:** on an allocation request allocator will find a free chunk of memory that can satisfy the request and split it into two, first chunk returned to caller and second chunk will remain on the free list
+  - **coalescing:** on a free request allocator will check if free chunk of memory being returned sits next to another free chunk, if yes then merge them into a single larger free chunk  
     example: non-coalesced free list: suppose three allocations of 100 bytes are deallocated in the order: last, first, middle  
     ![](./media/operating_systems/non_coalesced_free_list.png)
-- buddy allocation: allocate memory in size of power-of-2, used by kernel for easy coalescing, two free adjacent/buddy chunks can be merged to form a bigger power-of-2 chunk  
+- **buddy allocation:** allocate memory in size of power-of-2, used by kernel for easy coalescing, two free adjacent/buddy chunks can be merged to form a bigger power-of-2 chunk  
   ![](./media/operating_systems/buddy_allocation.png)
 - **variable size allocation strategies:**
-  - first fit: allocate first free chunk that is sufficient
-  - best fit: allocate free chunk that is closest in size
-  - worst fit: allocate free chunk that is farthest in size, remaining chunk is bigger & more usable
+  - **first fit:** allocate first free chunk that is sufficient
+  - **best fit:** allocate free chunk that is closest in size
+  - **worst fit:** allocate free chunk that is farthest in size, remaining chunk is bigger & more usable
 - **fixed size allocations:** memory allocation algorithms are much simpler with fixed size allocations, no issue with small holes left behind by fragmentation
-  - page-sized allocations: has free list of pages, pointer to next page stored in the free page itself
-  - slab allocator: used by kernel for small allocations like PCB, object caches for each type (size) of objects, within each cache only fixed size allocation, each cache made up of one or more pages/slabs with multiple fixed size objects  
+  - **page-sized allocations:** has free list of pages, pointer to next page stored in the free page itself
+  - **slab allocator:** used by kernel for small allocations like PCB, object caches for each type (size) of objects, within each cache only fixed size allocation, each cache made up of one or more pages/slabs with multiple fixed size objects  
     ![](./media/operating_systems/slab_allocator.png)
 
 ## concurrency
@@ -374,7 +374,7 @@
   void unlock(lock_t *mutex) { mutex->flag = 0; }
   ```
 - **hardware atomic instructions:** very hard to ensure atomicity only in software, modern architectures provide hardware atomic instructions
-  - test-and-set: update a variable and return old value all in single hardware instruction
+  - **test-and-set:** update a variable and return old value all in single hardware instruction
     ```cpp
     int test_and_set(int *old_ptr, int new)
     {
@@ -383,7 +383,7 @@
         return old;          // return the old value
     }
     ```
-  - compare-and-swap: update a variable only if equal to expected and return actual value all in single hardware instruction
+  - **compare-and-swap:** update a variable only if equal to expected and return actual value all in single hardware instruction
     ```cpp
     int compare_and_swap(int *ptr, int expected, int new)
     {
@@ -586,14 +586,14 @@
 
 ### concurrency bugs
 **concurrency bugs:** are non-deterministic and occur based on execution order of threads, very hard to debug
-  - non-deadlock bugs: not blocking but incorrect results when threads execute
-    - atomicity bugs: atomicity assumptions made by programmer are violated during execution of concurrent threads, fix: use locks for mutual exclusion
-    - order-violation bugs: desired order of memory access is flipped during concurrent execution, fix: use conditional variables
-  - deadlocks: threads cannot execute any further and wait for each other, all four of below conditions must hold for a deadlock to occur
-    - mutual exclusion: a thread claims exclusive control of a resource
-    - hold-and-wait: thread holds a resource and is waiting for another, to prevent acquire all locks at once by acquiring a master lock first
-    - no preemption: thread cannot be made to give up its resource
-    - circular wait: there exists a cycle in the resource dependency graph, to prevent always acquire locks in certain fixed order, total ordering (or partial ordering on related locks) must be followed
+  - **non-deadlock bugs:** not blocking but incorrect results when threads execute
+    - **atomicity bugs:** atomicity assumptions made by programmer are violated during execution of concurrent threads, fix: use locks for mutual exclusion
+    - **order-violation bugs:** desired order of memory access is flipped during concurrent execution, fix: use conditional variables
+  - **deadlocks:** threads cannot execute any further and wait for each other, all four of below conditions must hold for a deadlock to occur
+    - **mutual exclusion:** a thread claims exclusive control of a resource
+    - **hold-and-wait:** thread holds a resource and is waiting for another, to prevent acquire all locks at once by acquiring a master lock first
+    - **no preemption:** thread cannot be made to give up its resource
+    - **circular wait:** there exists a cycle in the resource dependency graph, to prevent always acquire locks in certain fixed order, total ordering (or partial ordering on related locks) must be followed
 - example: atomicity bug: one threads reads & prints a shared data item while another concurrently modifies it
   ``` cpp
   // thread 1
@@ -660,8 +660,8 @@
   pthread_mutex_unlock(prevention);  // end
   ```
 - **other solutions to deadlocks:**
-  - deadlock avoidance: if OS knew which process needs which locks then it can schedule the processes in a way that deadlock will not occur, impractical in real lift to assume OS having this knowledge
-  - detect and recover: reboot system or kill deadlocked processes
+  - **deadlock avoidance:** if OS knew which process needs which locks then it can schedule the processes in a way that deadlock will not occur, impractical in real lift to assume OS having this knowledge
+  - **detect and recover:** reboot system or kill deadlocked processes
 
 ## I/O and filesystems
 
@@ -669,8 +669,8 @@
 - **port:** point of connection to the system, I/O devices connect to the CPU & memory via a bus to a port on the machine
 - **simple device model:** block devices store a set of numbered blocks (disks), character devices produce/consume stream of bytes (keyboard), devices expose an interface of memory registers (like current status of device, command to excute, data to transfer), internals of device are usually hidden
 - **OS registers read/write:**
-  - explicit I/O instructions: privileged instructions used by OS to read & write to specific registers on device
-  - memory mapped I/O: device makes registers appear like memory locations, OS simply reads/writes from memory (part of address space reserved for I/O devices), memory hardware routes accesses to these special memory addresses to devices
+  - **explicit I/O instructions:** privileged instructions used by OS to read & write to specific registers on device
+  - **memory mapped I/O:** device makes registers appear like memory locations, OS simply reads/writes from memory (part of address space reserved for I/O devices), memory hardware routes accesses to these special memory addresses to devices
 - example: simple execution of I/O requests: polling status to see if device ready, wastes CPU cycles, CPU explicitly copies data to/from device (programmed I/O)
   ```cpp
   while (STATUS == BUSY)
@@ -694,10 +694,10 @@
 - **directory tree:** files & directories arranged in a tree starting with root (/)  
   ![](./media/operating_systems/directory_tree.png)
 - **file operations:**
-  - create: `open()` system call with flag to create, returns a numbers called file descriptor (fd)
-  - open: existing files must be opened before they can be read/written, also uses `open()` system call and returns fd, all further operations on files uses the fd
-  - closing: `close()` system call closes the file
-  - read/write: `read()`/`write()` system calls, reading/writing happens sequentially by default (successive read/write calls fetch from current offset), `lseek()` system call lets you seek to random offset, writes are buffered in memory temporarily so `fsync()` system call flushes all writes to disk
+  - **create:** `open()` system call with flag to create, returns a numbers called file descriptor (fd)
+  - **open:** existing files must be opened before they can be read/written, also uses `open()` system call and returns fd, all further operations on files uses the fd
+  - **closing:** `close()` system call closes the file
+  - **read/write:** `read()`/`write()` system calls, reading/writing happens sequentially by default (successive read/write calls fetch from current offset), `lseek()` system call lets you seek to random offset, writes are buffered in memory temporarily so `fsync()` system call flushes all writes to disk
   - other operations: rename file delete (unlink) file, get statistics of a file
 - **directory operations:** directory can also be accessed like files, operations like create, open, read & close
 - example: `ls` program: `ls` program opens and reads all directory entries
@@ -819,13 +819,13 @@
   - rotational latency for disk to spin to correct sector (few ms)
   - data transfer time to read sector (few tens μs)
 - **disk scheduling:** requests to disk are not served in FIFO, they are reordered with other pending requests in order to read blocks in sequence as far as possible (to minimize seek time & rotational delay), OS does not know internal geometry of disk so scheduling done mostly by disk controller
-  - shortest seek time first (SSTF): access block that we can seek to fastest, problem: some requests that are far from current position or head may never get served (starvation), example: from 30 go to 21 before 2  
+  - **shortest seek time first (SSTF):** access block that we can seek to fastest, problem: some requests that are far from current position or head may never get served (starvation), example: from 30 go to 21 before 2  
     ![](./media/operating_systems/shortest_seek_time_first.png)
-  - elevator/SCAN algorithm: disk head does one sweep over tracks and serves requests that fall on the path
-    - elevator/SCAN: sweep outer to inner then inner to outer
-    - circular-SCAN: sweep only one direction and circle back to start again, sweeping back & forth favors middle tracks more
-    - freeze-SCAN: freeze queue while scanning to avoid starving far away requests
-  - shortest positioning time first (SPTF): considers both seek time & rotational latency, example: better to serve 8 before 16 even though seek time is higher but 16 incurs a much higher rotational latency  
+  - **elevator/SCAN algorithm:** disk head does one sweep over tracks and serves requests that fall on the path
+    - **elevator/SCAN:** sweep outer to inner then inner to outer
+    - **circular-SCAN:** sweep only one direction and circle back to start again, sweeping back & forth favors middle tracks more
+    - **freeze-SCAN:** freeze queue while scanning to avoid starving far away requests
+  - **shortest positioning time first (SPTF):** considers both seek time & rotational latency, example: better to serve 8 before 16 even though seek time is higher but 16 incurs a much higher rotational latency  
     ![](./media/operating_systems/shortest_positioning_time_first.png)
 - **error detection/correction:** bits stored on disk with some error detection/correction bits, correct random bit flips or detect corruption of data, disk controller or OS can handle some errors (blacklisting certain sectors), if errors cannot be masked user perceives hard disk failures
 - **redundant array of inexpensive disks (RAID):** provide high reliability & performance by replicating across multiple disks

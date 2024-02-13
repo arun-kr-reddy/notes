@@ -15,7 +15,7 @@
 - [first BillG review](https://www.joelonsoftware.com/2006/06/16/my-first-billg-review/)
 
 ## introduction
-- *The key to understanding complicated things is to know what not to look at and what not to compute and what not to think*
+- ***The key to understanding complicated things is to know what not to look at and what not to compute and what not to think***
 - **declarative:** "what is true" knowledge, example: `y` is `sqrt(x)` if `y^2 = x`  
 **imperative:** "how to" knowledge, example: square-root by successive averaging of guess `g` & `x/g` until result doesn't change much
 - **techniques for controlling complexity:** make building very large programs possible

@@ -89,7 +89,7 @@
   -c                # compile but don't link
   -save-temps       # save intermediate source files
   ```
-- **`auto`:** type deduced from initialization value
+- **auto:** type deduced from initialization value
   ```cpp
   auto var = 13;     // int
   auto var = 13.0f;  // float
@@ -136,8 +136,8 @@
   while (i = 0)   // set i, use i as condition (0 here)
   while (i == 0)  // use (i == 0) condition
   ```
-- **`break`:** exit loop  
-  **`continue`:** skip to next iteration
+- **break:** exit loop  
+  **continue:** skip to next iteration
   ```cpp
   do
   {
@@ -148,7 +148,7 @@
   ...
   return 0;
   ```
-- **`goto`:**
+- **goto:**
   ```cpp
   int main()
   {
@@ -167,12 +167,12 @@
   // definition: implementation
   void printSum(int a, int b) { std::cout << a + b << std::endl; }
   ```
-  - overloading: pick from all function with same name but different arguments (not return type), picked at compile-time
+  - **overloading:** pick from all function with same name but different arguments (not return type), picked at compile-time
     ```cpp
     void printSum(int a, int b);
     void printSum(double a, double b);
     ```
-  - default arguments: only in declaration, after mandatory arguments
+  - **default arguments:** only in declaration, after mandatory arguments
     ```cpp
     int printSum(int a, int b, int c = 0, int d = 0);
     ```
@@ -180,7 +180,7 @@
   ![](./media/cplusplus/pass_by_reference_vs_value.gif)
 
 - **library:** logically connected multiple object files
-  - static: linked into final executable, faster, takes lot of space, `*.a`
+  - **static:** linked into final executable, faster, takes lot of space, `*.a`
     ```sh
     ar rcs lib.a module1.o module2.o
     # rcs: replace, create, sort
@@ -188,7 +188,7 @@
     # r: replace old files within library (if already exists)
     # s: create sorted index of library
     ```
-  - dynamic: loaded every time executable is executed, slower, can be copied, `*.so`
+  - **dynamic:** loaded every time executable is executed, slower, can be copied, `*.so`
     ```sh
     gcc -c -fPIC main.c -o main.o
     gcc -shared main.o -o libmain.so
@@ -204,7 +204,7 @@
   ![](./media/cplusplus/iterator.png)
 
 ### sequence
-- sequence containers: data structures that can be accessed sequentially
+- data structures that can be accessed sequentially
 - **string:**
   ```cpp
   #include <string>
@@ -249,7 +249,7 @@
   ```
 
 ### associative
-- associative containers: sorted data structures that can be quickly searched
+- sorted data structures that can be quickly searched
 - **pair:**
   ```cpp
   #include <utility>
@@ -269,7 +269,7 @@
   ```
 
 ### unordered associative
-- unordered associative containers: unsorted hashed data structures that can be quickly searched
+- unsorted hashed data structures that can be quickly searched
 - **unordered map:** similar to map but unsorted, instead organized into buckets based on hash of its key
   ```cpp
   #include <unordered_map>
@@ -278,21 +278,21 @@
   ```
 
 ## object oriented programming
-- **`namespace`:** helps avoid name conflicts & group project into logical modules
+- **namespace:** helps avoid name conflicts & group project into logical modules
   ```cpp
   // use
   using std::cout;
   // instead of
   using namespace std;  // especially in headers
   ```
-  nameless namespace: local to translation unit, like static but can also take user defined types
+  **nameless namespace:** local to translation unit, like static but can also take user defined types
   ```cpp
   namespace
   {
   const int SIZE = 100;
   }
   ```
-- **`class`:** to encapsulate data along with methods to process them, `this` is pointer to current object
+- **class:** to encapsulate data along with methods to process them, `this` is pointer to current object
   ```cpp
   class someClass
   {
@@ -324,8 +324,7 @@
   someClass var_2{10, 11};     // custom constructor with argument type checking
   someClass var_3 = {10, 11};  // same as var_2
   ```
-- **`static`**:
-  static variable: exists once per class (not per object), value equal across all objects, example: reference counter, must be defined in *.cpp file
+- **static variable:** exists once per class (not per object), value equal across all objects, example: reference counter, must be defined in *.cpp file
   ```cpp
   class countedClass
   {
@@ -335,13 +334,13 @@
       static int count;
   }
   ```
-  static function: doesn't need an object, only needs an object to access private members, must be defined in *.cpp file
+  **static function:** doesn't need an object, only needs an object to access private members, must be defined in *.cpp file
   ```cpp
   // static member function call
   someClass::staticFunc(args);
   ```
-- **`struct`:** is a `class` where everything is `public`  
-  braced initialization: struct members should be uninitialized for this
+- **struct:** is a `class` where everything is `public`  
+  **braced initialization:** struct members should be uninitialized for this
   ```cpp
   struct someStruct
   {
@@ -360,9 +359,9 @@
       return 0;
   }
   ```
-  padding: align members to natural address boundaries  
-  packing: prevent padding
-  bitfields: pointer not possible since size can be smaller than granularity allowed by pointers
+  **padding:** align members to natural address boundaries  
+  **packing:** prevent padding
+  **bitfields:** pointer not possible since size can be smaller than granularity allowed by pointers
   ```cpp
   typedef struct
   {
@@ -395,7 +394,7 @@
 ### move semantics
 - **lvalue:** occupies memory  
   **rvalue:** everything else, defined using `&&`
-- **`std::move`:** converts lvalue to rvalue, transfers ownership, dont access moved variable (undefined by cpp standard), performance better than copying but worse than passing by reference
+- `std::move` converts lvalue to rvalue, transfers ownership, dont access moved variable (undefined by cpp standard), performance better than copying but worse than passing by reference
   ```cpp
   int b = std::move(a)  // memory tranferred to b
   ```
@@ -416,7 +415,8 @@
   myClass c = std::move(b);  // move constructor
   a = std::move(b);          // move assign operator
   ```
-- **rule of all or nothing:** define all 6 special functions (destructor + constructor + above 4) or define none, if none defined `default` functions used, if class has constant data member then above 4 functions are implicitly marked `delete` by compiler
+- **rule of all or nothing:** define all 6 special functions (destructor + constructor + above 4) or define none, if none defined `default` functions used  
+  if class has constant data member then above 4 functions are implicitly marked `delete` by compiler
   ```cpp
   myClass() = default;               // autogenerated functions, may use shallow copy
   myClass(myClass &other) = delete;  // compilation error if called
@@ -432,7 +432,7 @@
   ```
 
 ### inheritance
-- **inheritance:** inherit public & protected data & functions from another class, seperate 6 special functions & private members
+- inherit public & protected data & functions from another class, seperate 6 special functions & private members
   ```cpp
   class rectangleClass
   {
@@ -450,7 +450,7 @@
       squareClass(size) : rectangleClass(size, size) {}
   };
   ```
-- types:
+- **types:**
   - `public`: public & protected same as base
   - `protected`: both protected
   -  `private`: both private
@@ -460,8 +460,8 @@
 
 ### polymorphism
 - **polymorphism:** ability to present same interface for differing underlying implementations, inherited classes may have different functionality but share a common interface
-  - compile-time: function & operator overloading
-  - run-time: function overriding, used for generic class references
+  - **compile-time:** function & operator overloading
+  - **run-time:** function overriding, used for generic class references
     ```cpp
     derivedClass1 a;
     derivedClass2 b;
@@ -573,10 +573,10 @@
 
 ## memory
 - **type qualifiers:** C++ only has first two
-  - `const`: read-only
-  - `volatile`: value might be changed by something beyond the program, no caching, use `const volatile` for read-only status register
-  - `restrict`: optimization hint to compiler that during its lifetime no other pointer will be used to access the same memory
-  - `_Atomic`: read-modify-write operators guaranteed in single instruction, free from data races
+  - **const:** read-only
+  - **volatile:** value might be changed by something beyond the program, no caching, use `const volatile` for read-only status register
+  - **restrict:** optimization hint to compiler that during its lifetime no other pointer will be used to access the same memory
+  - **atomic:** read-modify-write operators guaranteed in single instruction, free from data races
     ```cpp
     #include <iostream>
     #include <sstream>
@@ -589,10 +589,10 @@
     const _Atomic(int) *p3;  // same
     ```
 - **storage class specifier:**
-  - `auto`: default
-  - `register`: hint to compiler to place it in processor's register
-  - `static`: local static variable keeps its value between invocations, global static variable/function local to translation unit
-  - `extern`: used for external linkages, only mention specifier for declarations & keep them in header, cross checking between translation units
+  - **auto:** default
+  - **register:** hint to compiler to place it in processor's register
+  - **static:** local static variable keeps its value between invocations, global static variable/function local to translation unit
+  - **extern:** used for external linkages, only mention specifier for declarations & keep them in header, cross checking between translation units
     ```cpp
     // header.h
     extern int g_val;
@@ -608,24 +608,24 @@
     printf("%d\n", g_val);        // 77
     printf("%d\n", increment());  // 78
     ```
-  - `mutable`: C++ only, to allow a particular data member of const object to be modified, example: mutexes
-- 1s complement: invert all bits  
-  2s complement: add 1 to 1s complement
+  - **mutable:** C++ only, to allow a particular data member of const object to be modified, example: mutexes
+- **1s complement:** invert all bits  
+  **2s complement:** add 1 to 1s complement
   ```cpp
   00011001  //  25
   11100110  //     (1s complement)
   11100111  // -25 (2s complement)
   ```
 - **integer representation:** negative numbers stored as 2s complement  
-  signed: `-2^(n-1)` to `2^(n-1) - 1`  
-  unsigned: `0` to `2^(n) - 1`  
-  integer promotion: `signed` promoted to `unsigned` when mixed
+  **signed:** `-2^(n-1)` to `2^(n-1) - 1`  
+  **unsigned:** `0` to `2^(n) - 1`  
+  **integer promotion:** `signed` promoted to `unsigned` when mixed
   ```cpp
   unsigned int a = 6;
   int b = -20;
   (a + b > 6) ? printf(">6") : printf("<=6");  // >6
   ```
-  sign extension: preserving sign while increasing number of bits of a binary number
+  **sign extension:** preserving sign while increasing number of bits of a binary number
   ```cpp
   1001 0110            //  8 bit (-106)
   1111 1111 1001 0110  // 16 bit (-106)
@@ -651,7 +651,7 @@
   big endian:     12, 34, 56, 78  // most significant byte at smallest memory address
   little endian:  78, 56, 34, 12  // least significant byte at smallest memory address
   ```
-  swap endianness:
+  **swap endianness:**
   ```cpp
   uint32_t num = 9;
   uint32_t b0, b1, b2, b3;
@@ -674,13 +674,13 @@
     float* f_ptr = new float[num];  // allocate array
     delete[] f_ptr;                 // delete array
     ```  
-    memory leak: heap not dealloced or address lost (pointer reassigned)  
-    dangling pointer: pointing to dealloced memory  
-    wild pointer: pointing to random address
+    **memory leak:** heap not dealloced or address lost (pointer reassigned)  
+    **dangling pointer:** pointing to dealloced memory  
+    **wild pointer:** pointing to random address
   - **stack:** simple last-in-first-out (LIFO) structure, stores local variables, function params & inheritance virtual function table  
-    stack pointer: keeps track of top of the stack  
-    stack overflow: program attempts to use more memory than is available on stack, usually due to deep/infinite recursion leading to stack shortage  
-    stack frame: function data (return addr, args, local vars) pushed onto stack, on ARM first 4 args stored `r0` to `r3`  
+    **stack pointer:** keeps track of top of the stack  
+    **stack overflow:** program attempts to use more memory than is available on stack, usually due to deep/infinite recursion leading to stack shortage  
+    **stack frame:** function data (return addr, args, local vars) pushed onto stack, on ARM first 4 args stored `r0` to `r3`  
     `ebp` (frame pointer) is used to backup `esp` (stack pointer), while `esp` is being modified by the current function  
     ![](./media/cplusplus/stack.png)
 - **segmentation fault:** error from a program trying to access the value stored in any segment differently than it is supposed to
@@ -688,14 +688,14 @@
   **deep copying:** copy data, create new pointers
 
 ## pointers
-- pointer vs reference:  
-  own memory vs alias  
-  no init required vs init in declaration  
-  can reassign vs cannot  
-  can be NULL vs cannot  
-  indirection (levels of pointers) vs single level  
-  can apply arithematic operations vs cannot  
-  can store in vector/array vs cannot
+- **pointer vs reference:**
+  - own memory vs alias
+  - no init required vs init in declaration
+  - can reassign vs cannot
+  - can be NULL vs cannot
+  - indirection (levels of pointers) vs single level
+  - can apply arithematic operations vs cannot
+  - can store in vector/array vs cannot
 - **arrow operator:** `obj->myFunc()` is same as `(*obj).myFunc()`
 - **pointer polymorphism:** used for strategy pattern, initialize to NULL & check interface pointer before calling its methods
   ```cpp
@@ -714,13 +714,13 @@
   #include <memory>
   sPtr.get();  // get raw pointer
   ```
-  - unique: can be moved but cannot be copied, memory always owned by single unique pointer
+  - **unique:** can be moved but cannot be copied, memory always owned by single unique pointer
     ```cpp
     auto uPtr = std::unique_ptr<myType>(new myType);        // default constructor
     auto uPtr = std::unique_ptr<myType>(new myType(args));  // custom constructor
     auto uPtr = std::make_unique<myType>(args);             // C++14
     ```
-  - shared: `std::shared_ptr`, can be copied, `usage_count` incremented/decremented when copied/destructed, mem freed when `usage_count == 0`
+  - **shared:** `std::shared_ptr`, can be copied, `usage_count` incremented/decremented when copied/destructed, mem freed when `usage_count == 0`
     ```cpp
     auto sPtr = std::shared_ptr<myType>(new myType);        // default constructor
     auto sPtr = std::shared_ptr<myType>(new myType(args));  // custom constructor
@@ -771,13 +771,13 @@
   return 0;  // both dealloced
   ```
 - **type casting:** converting expression of given type into another type
-  - implicit: change types without changing the value, happens automatically, lower data type converted to higher type
+  - **implicit:** change types without changing the value, happens automatically, lower data type converted to higher type
     ```cpp
     short a = 1024;
     int b = 5;
     b = a;  // implicit conversion
     ```
-  - explicit: force type conversion, two types
+  - **explicit:** force type conversion, two types
     ```cpp
     float a = 1.2;
     int b = (int)a + 1;  // C-like notation explicit coversion
@@ -907,7 +907,7 @@
 ## templates
 - **generic programming:** seperate algorithms from data type
 - **templates:** compile-time type-independent/generic algorithms, `<T>` macro expanded, no definition till expansion is done (linker error)  
-  template function: can use any type that is copy constructable, assignable & defined by the time template compiled (custom classes)
+  **template function:** can use any type that is copy constructable, assignable & defined by the time template compiled (custom classes)
   ```cpp
   template <typename T>  // can use typename or class keyword
   T func1(const T &arg1)
@@ -917,7 +917,7 @@
   func(10);     // type infered by compiler
   func<int>();  // explicit type (in case data type cannot be determined by compiler)
   ```
-  template class: used for meta programming (programs that modify programs), compiler generates objects based on types we passed
+  **template class:** used for meta programming (programs that modify programs), compiler generates objects based on types we passed
   ```cpp
   template <typename T>
   class myClass
@@ -946,7 +946,7 @@
   func<int>();     // specialized
   func<double>();  // generic
   ```
-- template classes headers/source: always declare & define in same `*.h` file, concrete template classes are generated at compile time, linker does not know about the implementation
+- **template classes headers/source:** always declare & define in same `*.h` file, concrete template classes are generated at compile time, linker does not know about the implementation
 
 ## error handling
 - **exception:** thrown when there is an error, constructor of exception receives a string error message, use `what()` to get exception string
@@ -958,7 +958,7 @@
   - `runtime_error`
   - `range_error`: requested operation doesn't make mathematical sense in the domain considered, example: `srqt(negative_number)` in real domain
   - `overflow_error`/`underflow_error`: result exceeds capacity of underlying type
-- **`try`** ⟶ **`throw`** ⟶ **`catch`**
+- `try` ⟶ `throw` ⟶ `catch`
   ```cpp
   #include <stdexcept>
 
@@ -994,7 +994,7 @@
   ```
 
 ## misc
-- **`using`:** create type aliases, `using newType = oldType;`, similar to `typedef`, creates local alias if used within function scope
+- **using:** create type aliases, `using newType = oldType;`, similar to `typedef`, creates local alias if used within function scope
   ```cpp
   using image3f = image<float, 3>;
   using vector3d = double[3];  // not possible using `typedef`
@@ -1041,9 +1041,9 @@
   LL  // long long int, ULL
   F   // float
   ```
-- **enum:** assign names to integral constants, by default starts with 0  
-  unscoped: can implicitly convert  
-  scoped: implicit convertion leads to error, use `static_cast` if required
+- **enum:** assign names to integral constants, by default starts with 0
+  - **unscoped:** can implicitly convert
+  - **scoped:** implicit convertion leads to error, use `static_cast` if required
   ```cpp
   enum uFoo  // unscoped
   {
