@@ -164,44 +164,54 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   requires intelligent clock network across a chip, so clock arrives at all locations at roughly the same time  
   ![](./media/computer_architecture/clock_network.png)  
 
-[continue](https://www.youtube.com/watch?v=AAPwKjm_CpA&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=9)
-
 ## instruction set architecture
-- **instruction:** smallest piece of work in a computer
-- **instruction set architecture (ISA):** interface between software & hardware, defines set of instructions supported by the processor
-- **data flow model:** instruction fetched & executed when its operands are ready, inherently more parallel  
-  **von-neumann model:** stored program (instruction & data memory unified), sequential instruction processing (one instruction processed at a time)
-- **instruction cycle:** fetch ⟶ decode ⟶ evaluate address ⟶ fetch operands ⟶ execute ⟶ store result
-- **important registers:**
+- **instruction:** most basic unit of computer processing
+- **instruction set architecture (ISA):** is the interface between what software commands and what the hardware carries out, specifies memory organization, register set & instruction set (opcodes, data types & addressing modes)  
+  *"if instructions are the words in the language of a computer, ISA is the vocabulary"*
+- **von Neumann model:** program stored in memory (unified instruction & data memory), processor fetches & processes instruction sequentially one at a time  
+  **data flow model:** instruction fetched and executed only when its operands are ready, inherently more parallel
+- **register:** memory is big but slow, so registers ensure fast access to operands, typically one register contains one word
+- special purpose registers:
   - **stack pointer (`SP`):** address of top of the stack
   - **link register (`LR`):** return address
-  - **program counter (`PC`):** address of current instruction
+  - **instruction register (`IR`):** current instruction
+  - **program counter (`PC`):** address of next instruction to execute, also known as instruction pointer, incremented by `1` in word addressable memory and by word length in byte addressable memory
   - **program status register (`PSR`):** zero (`Z`), negative (`N`), carry (`C`), overflow (`V`)
   - **memory address register (`MAR`):** address to read/write
-  - **memory data/buffer register (`MDR`/`MBR`):** data from read/write
-- **opcode/instruction:** most can modify PSR flags by postfixing `S`, three types: operate, data movement & control flow
+  - **memory data/buffer register (`MDR`/`MBR`):** data from read or to write
+- read data: load `MAR` with the address, then data will be placed in `MDR`  
+  write data: load `MAR` with the address and `MDR` with data, then activate write enable signal
+- **opcode:** what instruction does, three types:
+  - operate: execute instructions in the ALU
+  - data movement: read from or write to memory
+  - control flow: allow a program to execute out of sequence
+- **opcode encoding:** defines how instuctions are encoded as binary values in the machine code  
+  ![](./media/computer_architecture/opcode_encoding.png)
+- opcodes:
+  ```cpp
+  ; // mnemonic dest, src1, src2
+  ; // most can modify PSR flags by postfixing S
+  AND regd, rega, argb  ; // regd ⟵ rega & argb
+  EOR regd, rega, argb  ; // regd ⟵ rega ^ argb
+  SUB regd, rega, argb  ; // regd ⟵ rega - argb
+  RSB regd, rega, argb  ; // regd ⟵ argb - rega, REVERSE SUB
+  ADD regd, rega, argb  ; // regd ⟵ rega + argb
+  ADC regd, rega, argb  ; // regd ⟵ rega + argb + C (carry in PSR)
+  SBC regd, rega, argb  ; // regd ⟵ rega - argb - !C
+  RSC regd, rega, argb  ; // regd ⟵ argb - rega - !C
+  TST rega, argb        ; // set flags for rega & argb, result discarded, TEST
+  TEQ rega, argb        ; // set flags for rega ^ argb, result discarded, TEST_EQUIVALENCE
+  CMP rega, argb        ; // set flags for rega - argb, COMPARE
+  CMN rega, argb        ; // set flags for rega + argb, COMPARE_NEGATIVE
+  ORR regd, rega, argb  ; // regd ⟵ rega | argb
+  MOV regd, arg         ; // regd ⟵ arg
+  BIC regd, rega, argb  ; // regd ⟵ rega & ~argb, BIT_CLEAR
+  MVN regd, arg         ; // regd ⟵ ~argb, MOV_NOT
+  B target_addr         ; // BRANCH
+  LDR regd, [rega]      ; // regd ⟵ *rega, LDRB for 8bit
+  STR regd, [rega]      ; // regd ⟶ *rega, STRB for 8bit
   ```
-  AND regd, rega, argb  ; regd ⟵ rega & argb
-  EOR regd, rega, argb  ; regd ⟵ rega ^ argb
-  SUB regd, rega, argb  ; regd ⟵ rega - argb
-  RSB regd, rega, argb  ; regd ⟵ argb - rega, REVERSE SUB
-  ADD regd, rega, argb  ; regd ⟵ rega + argb
-  ADC regd, rega, argb  ; regd ⟵ rega + argb + C (carry in PSR)
-  SBC regd, rega, argb  ; regd ⟵ rega - argb - !C
-  RSC regd, rega, argb  ; regd ⟵ argb - rega - !C
-  TST rega, argb        ; set flags for rega & argb, result discarded, TEST
-  TEQ rega, argb        ; set flags for rega ^ argb, result discarded, TEST_EQUIVALENCE
-  CMP rega, argb        ; set flags for rega - argb, COMPARE
-  CMN rega, argb        ; set flags for rega + argb, COMPARE_NEGATIVE
-  ORR regd, rega, argb  ; regd ⟵ rega | argb
-  MOV regd, arg         ; regd ⟵ arg
-  BIC regd, rega, argb  ; regd ⟵ rega & ~argb, BIT_CLEAR
-  MVN regd, arg         ; regd ⟵ ~argb, MOV_NOT
-  B target_addr         ; BRANCH
-  LDR regd, [rega]      ; regd ⟵ *rega, LDRB for 8bit
-  STR regd, [rega]      ; regd ⟶ *rega, STRB for 8bit
-  ```
-- **condition flags:**
+- condition flags:
   ```
   EQ          equal                         Z
   NE          not equal                     !Z
@@ -215,57 +225,63 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   LE          signed greater than or equal  Z || (N != V)
   AL/omitted  always                        true
   ```
+- **addressing modes:** way in which the operand of an instruction is specified
+  - immediate offset: `[Rn, #±imm]`, offset to address in `Rn`
+  - register: `[Rn]`, address in `Rn`, same as `[Rn, #0]`
+  - scaled register offset: `[Rn, ±Rm, shift]`, address is sum of `Rn` value & shifted `Rm` value
+  - register offset: `[Rn, ±Rm]`, address is sum of `Rn` & `Rm` values, same as `[Rn, ±Rm, LSL #0]`
+  - immediate pre-indexed: `[Rn, #±imm]!`, same as immediate offset but `Rn` set to address
+  - scaled register pre-indexed: `[Rn, ±Rm, shift]!`, same as scaled register offset mode but `Rn` set to address
+  - register pre-indexed: `[Rn, ±Rm]!`, same as register offset mode but `Rn`set to address
+  - immediate post-indexed: `[Rn], #±imm`, same as register then offset added to `Rn`
+  - scaled register post-indexed: `[Rn], ±Rm, shift`, same as register then shifted `±Rm` value added to `Rn`
+  - register post-indexed: `[Rn], ±Rm`, same as register then `±Rm` added to `Rn`, same as `[Rn], ±Rm, LSL #0`
+- **shift flags:** used with addressing modes
+  - logical shift left (`LSL`): `a << b`
+  - logical shift right (`LSR`): `a >> b`
+  - arithematic shift right (`ASR`): `a >> b` with sign extension, `ASL == LSL`
+  - rotate right (`ROR`): `a >> b` with wrap around
+  ![](./media/computer_architecture/logical_vs_arithematic_shift.png)
+- example: loop C to assembly:
+  ```cpp
+  // C ⟶ Assembly
+  // C
+  int total;
+  int i;
 
-**addressing modes:**
-1. **immediate offset:** `[Rn, #±imm]` offset to address in `Rn`
-2. **register:** `[Rn]` address in `Rn` (same as `[Rn, #0]`)
-3. **scaled register offset:** `[Rn, ±Rm, shift]` address is sum of `Rn` value & shifted `Rm` value
-4. **register offset:** `[Rn, ±Rm]` address is sum of `Rn` & `Rm` values (same as `[Rn, ±Rm, LSL #0]`)
-5. **immediate pre-indexed:** `[Rn, #±imm]!` same as immediate offset but `Rn` set to address
-6. **scaled register pre-indexed:** `[Rn, ±Rm, shift]!` same as scaled register offset mode but `Rn` set to address
-7. **register pre-indexed:** `[Rn, ±Rm]!` same as register offset mode but `Rn`set to address
-8. **immediate post-indexed:** `[Rn], #±imm` same as register then offset added to `Rn`
-9. **scaled register post-indexed:** `[Rn], ±Rm, shift` same as register then shifted `±Rm` value added to `Rn`
-10. **register post-indexed:** `[Rn], ±Rm` same as register then `±Rm` added to `Rn` (same as `[Rn], ±Rm, LSL #0`)
+  total = 0;
+  for (i = 10; i > 0; i--)
+  {
+      total += i;
+  }
 
-**shift flags:** used with addressing modes
-1. **logical shift left (`LSL`):** `a << b`
-2. **logical shift right (`LSR`):** `a >> b`
-3. **arithematic shift right (`ASR`):** `a >> b` with sign extension, `ASL == LSL`
-4. **rotate right (`ROR`):** `a >> b` with wrap around
+  // ARM Assembly
+          MOV  R0, #0
+          MOV  R1, #10
+  again   ADD  R0, R0, R1
+          SUBS R1, R1, #1  ;
+          BNE  again       ; // check Z flag
+  halt    B    halt        ; // infinite loop
+          END
+  ```
+- example: strcpy in assembly:
+  ```cpp
+  // ARM Assembly strcpy()
+  strcpy  LDRB R2, [R1], #1  ; // R1 is source
+          STRB R2, [R0], #1  ; // R0 is destination
+          TST R2, R2         ; // repeat if R2 is nonzero
+          BNE strcpy
+          END
+  ```
+- **instruction cycle:** sequence of steps that an instruction goes through to be executed
+  - fetch: obtain instruction from memory and load it into the `IR`
+  - decode: identifies the instruction to be processed
+  - evaluate address: computes the address of memory location of operands
+  - fetch operands: obtains the source operands, in latest processors fetch is done in parallel to decode
+  - execute: executes the instruction
+  - store result: write to the designated destination, once done cycle starts again for a new instruction
 
-**example: loop C to assembly:**
-```cpp
-// C ⟶ Assembly
-// C
-int total;
-int i;
-
-total = 0;
-for (i = 10; i > 0; i--)
-{
-    total += i;
-}
-
-// ARM Assembly
-        MOV  R0, #0
-        MOV  R1, #10
-again   ADD  R0, R0, R1
-        SUBS R1, R1, #1 ;
-        BNE  again      ; // check Z flag
-halt    B    halt       ; // infinite loop
-        END
-```
-
-**example: strcpy in assembly:**
-```cpp
-// ARM Assembly strcpy()
-strcpy  LDRB R2, [R1], #1
-        STRB R2, [R0], #1
-        TST R2, R2        ; repeat if R2 is nonzero
-        BNE strcpy
-        END
-```
+[continue](https://www.youtube.com/watch?v=W2J5QhfQa9g&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=10)
 
 ## microarchitecture
 
