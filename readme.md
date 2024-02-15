@@ -11,12 +11,12 @@
 ## in progress
 - [programming](./programming.md)
 - [computer architecture](./computer_architecture.md)
+- [computer vision](./computer_vision.md)
 - [tools](./tools.md)
 
 ## todo
 - [performance](./performance.md)
 - [maths](./maths.md)
-- [computer vision](./computer_vision.md)
 - [algorithms](./algorithms.md)
 - [computer networking](./computer_networking.md)
 - [databases](./databases.md)

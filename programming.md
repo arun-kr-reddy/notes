@@ -2,6 +2,7 @@
 - [introduction](#introduction)
 - [procedures \& processes](#procedures--processes)
 - [higher order procedures](#higher-order-procedures)
+- [misc](#misc)
 
 ## links  <!-- omit from toc -->
 - [scheme (lisp dialect) interpreter](https://inst.eecs.berkeley.edu/~cs61a/fa14/assets/interpreter/scheme.html)
@@ -288,3 +289,11 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
   - to be incorporating into data structures
 
 - [CONTINUE](https://www.youtube.com/watch?v=DrFkf-T-6Co&list=PLE18841CABEA24090&index=5)
+
+
+## misc
+- **programming constructs:** programming requires dividing a task (unit of work) into smaller tasks
+  - sequential: if task can be broken down into two subtasks one following the other
+  - conditional: if task can be broken down into two subtasks but not both executed
+  - iterative: if task consists of doing a subtask a number of times but only as long as some condition is true
+  ![](./media/programming/programming_constructs.png)

@@ -14,14 +14,17 @@
 - [single instruction multiple data](#single-instruction-multiple-data)
 
 ## links  <!-- omit from toc -->
+- [[lectures] design of digital circuits](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l)
+- [Hamming code](https://harryli0088.github.io/hamming-code/)
 
 ## todo  <!-- omit from toc -->
-- [[lectures] design of digital circuits](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l)
+- [ARM assembly](http://www.cburch.com/books/arm/)
 - [[lectures] computer architecture](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi-DyoI3HbqcdtUm9YWRR_z-)
 - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
-- [hamming code](https://harryli0088.github.io/hamming-code/)
-- [ARM assembly](http://www.cburch.com/books/arm/)
 - [future computing architectures](https://www.youtube.com/watch?v=kgiZlSOcGFM)
+- [Hamming speech](https://www.youtube.com/watch?v=a1zDuOPkMSw)
+- [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
+- [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms
@@ -39,7 +42,7 @@
 - **DRAM refresh:** a DRAM cell consists of a capacitor & an access transistor, applying high voltage to wordline (row enable) allows us to read data (capacitor chargeas a bit) in the bitline, but capacitor charge leaks over time, memory controller needs to refresh each row periodically to restore charge, increases energy consumption & DRAM bank unavailable while refreshing, but only small % have low retention time (manufacturing process variation) so don't need to refresh every row frequently, once profiling (retention time of all DRAM rows) is done check (Bloom filters) bins to determine refresh rate of a row  
   ![](./media/computer_architecture/dram_cell.png)
   - **Bloom filter:** memory efficient probabilistic data structure that compactly represents set membership, test set membership using hash functions (unique identifier generator), no false negatives & never overflows (but `num elements ∝ false positives rate`), three operations: insert, test & remove all elements, removing one particular element is not easy (can lead to removal of other elements)
-- **Hamming code:** powers-of-2 bits are regular parity bits used to track the parity of the other bits whose position have a 1 in the same place, 0th message bit used as overall parity, can correct 1-bit errors (regular parity incorrect & overall parity incorrect) & detect 2-bit errors (regular parity incorrect & overall parity correct)  
+- **Hamming code:** powers-of-2 bits are regular parity bits used to track the parity of the other bits whose position have a 1 in the same place, 0th message bit used as overall parity (including regular parity bits), can correct 1-bit errors (regular parity incorrect & overall parity incorrect) & detect 2-bit errors (regular parity incorrect & overall parity correct)  
   Hamming distance: number of locations at which two equal-length strings are different  
   ![](./media/computer_architecture/hamming_code.png)
 - **field programable gate array (FPGA):** is a reconfigurable substrate (functions, interconnections, I/O) that can be programmed for a specific use, faster than software & more flexible than hardware, programmed using hardware description language (HDL) like Verilog & VHDL  
@@ -177,14 +180,14 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   - **instruction register (`IR`):** current instruction
   - **program counter (`PC`):** address of next instruction to execute, also known as instruction pointer, incremented by `1` in word addressable memory and by word length in byte addressable memory
   - **program status register (`PSR`):** zero (`Z`), negative (`N`), carry (`C`), overflow (`V`)
-  - **memory address register (`MAR`):** address to read/write
-  - **memory data/buffer register (`MDR`/`MBR`):** data from read or to write
-- read data: load `MAR` with the address, then data will be placed in `MDR`  
-  write data: load `MAR` with the address and `MDR` with data, then activate write enable signal
+  - **memory address register (`MAR`):** address to read/write  
+    **memory data/buffer register (`MDR`/`MBR`):** data from read or to write  
+    read data: load `MAR` with the address, then data will be placed in `MDR`  
+    write data: load `MAR` with the address and `MDR` with data, then activate write enable signal
 - **opcode:** what instruction does, three types:
   - operate: execute instructions in the ALU
   - data movement: read from or write to memory
-  - control flow: allow a program to execute out of sequence
+  - control flow: change the sequence of execution
 - **opcode encoding:** defines how instuctions are encoded as binary values in the machine code  
   ![](./media/computer_architecture/opcode_encoding.png)
 - opcodes:
@@ -280,6 +283,8 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   - fetch operands: obtains the source operands, in latest processors fetch is done in parallel to decode
   - execute: executes the instruction
   - store result: write to the designated destination, once done cycle starts again for a new instruction
+
+[CONTINUE](https://www.youtube.com/watch?v=_pRC1gM1UCU&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=11)
 
 ## microarchitecture
 
