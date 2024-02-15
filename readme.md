@@ -1,23 +1,19 @@
 # readme
-- [notes](#notes)
-  - [completed](#completed)
-  - [in progress](#in-progress)
-  - [todo](#todo)
-- [code](#code)
+- [completed](#completed)
+- [in progress](#in-progress)
+- [todo](#todo)
 - [symbols](#symbols)
 
-## notes
-
-### completed
+## completed
 - [C++](./cplusplus.md)
 - [operating systems](./operating_system.md)
 
-### in progress
+## in progress
 - [programming](./programming.md)
 - [computer architecture](./computer_architecture.md)
 - [tools](./tools.md)
 
-### todo
+## todo
 - [performance](./performance.md)
 - [maths](./maths.md)
 - [computer vision](./computer_vision.md)
@@ -26,12 +22,6 @@
 - [databases](./databases.md)
 - [compilers](./compilers.md)
 - [distributed systems](./distribited_systems.md)
-
-## code
-```bash
-cd .\build\
-cmake .. -G "Visual Studio 17 2022"
-```
 
 ## symbols
 
