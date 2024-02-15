@@ -281,8 +281,6 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   - execute: executes the instruction
   - store result: write to the designated destination, once done cycle starts again for a new instruction
 
-[continue](https://www.youtube.com/watch?v=W2J5QhfQa9g&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=10)
-
 ## microarchitecture
 
 **microarchitecture (μArch):** underlying implementation of ISA, μArch keeps changing with constant ISA interface (backwards compatibility)

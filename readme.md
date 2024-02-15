@@ -9,23 +9,23 @@
 ## notes
 
 ### completed
-- [C++](./notes/cplusplus.md)
-- [operating systems](./notes/operating_system.md)
+- [C++](./cplusplus.md)
+- [operating systems](./operating_system.md)
 
 ### in progress
-- [programming](./notes/programming.md)
-- [computer architecture](./notes/computer_architecture.md)
-- [tools](./notes/tools.md)
+- [programming](./programming.md)
+- [computer architecture](./computer_architecture.md)
+- [tools](./tools.md)
 
 ### todo
-- [performance](./notes/performance.md)
-- [maths](./notes/maths.md)
-- [computer vision](./notes/computer_vision.md)
-- [algorithms](./notes/algorithms.md)
-- [computer networking](./notes/computer_networking.md)
-- [databases](./notes/databases.md)
-- [compilers](./notes/compilers.md)
-- [distributed systems](./notes/distribited_systems.md)
+- [performance](./performance.md)
+- [maths](./maths.md)
+- [computer vision](./computer_vision.md)
+- [algorithms](./algorithms.md)
+- [computer networking](./computer_networking.md)
+- [databases](./databases.md)
+- [compilers](./compilers.md)
+- [distributed systems](./distribited_systems.md)
 
 ## code
 ```bash
