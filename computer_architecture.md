@@ -4,7 +4,7 @@
 - [sequential logic](#sequential-logic)
 - [timing \& verification](#timing--verification)
 - [instruction set architecture](#instruction-set-architecture)
-- [microarchitecture](#microarchitecture)
+- [microarchitecture (μArch)](#microarchitecture-μarch)
 - [pipelining](#pipelining)
 - [out-of-order execution](#out-of-order-execution)
 - [superscalar execution](#superscalar-execution)
@@ -27,7 +27,8 @@
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
 
 ## introduction
-- **computer architecture:** is the science & art of designing computing platforms
+- **computer architecture:** is the science & art of designing computing platforms  
+  why art?: we don't know the future applications/users/market
 - **abstraction:** higher level only needs to know about the interface to the lower level, not how the lower level is implemented  
   **levels of transformation:** improves productivity by creates abstractions, no need to worry about decisions made in underlying levels  
   ***breaking the abstraction layers and knowing what is underneath enables you to understand & solve problems***  
@@ -171,8 +172,11 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
 - **instruction:** most basic unit of computer processing
 - **instruction set architecture (ISA):** is the interface between what software commands and what the hardware carries out, specifies memory organization, register set & instruction set (opcodes, data types & addressing modes)  
   *"if instructions are the words in the language of a computer, ISA is the vocabulary"*
-- **von Neumann model:** program stored in memory (unified instruction & data memory), processor fetches & processes instruction sequentially one at a time  
-  **data flow model:** instruction fetched and executed only when its operands are ready, inherently more parallel
+- **von Neumann model:** program stored in memory (unified instruction & data memory), processor fetches then processes instruction sequentially one at a time, easier to debug since you know which instruction will execute  
+  pipelining, SIMD, OoO execution, seperate data & instruction cacahe are not consistent with von Neumann model  
+  **data flow model:** instruction fetched and executed only when its operands are ready, inherently more parallel, no instruction pointer required
+- example: factorial with data flow model:  
+  ![](./media/computer_architecture/data_flow_factorial.png)
 - **register:** memory is big but slow, so registers ensure fast access to operands, typically one register contains one word
 - special purpose registers:
   - **stack pointer (`SP`):** address of top of the stack
@@ -284,19 +288,18 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   - execute: executes the instruction
   - store result: write to the designated destination, once done cycle starts again for a new instruction
 
-[CONTINUE](https://www.youtube.com/watch?v=_pRC1gM1UCU&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=11)
+## microarchitecture (μArch)
+- underlying implementation of ISA, μArch keeps changing with constant ISA interface to ensure backwards compatibility, example: `add` instruction vs adder implementation
+- control driven (von Neumann) vs data driven (data flow) execution tradeoff can be made at μArch level, μArch can execute instructions in any order as long as it obeys the semantics specified by the ISA when making instruction results visible to software
 
-## microarchitecture
+[CONTINUE](https://youtu.be/_pRC1gM1UCU?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3401)
 
-**microarchitecture (μArch):** underlying implementation of ISA, μArch keeps changing with constant ISA interface (backwards compatibility)
-
-**single-cycle machines:** each instruction takes single clock cycle, `slowest instruction ≈ cycle time`  
-**multi-cycle machines:** instruction broken into multiple clock cycles, extra registers for intermediate output, `slowest stage ≈ cycle time`
-
-**μArch design principles:**
-1. **critical design path:** decrease max combinational logic delay
-2. **common case design:** spend time & resources on where it matters most
-3. **balanced design:** balance instruction & data flow to eliminate bottlenecks
+- **single-cycle machines:** each instruction takes single clock cycle, `slowest instruction ≈ cycle time`  
+  **multi-cycle machines:** instruction broken into multiple clock cycles, extra registers for intermediate output, `slowest stage ≈ cycle time`
+- **μArch design principles:**
+  - critical design path: decrease max combinational logic delay
+  - common case design: spend time & resources on where it matters most
+  - balanced design: balance instruction & data flow to eliminate bottlenecks
 
 ## pipelining
 
