@@ -5,6 +5,7 @@
 - [timing \& verification](#timing--verification)
 - [instruction set architecture](#instruction-set-architecture)
 - [microarchitecture (μArch)](#microarchitecture-μarch)
+  - [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
 - [out-of-order execution](#out-of-order-execution)
 - [superscalar execution](#superscalar-execution)
@@ -291,17 +292,38 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
 ## microarchitecture (μArch)
 - underlying implementation of ISA, μArch keeps changing with constant ISA interface to ensure backwards compatibility, example: `add` instruction vs adder implementation
 - control driven (von Neumann) vs data driven (data flow) execution tradeoff can be made at μArch level, μArch can execute instructions in any order as long as it obeys the semantics specified by the ISA when making instruction results visible to software
-
-[CONTINUE](https://youtu.be/_pRC1gM1UCU?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3401)
-
-- **single-cycle machines:** each instruction takes single clock cycle, `slowest instruction ≈ cycle time`  
-  **multi-cycle machines:** instruction broken into multiple clock cycles, extra registers for intermediate output, `slowest stage ≈ cycle time`
+- **instruction processing:** assuming von Neumann model, processing an instruction (all 6 stages) should transform architectural state (memory, registers & program counter) according to ISA specification  
+  ISA defines abstractly what `AS'` should be given an instruction and `AS`, from ISA point of view there are no intermediate states between `AS` & `AS'` during instruction execution  
+  μArch implements how `AS` is transformed to `AS'`, but can have multiple programmer-invisible states to optimize the speed of instruction execution, so we have two choices
+    - **single-cycle machines:** each instruction takes single clock cycle, no intermediate or programmer-invisible states, only combinational logic used to implement instruction execution, clock cycle time determined by slowest instruction  
+      `AS` ⟶ `AS'`  
+      ![](./media/computer_architecture/single_cycle_machines.png)
+    - **multi-cycle machines:** each instruction takes as many clock cycles as it needs, multiple state updates during instruction's execution, architectureal state updates only at the end of an instructions execution, needs extra registers to store intermediate results, clock cycle time determined by slowest stage  
+      `AS`⟶ `AS+MS1` ⟶ `AS+MS2` ⟶ `AS+MS3` ⟶ `AS'`  
+      ![](./media/computer_architecture/multi_cycle_machines.png)
+- **performance basics:** execution time of
+  - instruction: `cycles-per-instruction × clock-cycle-time`
+  - program: `num-instructions × average-cycles-per-instruction × clock-cycle-time`, also known as iron law of performance
+- for a single cycle machine, how long each instruction takes is determined by how long slowest instruction takes to execute, even though many instructions don't need that long to execute (average-CPI always 1)
 - **μArch design principles:**
-  - critical design path: decrease max combinational logic delay
-  - common case design: spend time & resources on where it matters most
-  - balanced design: balance instruction & data flow to eliminate bottlenecks
+  - critical design path: find & decrease the maximum combinational logic delay, break a path in to multiple cycles if it takes too long
+  - common case design: spend time & resources on where it matters most, similar to Amdahl's law
+  - balanced design: balance instruction/data flow through hardware components to eliminate bottlenecks
+
+### microprogramming
+- for a multi cycle μArch, instruction processing cycle is divided into states  
+  it sequences from state to state to process an instruction  
+  the behaviour of the entire processor is specified fully by a FSM
+- **microinstruction:** control signal assocuated with the current state  
+  **microsequencing:** determining the next state and the microinstruction for the next state  
+  **control store:** stores control signals (microinstructions) for every possible sate (entire FSM)  
+  **microsequencer:** determines which set of control signals will be used in the next clock cycle (next state)  
+  ![](./media/computer_architecture/microprogramming.png)
+
+[CONTINUE](https://youtu.be/u4GhShuBP3Y?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=1195)
 
 ## pipelining
+[single cycle vs multi vs pipelined](https://danielmangum.com/posts/single-cycle-multicycle-processor-performance/)
 
 **pipelining:** break execution into stages, better hardware utilization, `num stages ∝ throughput` (higher instruction per cycle (IPC)), *e.g.* fetch ⟶ decode ⟶ execute ⟶ writeback
 

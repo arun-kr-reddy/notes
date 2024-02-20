@@ -9,6 +9,8 @@
   - intrinsic or assembly instructions
 - [gpu programming](http://www.cse.iitm.ac.in/~rupesh/teaching/gpu/jan22/)
 - [compiler explorer](https://godbolt.org/)
+- [an even easier introduction to CUDA](https://developer.nvidia.com/blog/even-easier-introduction-cuda/)
+- [Amdahl's law paper](https://inst.eecs.berkeley.edu//~n252/paper/Amdahl.pdf)
 
 ## introduction
 - **iron law of processor performance:** trade-off between complexity and the number of primitive instructions that processors use to perform calculation  
