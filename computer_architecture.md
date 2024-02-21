@@ -301,6 +301,14 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
     - **multi-cycle machines:** each instruction takes as many clock cycles as it needs, multiple state updates during instruction's execution, architectureal state updates only at the end of an instructions execution, needs extra registers to store intermediate results, clock cycle time determined by slowest stage  
       `AS`⟶ `AS+MS1` ⟶ `AS+MS2` ⟶ `AS+MS3` ⟶ `AS'`  
       ![](./media/computer_architecture/multi_cycle_machines.png)
+- instruction processing needs two components:
+  - **datapath:** hardware elements that deal with and transform data signals
+    - functional unit operating on data
+    - storage units (like registers)
+    - hardware structures (like wires & muxes) that enable flow of data into functional units & registers
+  - **control logic:** hardware elements that determine the signals that specify what datapath elements should do to the data  
+  in multi cycle machines, control signals needed in the next cycle can be generated in
+the current cycle
 - **performance basics:** execution time of
   - instruction: `cycles-per-instruction × clock-cycle-time`
   - program: `num-instructions × average-cycles-per-instruction × clock-cycle-time`, also known as iron law of performance
@@ -312,15 +320,24 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
 
 ### microprogramming
 - for a multi cycle μArch, instruction processing cycle is divided into states  
-  it sequences from state to state to process an instruction  
+  sequences from state to state to process an instruction  
   the behaviour of the entire processor is specified fully by a FSM
 - **microinstruction:** control signal assocuated with the current state  
   **microsequencing:** determining the next state and the microinstruction for the next state  
   **control store:** stores control signals (microinstructions) for every possible sate (entire FSM)  
-  **microsequencer:** determines which set of control signals will be used in the next clock cycle (next state)  
-  ![](./media/computer_architecture/microprogramming.png)
+  **microsequencer:** determines which set of control signals will be used in the next clock cycle (next state)
+- example: MIPS LC-3b control & datapath: 26 bits passed to data path, 9 bits go back to microsequencer to fetch microinstruction (control signals) for next cycle in parallel  
+  ![](./media/computer_architecture/microprogramming_1.png)  
+  ![](./media/computer_architecture/microprogramming_2.png)
+- advantages of microprogrammed control:
+  - allows a simple design to do powerful computation by controlling the datapath (using a sequencer)
+  - enables easy extensibility of the ISA  
+    can support a new instruction by changing the microcode  
+    can support complex instructions (string copy) as a sequence of simple microinstructions
+  - enables update of machine behavoir  
+    a buggy implementation of an instruction can be fixed by changing the microcode in the field
 
-[CONTINUE](https://youtu.be/u4GhShuBP3Y?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=1195)
+[CONTINUE](https://www.youtube.com/watch?v=f522l7Q-t7g&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=14&pp=iAQB)
 
 ## pipelining
 [single cycle vs multi vs pipelined](https://danielmangum.com/posts/single-cycle-multicycle-processor-performance/)
