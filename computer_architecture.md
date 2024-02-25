@@ -5,7 +5,7 @@
 - [timing \& verification](#timing--verification)
 - [instruction set architecture](#instruction-set-architecture)
 - [microarchitecture (μArch)](#microarchitecture-μarch)
-  - [microprogramming](#microprogramming)
+- [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
 - [out-of-order execution](#out-of-order-execution)
 - [superscalar execution](#superscalar-execution)
@@ -26,6 +26,7 @@
 - [Hamming speech](https://www.youtube.com/watch?v=a1zDuOPkMSw)
 - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
+- perceptron branch predictor
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms  
@@ -309,7 +310,7 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   - **control logic:** hardware elements that determine the signals that specify what datapath elements should do to the data  
   in multi cycle machines, control signals needed in the next cycle can be generated in
 the current cycle
-- **performance basics:** execution time of
+- performance basics: execution time of
   - instruction: `cycles-per-instruction × clock-cycle-time`
   - program: `num-instructions × average-cycles-per-instruction × clock-cycle-time`, also known as iron law of performance
 - for a single cycle machine, how long each instruction takes is determined by how long slowest instruction takes to execute, even though many instructions don't need that long to execute (average-CPI always 1)
@@ -318,7 +319,7 @@ the current cycle
   - common case design: spend time & resources on where it matters most, similar to Amdahl's law
   - balanced design: balance instruction/data flow through hardware components to eliminate bottlenecks
 
-### microprogramming
+## microprogramming
 - for a multi cycle μArch, instruction processing cycle is divided into states  
   sequences from state to state to process an instruction  
   the behaviour of the entire processor is specified fully by a FSM
@@ -337,48 +338,61 @@ the current cycle
   - enables update of machine behavoir  
     a buggy implementation of an instruction can be fixed by changing the microcode in the field
 
-[CONTINUE](https://www.youtube.com/watch?v=f522l7Q-t7g&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=14&pp=iAQB)
-
 ## pipelining
-[single cycle vs multi vs pipelined](https://danielmangum.com/posts/single-cycle-multicycle-processor-performance/)
+- with multi-cycle design some hardware resources are idle during different phases of instruction processing cycle so pipeline the execution ("assembly line processing") of multiple instructions for better hardware utilization and instruction throughput  
+  throughput increases as number of stages increase  
+  ![](./media/computer_architecture/pipelining.png)
+- example: multi-stage vs pipelining: fetch ⟶ decode ⟶ execute ⟶ writeback  
+  ![](./media/computer_architecture/pipelining_example1.png)
+- **ideal pipeline:** increase throughput with little increase in cost
+  - same operation is repeated on large number of different instructions
+  - no dependencies between instructions
+  - processing can be evenly divided into uniform-latency suboperations (that do not share resources)
+- **practical pipeline:**
+  - different instructions dont all need the same stages, example: adder during load/store operation
+  - need to detect and resolve inter-instruction dependencies to ensure the pipeline provides correct results, can lead to stalls (pipeline stops moving)
+  - some pipe stages are too fast but are forced to take the same clock cycle time
+- issues in pipeline design:
+  - balancing work in pipeline stages
+  - keeping the pipeline correct, moving & full in the presence of events that disrupt pipeline flow like dependencies, resource contention & long latency operations
+  - handling exceptions & interrupts
+- **dependencies:** dictate ordering requirements between instructions
+- **structural dependency:** happens when instructions in two pipeline stages need the same resource, solutions are:
+  - eliminated the cause of contention, duplicate resources (seperate instruction & data caches) or increase its throughput (multiple ports for memory structures)
+  - detect resource contention and stall one of the contending stages
+- **data dependency:** current instruction needs previous output  
+  ![](./media/computer_architecture/data_dependency.png)
+  - flow (read after write): always needs to be obeyed because they constitute true depedence on previous output value
+  - output (write after write) exists due to limited number of architectural registers, dependency on a name only (not on value)
+  - anti (write after read): cause same as output dependency
+- **stall:** make the dependent instruction wait until its source data value is available  
+  bubble: `NOP`s inserted in the stage after the stalled once
+- handling anti & output data dependencies: always write to destination in one stage and in program order only
+- detecting data dependencies: between instructions in a pipelined processor to guarantee correct execution
+  -  scoreboarding: each register in register file has a associated valid bit, instruction writing to register resets the bit, instruction in decode stage will check if all source & destination registes are valid
+  - combinational dependency check logic: special logic that checks if any instruction in later stages is supposed to write to any source register of the instruction that is being decoded
+- resolving data dependencies:
+  - freezing: pipeline stalled till dependent value is updated in register file (hardware based interlocking)
+  - compile-time detection & elimination: insert `NOP`s (bubble) at compile time (software based interlocking)
+  - data forwarding/bypassing: forward the result value as soon as the value is available from a later stage in the pipeline, brings a pipeline closer to data flow execution principles  
+  ![](./media/computer_architecture/data_forwarding.png)  
+  sufficient to resolve raw data dependency (cannot resolve dependency with load)  
+  ![](./media/computer_architecture/data_forwarding_stall.png)
+- **control dependency:** data depedence on the instruction pointer, special case of data dependency on `PC` register, next instruction known only once branch is evaluated
+- resolving control dependencies:
+  - freezing: pipeline stalled till branch resolved
+  - prediction: try to guess which way a branch will go before it is definitively known
+    - predict-not-taken: fetch next sequential instruction fetched, if branch is taken then instructions must be flushed  
+      ![](./media/computer_architecture/control_dependency_prediction.png)
+    - predict-taken: fetch branched instruction, backward branches (loop) are usually taken
+    - dynamic prediction: assumes next branch will be similar to previous branches
+  - delayed branching: execute instruction that is independent of branch taken or not
+  - loop unrolling: reduces branches
+- **scheduling:** order in which instructions are executed in pipeline
+  - static: software based instruction scheduling, compiler orders the instruction then hardware executes them in that order, can get runtime information through profiling
+  - dynamic: hardware based instruction scheduling, hardware can execute instruction out of the compiler-specified order, has extra runtime information like variable length operation latency, memory address, branch history
 
-**pipelining:** break execution into stages, better hardware utilization, `num stages ∝ throughput` (higher instruction per cycle (IPC)), *e.g.* fetch ⟶ decode ⟶ execute ⟶ writeback
-
-![](./media/computer_architecture/pipelining.png)
-
-**ideal vs practical pipeline:**
-1. identical ops vs some stages idle for some ops (external fragmentation), *e.g.* adder during memory op
-2. independent ops vs need to detect & resolve inter-ops dependencies
-3. uniform subops vs some stages too fast but common clock cycle time (internal fragmentation)
-
-**dependency types:**
-1. **data:** current instruction needs previous output, flow dependence true data dependence (depends on value), other two due to lack of register IDs in ISA
-   1. **flow:** read after write
-   2. **output:** write after write
-   3. **anti:** write after read
-2. **control:** next instruction known once branch evaluated, special case of data dependence on `PC` register
-3. **structural:** resource conflict, *e.g.* data & instruction same bus  
-
-**detecting dependencies:** 
-1. **scoreboarding:** each register has valid flag, if `flag = 0` register will be written by some other instruction, check operand valid flags at decode stage
-2. **combinational dependence check logic:** check if any stage after decode will write to source register of current instruction being decoded
-
-**resolving data dependencies:** 
-1. **freezing:** pipeline stalled till dependency resolved
-2. **compile-time detection & elimination:** insert `NOP`s (delay) compile time to resolve data dependencies
-3. **data forwarding/bypassing:** data needed by consumer instruction can be supplied directly from later stage in pipeline, instead of stalling then reading register
-
-**resolving control dependencies:** 
-1. **freezing:** pipeline stalled till branch resolved
-2. **prediction:** fetch instruction before branch resolved, flushed instrs misprediction penalty
-   1. **predict-taken:** branch taken (*e.g.* loop), branched instruction fetched
-   2. **predict-not-taken:** branch not-taken, next sequential instruction fetched
-   3. **dynamic prediction:** assumes next branch will be similar to previous branches
-3. **delayed branching:** execute instruction that is independent of branch taken or not
-4. **loop unrolling:** reduces branches
-
-**static scheduling:** software based, compiler orders instruction then hardware executes them in that order  
-**dynamic scheduling:** hardware based, runtime instruction ordering, extra runtime info (*e.g.* memory latency, branch direction)
+[CONTINUE](https://youtu.be/7XXgZIbBLls?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2576)
 
 **multi-cycle execution:** instruction can take different cycles in execute stage, sequential semantics not preserved, *e.g.* if first instruction throws exception but second instruction is already executed
 
@@ -437,11 +451,11 @@ exception causing instruction ready-to-be-retired ⟶ ensure arch state is preci
 2. small size vs large
 3. register state not visible to other threads vs shared
 
-**memory dependence handling:** memory addr is not known till load/store executes (addr computation needs to finish), determining dependence/independence needs to be handled after load/store partial execution
+**memory dependency handling:** memory addr is not known till load/store executes (addr computation needs to finish), determining dependency/independency needs to be handled after load/store partial execution
 
 **memory disambiguation (unknown address) problem:** when load/store has addr ready, there maybe older load/store with undetermined addr (don't know if older instruction will write same memory addr)
 
-**how to detect load-store dependence:** load dependence status is not known till all previous store addr are computed
+**how to detect load-store dependency:** load dependency status is not known till all previous store addr are computed
 1. wait until all previous stores committed
 2. check whether load address matches with previous store addr stored in store queue (SQ)
 
@@ -451,7 +465,7 @@ exception causing instruction ready-to-be-retired ⟶ ensure arch state is preci
 3. **intelligent:** predict if load is dependent on unknown-addr store, more accurate, but still recovery
 
 **store-to-load forwarding:** cannot update memory out of program order, load queue & store queue used, after store execution, addr & data written to SQ (acts as store reorder buffer), later when load calculates its addr
-1. searches SQ with addr, for multi-word load - dependence on multiple SQ entries
+1. searches SQ with addr, for multi-word load - dependency on multiple SQ entries
 2. access memory address
 3. receive value from youngest older store
 
@@ -461,17 +475,17 @@ exception causing instruction ready-to-be-retired ⟶ ensure arch state is preci
 
 **superscalar execution:** per cycle multiple instr processed (fetch, decode execute & retire), `N`-wide superscalar means `N` instr per cycle (needs `N` data paths)
 
-**dependency checking:** HW perfoms dependence check between concurrently-fetched instr, vertical axis dependence check (OoO horizontal), *e.g.* expected `IPC == 2` but actual `IPC == 1.2`
+**dependency checking:** HW perfoms dependency check between concurrently-fetched instr, vertical axis dependency check (OoO horizontal), *e.g.* expected `IPC == 2` but actual `IPC == 1.2`
 
-![](./media/computer_architecture/superscalar_dependence_example.png)
+![](./media/computer_architecture/superscalar_dependency_example.png)
 
 ## branch prediction
 
-**control dependence:** if current instruction fetched is control-flow instruction then how to determine next fetch PC
+**control dependency:** if current instruction fetched is control-flow instruction then how to determine next fetch PC
 
 ![](media/computer_architecture/branch_types.png)
 
-**control dependences handling:** critical to keep pipeline full with correct sequence of dynamic instructions
+**control dependencies handling:** critical to keep pipeline full with correct sequence of dynamic instructions
 1. **stall:** the pipeline until next fetch instruction known
 2. **branch prediction:** guess next fetch instruction
 3. **branch delay slot:** employ delayed branching
@@ -482,6 +496,8 @@ exception causing instruction ready-to-be-retired ⟶ ensure arch state is preci
 **branch problem:** next fetch address after a control-flow instruction is not determined after `N` cycles (branch resolution latency) in a pipelined processor, for `W` wide pipeline branch prediction leads to `N × W` wasted instruction slots
 
 ![](media/computer_architecture/branch_prediction.png)
+
+branch misprediction penalty: number of instructions flushed in case of misprediction
 
 **for better IPC:**
 1. reduce branch misprediction penalty(branch resolution latency): resolve branch condition & target address early
@@ -547,7 +563,7 @@ exception causing instruction ready-to-be-retired ⟶ ensure arch state is preci
 
 **predicate combining:** combine predicate operations to feed a single branch instruction instead of having one brancg for each, complex predicates (like `if ((a == b) && (c < d) && (a > 5000))`) are usually converted into multiple branches, single branch checks checks the value of the combined predicate
 
-**predicated execution:** compiler converts control dependence to data dependence, each instruction has predicate bit set based on predicate computation, instruction is effectively a `NOP` if its predicate is false, *e.g.* `if (a == 5) { b = 4; } else { b = 3 }` converted to `CMPEQ condition, a, 5; CMOV condition, b, 4; CMOV !condition, b, 3`, eliminates branches and enables straight line code, avoids misprediction cost but useless work (some instructions fetched/executed but discarded)
+**predicated execution:** compiler converts control dependency to data dependency, each instruction has predicate bit set based on predicate computation, instruction is effectively a `NOP` if its predicate is false, *e.g.* `if (a == 5) { b = 4; } else { b = 3 }` converted to `CMPEQ condition, a, 5; CMOV condition, b, 4; CMOV !condition, b, 3`, eliminates branches and enables straight line code, avoids misprediction cost but useless work (some instructions fetched/executed but discarded)
 
 ![](media/computer_architecture/predicated_execution.png)
 
