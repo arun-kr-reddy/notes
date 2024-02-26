@@ -6,6 +6,7 @@
 - [git parable](httsps://www.youtube.com/watch?v=jm7QsI-nNjk)
 
 ## todo  <!-- omit from toc -->
+- [undo (almost) anything with git](https://github.blog/2015-06-08-how-to-undo-almost-anything-with-git/)
 - [regex basics](https://www.youtube.com/watch?v=sa-TUpSx1JA)
 - gdb
 - cmake
@@ -17,7 +18,6 @@
 - bash scripting
 - batch scripting
 - python scripting
-- [undo (almost) anything with git](https://github.blog/2015-06-08-how-to-undo-almost-anything-with-git/)
 
 ## git
 - ![](./media/tools/git_workflow.png)

@@ -25,7 +25,7 @@
   - [hard disk internals](#hard-disk-internals)
 
 ## links  <!-- omit from toc -->
-- [[lectures] operating system](https://www.youtube.com/playlist?list=PLDW872573QAb4bj0URobvQTD41IV6gRkx)
+- [operating system (IITB 2018)](https://www.cse.iitb.ac.in/~mythili/os/)
 
 ## todo  <!-- omit from toc -->
 - [Belady's anomaly](https://en.wikipedia.org/wiki/B%C3%A9l%C3%A1dy%27s_anomaly#:~:text=In%20computer%20storage%2C%20B%C3%A9l%C3%A1dy's%20anomaly,(FIFO)%20page%20replacement%20algorithm.)

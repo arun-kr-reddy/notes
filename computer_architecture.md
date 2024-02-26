@@ -7,6 +7,7 @@
 - [microarchitecture (μArch)](#microarchitecture-μarch)
 - [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
+- [reorder buffer](#reorder-buffer)
 - [out-of-order execution](#out-of-order-execution)
 - [superscalar execution](#superscalar-execution)
 - [branch prediction](#branch-prediction)
@@ -15,18 +16,18 @@
 - [single instruction multiple data](#single-instruction-multiple-data)
 
 ## links  <!-- omit from toc -->
-- [[lectures] design of digital circuits](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l)
+- [design of digital circuits (ETHZ 2018)](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
 - [Hamming code](https://harryli0088.github.io/hamming-code/)
 
 ## todo  <!-- omit from toc -->
 - [ARM assembly](http://www.cburch.com/books/arm/)
-- [[lectures] computer architecture](https://www.youtube.com/playlist?list=PL5Q2soXY2Zi-DyoI3HbqcdtUm9YWRR_z-)
 - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
 - [future computing architectures](https://www.youtube.com/watch?v=kgiZlSOcGFM)
 - [Hamming speech](https://www.youtube.com/watch?v=a1zDuOPkMSw)
 - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
 - perceptron branch predictor
+- [computer architecture (ETHZ 2019)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms  
@@ -372,7 +373,7 @@ the current cycle
   -  scoreboarding: each register in register file has a associated valid bit, instruction writing to register resets the bit, instruction in decode stage will check if all source & destination registes are valid
   - combinational dependency check logic: special logic that checks if any instruction in later stages is supposed to write to any source register of the instruction that is being decoded
 - resolving data dependencies:
-  - freezing: pipeline stalled till dependent value is updated in register file (hardware based interlocking)
+  - stall: till dependent value is updated in register file (hardware based interlocking)
   - compile-time detection & elimination: insert `NOP`s (bubble) at compile time (software based interlocking)
   - data forwarding/bypassing: forward the result value as soon as the value is available from a later stage in the pipeline, brings a pipeline closer to data flow execution principles  
   ![](./media/computer_architecture/data_forwarding.png)  
@@ -380,49 +381,70 @@ the current cycle
   ![](./media/computer_architecture/data_forwarding_stall.png)
 - **control dependency:** data depedence on the instruction pointer, special case of data dependency on `PC` register, next instruction known only once branch is evaluated
 - resolving control dependencies:
-  - freezing: pipeline stalled till branch resolved
+  - stall: till branch resolved
+  - delayed branching: execute instruction that is independent of branch taken or not
   - prediction: try to guess which way a branch will go before it is definitively known
     - predict-not-taken: fetch next sequential instruction fetched, if branch is taken then instructions must be flushed  
       ![](./media/computer_architecture/control_dependency_prediction.png)
     - predict-taken: fetch branched instruction, backward branches (loop) are usually taken
     - dynamic prediction: assumes next branch will be similar to previous branches
-  - delayed branching: execute instruction that is independent of branch taken or not
-  - loop unrolling: reduces branches
+  - loop unrolling: during compilation will reduce number of branches
 - **scheduling:** order in which instructions are executed in pipeline
   - static: software based instruction scheduling, compiler orders the instruction then hardware executes them in that order, can get runtime information through profiling
   - dynamic: hardware based instruction scheduling, hardware can execute instruction out of the compiler-specified order, has extra runtime information like variable length operation latency, memory address, branch history
+- **multi-cycle execution:** not all instructions take same amount of time for execution, so have multiple different functional units that take different number of cycles, can let previous independent instruction start execution on a different functional unit before a long-latency instruction finishes execution  
+  ![](./media/computer_architecture/multi_cycle_execution.png)  
+  but architectural states are not updated in a sequential manner (sequential semantics of ISA not preserved), example: first instruction throws exception but second instruction is already executed and has modified the architectural state  
+  ![](./media/computer_architecture/multi_cycle_execution_issue.png)
+- **exception:** cause is internal to the running thread, handle when detected, example: divide by 0  
+  **interrupt:** cause is external to the running thread, handle when convenient (except for very high priority ones like power failure), example: mouse input when executable is running
+- retire/commit: finish execution and update architectural state
+- **precise exception/interrupt:** architectural state should be consistent (precise) when the exception/interrupt is ready to be handled, aids software debugging by ensuring clean slate beween two instruction, von Neumann ISA specifies this  
+  precise: all previous instructions should be completely retired and no later instruction should be retired
+- handling exceptions in pipelining: when the oldest instruction ready-to-be-retired is detected to have caused an exception, control logic:
+  - ensures architectural state is precise
+  - flush younger instruction in the pipeline to process the exception handler
+  - saves `PC` & registers (as specified by ISA)
+  - redirects the fetch engine to appropriate exception handling routine
+- example: ensuring precise exceptions in pipelining: make each operation take the same amount of time, worst-case instruction latency determines all instructions' latency  
+  ![](./media/computer_architecture/precise_exceptions_pipelining.png)
 
-[CONTINUE](https://youtu.be/7XXgZIbBLls?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2576)
+## reorder buffer
+- complete instruction out-of-order but reorder them before making results visible to architectural state, helpful for precise exceptions & rollback on mispredictions  
+  ![](./media/computer_architecture/reorder_buffer.png)  
+  - when instruction is decoded it reserved the next-sequential entry in the ROB
+  - when instruction completes, it writes result into ROB entry
+  - when instruction oldest in the ROB and it has completed without exceptions, its results moved into register file or memory
+- ROB entry: should contain everything to:  
+  ![](./media/computer_architecture/reorder_buffer_entry.png)
+  - correctly reorder instructions back into the program order
+  - update architectural state with instruction's results
+  - handle an exception/interrupt precisely
+  - also needs valid bits to keep track of readiness of the results and find out if the instruction has completed execution
+- in case of data dependency, input dependency value can be in the register file, reorder buffer or bypass path  
+  register file (random access memory) is already indexed with register ID, which is the address of an entry  
+  ROB buffer (content addressable memory) has to be searched with register ID, which is part of the content of an entry  
+  ![](./media/computer_architecture/reorder_buffer_access.png)
+- simplifying ROB access: to get rid of content-addressable memory we can instead use indirection
+  - access register file (register alias table) first and check if the register file is valid, if register invalid it stores the ID of the reorder buffer entry that contains (or will contain) the value of the register
+  - access reorder buffer next
+- dispatch: sending instruction to functional unit
+- **register renaming:** mapping of register to ROB entry, register file maps the register to a ROB entry if there is an in-flight instruction writing to that register  
+  link instruction dependencies: whenever an instruction at a particular ROB entry finishes execution it can broadcast its result to every instruction waiting for that ROB entry, name (ROB entry) is used to communicate the data value  
+  eliminates the output & anti dependencies (only exist due to lack of register IDs) between instructions and automatically recognizes true dependences  
+- example: in-order pipeline with reorder buffer:  
+  in-order dispatch/execution, out-of-order execution and in-order retirement  
+  ![](./media/computer_architecture/reorder_buffer_example.png)  
+    - decode (D): access register file or ROB, allocate entry in ROB, check if instruction can execute, if so dispatch instruction
+    - execute (E): instructions can complete out-of-order
+    - completion (R): write result to reorder buffer
+    - retirement (W): check for exceptions
 
-**multi-cycle execution:** instruction can take different cycles in execute stage, sequential semantics not preserved, *e.g.* if first instruction throws exception but second instruction is already executed
-
-![](./media/computer_architecture/multicycle_execution.png)
-
-**exception:** cause is internal to running process, handle when detected, *e.g.* divide by 0  
-**interrupt:** external to running process, handle when convenient (except high priority ones), *e.g.* mouse input when executable is running
-
-**retired:** instruction finish execution & update arch state (registers, `PC`, memory)
-
-**precise exception/interrupt:** all previous instruction completely retired & no later instruction retired, clean slate beween two instruction, aids software debugging
-
-**handling exception in pipelining:** 
-exception causing instruction ready-to-be-retired ⟶ ensure arch state is precise ⟶ flush younger instruction in pipeline ⟶ save `PC` & registers to stack ⟶ redirect to exception routine
-
-**dispatch:** sending instruction to functional unit
-
-**reorder buffer:** complete instruction out-of-order but reorder them before making results visible to arch state, oldest instruction retired first when done & no exception raised (in-order dispatch, out-of-order execution & in-order retirement), helpful for precise exceptions & rollback on mispredictions
-
-![](./media/computer_architecture/reorder_buffer.png)
-
-![](./media/computer_architecture/reorder_buffer_example.png)
-
-**register renaming:** in case of data dependency, register points to ROB entry that has/will have the output (mapping of register to ROB entry), mapping keeps getting updated, gives illusion that there are large number of registers, so eliminates output & anti dependencies, used to link instruction dependency, when instruction completes it will broadcast ROB value to all dependent instruction
+[CONTINUE](https://www.youtube.com/watch?v=0E4QTDZ2OBA&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=16)
 
 ## out-of-order execution
+- move dependent instructions out of the way of independent ones, fetch & dispatch those instructions only when its inputs are ready (similar to dataflow), also known as dynamic scheduling
 
-**out-of-order (OoO) execution:** move dependent instruction out of the way of independent ones, fetch & dispatch instruction only when its inputs are ready (similar to dataflow), also known as dynamic scheduling
-
-![](./media/computer_architecture/out_of_order_execution_example.png)
 
 **reservation stations:** rest areas for dependent instruction or waiting for hardware (adder, multiplier)
 
@@ -433,7 +455,7 @@ exception causing instruction ready-to-be-retired ⟶ ensure arch state is preci
 **frontend register file:** for register renaming  
 **architectural register file:** for maintaining precise state
 
-**OoO execution (tomasulo's algorithm):** 
+**OoO execution (tomasulo's algorithm):**
 1. **find operand dependencies:** set `tag` as operand for dependencies (register renaming), else use `value` directly
 2. **scheduling:** buffer instruction to reservation stations, each functional unit (adder/multiplier) has its own reservation station
 3. **execute when ready:** wait for data/resource dependencies to resolve
@@ -459,7 +481,7 @@ exception causing instruction ready-to-be-retired ⟶ ensure arch state is preci
 1. wait until all previous stores committed
 2. check whether load address matches with previous store addr stored in store queue (SQ)
 
-**when to schedule load:** 
+**when to schedule load:**
 1. **conservative:** stall load until all previous stores have addr computed, no need for recovery, but delays independent loads unnecessarily
 2. **aggressive:** assume load is independent of unknown-addr stores & schedule it, simple & more probable case, but recovery on misprediction
 3. **intelligent:** predict if load is dependent on unknown-addr store, more accurate, but still recovery
@@ -475,7 +497,7 @@ exception causing instruction ready-to-be-retired ⟶ ensure arch state is preci
 
 **superscalar execution:** per cycle multiple instr processed (fetch, decode execute & retire), `N`-wide superscalar means `N` instr per cycle (needs `N` data paths)
 
-**dependency checking:** HW perfoms dependency check between concurrently-fetched instr, vertical axis dependency check (OoO horizontal), *e.g.* expected `IPC == 2` but actual `IPC == 1.2`
+**dependency checking:** HW perfoms dependency check between concurrently-fetched instr, vertical axis dependency check (OoO horizontal), example: expected `IPC == 2` but actual `IPC == 1.2`
 
 ![](./media/computer_architecture/superscalar_dependency_example.png)
 
@@ -516,7 +538,7 @@ branch misprediction penalty: number of instructions flushed in case of mispredi
    2. **always taken:** no direction prediction, better accuracy, backward branch (target address lower than branch PC) like loops are usually taken
    3. **backward taken forward not-taken (BTFN):** for backward branch predict taken and for forward branches not-taken
    4. **profile based:** compiler determines like direction for each branch using a profile run, encodes that direction as a hint bit in the branch instruction format, per branch prediction, accurate only if profile is representative
-   5. **program analysis based:** use heuristics (loosely based rules) based on program analysis to determine statically-predicted direction, *e.g.* negative integers used as error values so predict `BLZ` as not-taken, *e.g.* predict a branch guarding a loop execution as taken, heuristic should be representative
+   5. **program analysis based:** use heuristics (loosely based rules) based on program analysis to determine statically-predicted direction, example: negative integers used as error values so predict `BLZ` as not-taken, example: predict a branch guarding a loop execution as taken, heuristic should be representative
    6. **programmer based:** progammer provides the statically-predicted direction using pragmas, programmer may know their program better than other analysis techniques
 2. **run time (dynamic):** predict branches based on dynamic information collected at runtime
    1. **one-bit last time predictor:** indicated which direction branch went last time it executed, misprediction when branch changes behaviour, always mispredicts the last & first iteration for loop branches (`N` iterations `accuracy = (N-2)/N`), changes prediction too quickly
@@ -524,7 +546,7 @@ branch misprediction penalty: number of instructions flushed in case of mispredi
    3. **global branch history predictor:** recently executed branch outcomes in the execution path are correlated with outcome of the next branch, make a prediction based on the outcome of the branch the last time the same global branch history was encountered, uses two level of history - global history register (GHR) to store direction of last `N` branches and pattern history table (PHT)) to store direction the branch took the last time same history was seen, GHR used as index in PHT, PHT made of two-bit predictors
       1. **gshare predictor:** GHR XORed with branch PC to create PHT index, more context information, better utilization of PHT
    4. **local branch history predictor:** make the prediction based on the outcome of the branch last time same local branch history was encountered, same as global branch history but for same branch
-   5. **hybrid branch predictor:** use more than one type of predictor and select best prediction, better accuracy, reduced warmup time (farter-warmup predictor used until the slower-warmup predictor warms up), *e.g.* tournament predictor
+   5. **hybrid branch predictor:** use more than one type of predictor and select best prediction, better accuracy, reduced warmup time (farter-warmup predictor used until the slower-warmup predictor warms up), example: tournament predictor
    6. **perceptron branch predictor:** perceptron is simple binary classifier (modelled on biological neuron) that learns how each element affects the output, perceptron contains sets of weights, each weight corresponds to a bit in GHR, how much each bit is correlated with direction of the branch, positive correlation large positive weight, negative correlation large negative weight
    7. **history length based predictor:** different branches require different history lengths for better prediction accuracy, have multiple PHTs indexed with GHRs of different history lengths and intelligently allocate PHT entries to different branches
 
@@ -553,9 +575,9 @@ branch misprediction penalty: number of instructions flushed in case of mispredi
 
 ![](media/computer_architecture/history_length_based_predictor.png)
 
-**pragmas:** keywords that enable a programmer to convey hints to lower levels of the transformation hierarchy, *e.g.* `if (likely(x)) { ... }`, *e.g.* `#pragma omp parallel` to direct openmp that loop can be parallelized
+**pragmas:** keywords that enable a programmer to convey hints to lower levels of the transformation hierarchy, example: `if (likely(x)) { ... }`, example: `#pragma omp parallel` to direct openmp that loop can be parallelized
 
-**branch confidence estimation:** estimate if the prediction is likely to be correct, useful in deciding how to speculate (*e.g.* whether to stop fetching on this path)
+**branch confidence estimation:** estimate if the prediction is likely to be correct, useful in deciding how to speculate (example: whether to stop fetching on this path)
 
 **delayed branching:** delay the execution of a branch, `N` instructions (delay slots) that come after the brnach are always executed regardless of branch direction, branch must be independent of the delay slot instructions, compiler finds delay slot instructions, `NOP` added if delay slot not found
 
@@ -563,7 +585,7 @@ branch misprediction penalty: number of instructions flushed in case of mispredi
 
 **predicate combining:** combine predicate operations to feed a single branch instruction instead of having one brancg for each, complex predicates (like `if ((a == b) && (c < d) && (a > 5000))`) are usually converted into multiple branches, single branch checks checks the value of the combined predicate
 
-**predicated execution:** compiler converts control dependency to data dependency, each instruction has predicate bit set based on predicate computation, instruction is effectively a `NOP` if its predicate is false, *e.g.* `if (a == 5) { b = 4; } else { b = 3 }` converted to `CMPEQ condition, a, 5; CMOV condition, b, 4; CMOV !condition, b, 3`, eliminates branches and enables straight line code, avoids misprediction cost but useless work (some instructions fetched/executed but discarded)
+**predicated execution:** compiler converts control dependency to data dependency, each instruction has predicate bit set based on predicate computation, instruction is effectively a `NOP` if its predicate is false, example: `if (a == 5) { b = 4; } else { b = 3 }` converted to `CMPEQ condition, a, 5; CMOV condition, b, 4; CMOV !condition, b, 3`, eliminates branches and enables straight line code, avoids misprediction cost but useless work (some instructions fetched/executed but discarded)
 
 ![](media/computer_architecture/predicated_execution.png)
 
@@ -597,10 +619,10 @@ branch misprediction penalty: number of instructions flushed in case of mispredi
 ## single instruction multiple data
 
 **flynn's taxonomy of computers:**
-1. **single instruction single data (SISD):** single instruction operates on single data element, *e.g.* single core processor
-2. **single instruction multiple data (SIMD):** single instruction operates on multiple data elements, *e.g.* array & vector processor
-3. **multiple instruction single data (MISD):** multiple instructions operates on single data element, *e.g.* systolic array processor
-4. **multiple instruction multiple data (MISD):** multiple instructions operates on multiple data elements, multiple instruction streams, *e.g.* multi-core processor
+1. **single instruction single data (SISD):** single instruction operates on single data element, example: single core processor
+2. **single instruction multiple data (SIMD):** single instruction operates on multiple data elements, example: array & vector processor
+3. **multiple instruction single data (MISD):** multiple instructions operates on single data element, example: systolic array processor
+4. **multiple instruction multiple data (MISD):** multiple instructions operates on multiple data elements, multiple instruction streams, example: multi-core processor
 
 **data parallelism:** concurrency arises from performing the same operation on different pieces of data, form of instruction level parallelism where instruction happens to be same across data
 
@@ -624,7 +646,7 @@ branch misprediction penalty: number of instructions flushed in case of mispredi
 **vector processor:** is one whose instructions operate on vectors rather than scalar (single data) values, requirements are
 1. **vector data registers:** to load/store vectors, each holds `N` number of `M`-bit values
 2. **vector length register (VLEN):** to operate on vectors of different lengths
-3. **vector stride register (VSTR):** elements of a vector might be stored apart from each other in memory, can be used to access non-consecutive elements, *e.g.* with `VSTR == 8` access `A` ⟶ `A+8` ⟶ `A+16` ⟶ `A+24`
+3. **vector stride register (VSTR):** elements of a vector might be stored apart from each other in memory, can be used to access non-consecutive elements, example: with `VSTR == 8` access `A` ⟶ `A+8` ⟶ `A+16` ⟶ `A+24`
 4. **vector mask register (VMASK):** indicates which elements of vector to operate on, set bu vector test instructions
 
 **vector instructions allow deeper pipelines:**

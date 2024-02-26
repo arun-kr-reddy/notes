@@ -4,10 +4,10 @@
 ## links  <!-- omit from toc -->
 
 ## todo  <!-- omit from toc -->
-- [performance engineering](https://www.youtube.com/playlist?list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf)
+- [performance engineering (MIT 2018)](https://ocw.mit.edu/courses/6-172-performance-engineering-of-software-systems-fall-2018/)
 - SIMD - NEON & Hexagon DSP
   - intrinsic or assembly instructions
-- [gpu programming](http://www.cse.iitm.ac.in/~rupesh/teaching/gpu/jan22/)
+- [gpu programming (IITM 2022)](http://www.cse.iitm.ac.in/~rupesh/teaching/gpu/jan22/)
 - [compiler explorer](https://godbolt.org/)
 - [an even easier introduction to CUDA](https://developer.nvidia.com/blog/even-easier-introduction-cuda/)
 - [Amdahl's law paper](https://inst.eecs.berkeley.edu//~n252/paper/Amdahl.pdf)

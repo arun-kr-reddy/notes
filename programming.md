@@ -8,8 +8,9 @@
 - [scheme (lisp dialect) interpreter](https://inst.eecs.berkeley.edu/~cs61a/fa14/assets/interpreter/scheme.html)
 
 ## todo  <!-- omit from toc -->
-- [structure and interpretation of computer programs
-](https://www.youtube.com/playlist?list=PLE18841CABEA24090) ([notes](https://mk12.github.io/sicp/lecture/2a.html))
+- [structure and interpretation of computer programs (MIT 1985)
+](https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/)
+  - [notes](https://mk12.github.io/sicp/lecture/2a.html)
 - [iterative process for fibonacci & towers of hanoi](https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution)
 - dynamic programming
 - [why is lisp different](https://www.paulgraham.com/diff.html)

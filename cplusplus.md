@@ -18,7 +18,7 @@
   - [standard template library](#standard-template-library)
 
 ## links  <!-- omit from toc -->
-- [[lectures] modern C++](https://www.youtube.com/playlist?list=PLgnQpQtFTOGR50iIOtO36nK6aNPtVq98C)
+- [modern C++ (UBonn 2018)](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
 - [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
 
 ## todo  <!-- omit from toc -->
@@ -26,13 +26,13 @@
 - [lost art of struct packing](http://www.catb.org/esr/structure-packing/)
 - [memory order](https://en.cppreference.com/w/c/atomic/memory_order)
 - [mix C & C++](https://isocpp.org/wiki/faq/mixing-c-and-cpp#:~:text=Just%20declare%20the%20C%20function,int)
+- [structure packing](http://www.catb.org/esr/structure-packing/)
+- [efficient c++](https://embeddedgurus.com/stack-overflow/category/efficient-cc/)
 - [add other containers](https://en.cppreference.com/w/cpp/container)
 - template uses
 - STL
 - OOPs concepts
 - 23 design patterns (gang of 4)
-- [structure packing](http://www.catb.org/esr/structure-packing/)
-- [efficient c++](https://embeddedgurus.com/stack-overflow/category/efficient-cc/)
 
 ## introduction
 - **standard I/O channels:** one input (`stdin` as `cin`) & two output (`stdout` as `cout` & `stderr` as `cerr`)

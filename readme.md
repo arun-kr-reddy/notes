@@ -12,16 +12,12 @@
 - [programming](./programming.md)
 - [computer architecture](./computer_architecture.md)
 - [computer vision](./computer_vision.md)
+- [maths](./maths.md)
 - [tools](./tools.md)
 
 ## todo
 - [performance](./performance.md)
-- [maths](./maths.md)
 - [algorithms](./algorithms.md)
-- [computer networking](./computer_networking.md)
-- [databases](./databases.md)
-- [compilers](./compilers.md)
-- [distributed systems](./distribited_systems.md)
 
 ## symbols
 
