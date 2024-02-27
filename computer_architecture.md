@@ -410,7 +410,7 @@ the current cycle
   ![](./media/computer_architecture/precise_exceptions_pipelining.png)
 
 ## reorder buffer
-- complete instruction out-of-order but reorder them before making results visible to architectural state, helpful for precise exceptions & rollback on mispredictions  
+- complete instruction execution out-of-order but reorder them before making results visible to architectural state, helpful for precise exceptions & rollback on mispredictions  
   ![](./media/computer_architecture/reorder_buffer.png)  
   - when instruction is decoded it reserved the next-sequential entry in the ROB
   - when instruction completes, it writes result into ROB entry
@@ -426,47 +426,59 @@ the current cycle
   ROB buffer (content addressable memory) has to be searched with register ID, which is part of the content of an entry  
   ![](./media/computer_architecture/reorder_buffer_access.png)
 - simplifying ROB access: to get rid of content-addressable memory we can instead use indirection
-  - access register file (register alias table) first and check if the register file is valid, if register invalid it stores the ID of the reorder buffer entry that contains (or will contain) the value of the register
+  - access register file first and check if the register file is valid, if register invalid it stores the ID of the reorder buffer entry that contains (or will contain) the value of the register
   - access reorder buffer next
-- dispatch: sending instruction to functional unit
+- dispatch: act of sending an instruction to a functional unit
 - **register renaming:** mapping of register to ROB entry, register file maps the register to a ROB entry if there is an in-flight instruction writing to that register  
   link instruction dependencies: whenever an instruction at a particular ROB entry finishes execution it can broadcast its result to every instruction waiting for that ROB entry, name (ROB entry) is used to communicate the data value  
-  eliminates the output & anti dependencies (only exist due to lack of register IDs) between instructions and automatically recognizes true dependences  
+  ROB is not constrained by ISA interface (unlike register file), so it can be huge and can have many instructions writing to the same architectural regiter
 - example: in-order pipeline with reorder buffer:  
   in-order dispatch/execution, out-of-order execution and in-order retirement  
+  in-order dispatch eliminates stalls due to false dependencies, but a true dependency will stall dispatch of younger instruction  
   ![](./media/computer_architecture/reorder_buffer_example.png)  
     - decode (D): access register file or ROB, allocate entry in ROB, check if instruction can execute, if so dispatch instruction
     - execute (E): instructions can complete out-of-order
     - completion (R): write result to reorder buffer
     - retirement (W): check for exceptions
 
-[CONTINUE](https://www.youtube.com/watch?v=0E4QTDZ2OBA&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=16)
-
 ## out-of-order execution
-- move dependent instructions out of the way of independent ones, fetch & dispatch those instructions only when its inputs are ready (similar to dataflow), also known as dynamic scheduling
+- move the dependent instructions out of the way of independent ones into resting areas, ensure that true data dependency does not stall the processor, also known as dynamic scheduling  
+  monitor the source values of each instruction in resting area, dispatch/fire the instruction when all source values are available  
+  instructions dispatched in dataflow (not control flow) order
+- reservation stations: rest areas for dependent instructions or instructions waiting for hardware (adder, multiplier)
+- example: in-order vs out-of-order execution: assume `IMUL` takes 4 cycles and `ADD` takes 1  
+  ![](./media/computer_architecture/in_order_vs_out_of_order.png)
+- enabling OoO execution:
+  - need to link consumer of a value to the producer  
+    associate a tag with each data value (register renaming)  
+    eliminates false dependencies
+  - need to buffer instructions until they are ready to execute  
+    insert instruction into reservation stations after renaming  
+    enables the pipeline to move for independent operations
+  - instructions need to keep track of readiness of source values  
+    broadcast the tag when the value is produced, instructions compare their source tags to the broadcast tag  
+    enables communication of readiness of produced value between instructions
+  - when all source values of an instruction are ready, need to dispatch the instruction to its functional unit  
+    instruction wakes up if all sources are ready, if multiple instructions are awake, select one per functional unit  
+    enables out-of-order dispatch
+- frontend register alias table: an instruction updates this when it completes execution, if valid bit set data value used, if valid bit reset tag used, used for renaming
+- architectural/backend register alias table: an instruction updates this when it retires, always updated in program order, used for maintaining precise state  
+  on an exception: flush pipeline, copy architectural RAT into frontend RAT
+- **OoO execution:** Tomasulo's algorithm with precise exceptions  
+  two humps: reservation station (scheduling window) and reordering (instruction/active window)  
+  instruction window: all decoded but not yet retired instruction  
+  ![](media/computer_architecture/out_of_order_execution.png)
+  - find operand dependencies: set tag (register renaming) if there is any dependency, else use data value directly
+  - scheduling: buffer instruction (with tag and/or data values) to reservation station, each functional unit has its own reservation station
+  - execute when ready: wait for data/resource dependencies to resolve
+  - dispatch instruction if source values ready: output tag is broadcasted when value is produced, each instruction compare their source tags to broadcasted one, instruction wakes up when source values ready
+  - reorder output: instruction updates output value in frontend RAT, then instruction added to reorder buffer, when instruction retires on becoming oldest instruction backend RAT will be updated
+- centralized physical register file: data values stored at a common place (physical registers) that reservation station, frontend & backend RAT will use indirection to, eliminates the need to maintain multiple copies of data values, no need for data broadcast now but tag broadcast still needed
+- example: Pentium 4 microarchitecture: OoO execution with centralized physical register file  
+  ![](./media/computer_architecture/out_of_order_tables_example.png)
+- latency tolerance: OoO execution tolerates the latency of multi-cycle operations by executing independent operations concurrently
 
-
-**reservation stations:** rest areas for dependent instruction or waiting for hardware (adder, multiplier)
-
-**register alias table:** table of ISA registers with corresponding "tag" or "value"
-
-**latency tolerance:** allows independent instruction to execute and complete in presence of long-latency operation (like memory access)
-
-**frontend register file:** for register renaming  
-**architectural register file:** for maintaining precise state
-
-**OoO execution (tomasulo's algorithm):**
-1. **find operand dependencies:** set `tag` as operand for dependencies (register renaming), else use `value` directly
-2. **scheduling:** buffer instruction to reservation stations, each functional unit (adder/multiplier) has its own reservation station
-3. **execute when ready:** wait for data/resource dependencies to resolve
-4. **dispatch instruction if source values ready:** output "tag" broadcasted when value produced, each instruction compare their source "tags" to broadcasted ones, instruction "wakes up" when source values ready
-5. **reorder output:** instruction updates output value in register alias table (frontend register file), instruction added to reorder buffer, architectural register file updated when instruction retires on becoming oldest instruction
-
-![](media/computer_architecture/out_of_order_execution.png)
-
-**centralized physical register file:** data values stored in physical registers that reservation stations & register alias table will access, instead of maintaining multiple data copies, alias for physical register added in register alias table, eliminates data broadcast but tag broadcast still needed
-
-**instruction window:** all decoded but not yet retired instruction, OoO dynamically builds dataflow graph of this
+[CONTINUE](https://youtu.be/vwLyEbIzyfI?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2657)
 
 **register vs memory:**
 1. register known statically vs memory determined dynamically

@@ -11,12 +11,12 @@
 ## in progress
 - [programming](./programming.md)
 - [computer architecture](./computer_architecture.md)
-- [computer vision](./computer_vision.md)
 - [maths](./maths.md)
 - [tools](./tools.md)
 
 ## todo
 - [performance](./performance.md)
+- [computer vision](./computer_vision.md)
 - [algorithms](./algorithms.md)
 
 ## symbols

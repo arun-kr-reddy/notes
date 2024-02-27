@@ -2,12 +2,12 @@
 - [introduction](#introduction)
 
 ## links  <!-- omit from toc -->
+
+## todo  <!-- omit from toc -->
 - [ancient secrets of computer vision (UWash 2018)](https://pjreddie.com/courses/computer-vision/)
 - [first principles of computer vision (Columbia 2020)](https://fpcv.cs.columbia.edu/)
 - [computer vision (UTubingen 2023)](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/computer-vision/)
 - [photogrammetry (UBonn 2021)](https://www.ipb.uni-bonn.de/photo12-2021/)
-
-## todo  <!-- omit from toc -->
 - [feature detection & matching algos](https://medium.com/data-breach/introduction-to-feature-detection-and-matching-65e27179885d)
 - [stanford CV tutorial](https://ai.stanford.edu/~syyeung/cvweb/tutorials.html)
 - FastCV, OpenCV
@@ -17,13 +17,6 @@
 ## introduction
 - **computer vision:** convert light into meaning
 - image: array of picture elements (pixels)
-
-
-[CONTINUE1](https://www.youtube.com/watch?v=-nt80JUNwlw&list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&index=2)
-[CONTINUE2](https://www.youtube.com/watch?v=EOUcIto5WMU&list=PL2zRqk16wsdoz4eycyq7EmeV2KpE6JN76&index=4&pp=iAQB)
-
-[CONTINUE3](https://www.youtube.com/watch?v=hCewSTTOt_4&list=PL05umP7R6ij35L2MHGzis8AEHz7mg381_&index=3)
-[CONTINUE4](https://www.youtube.com/watch?v=SyB7Wg1e62A&list=PLgnQpQtFTOGRYjqjdZxTEQPZuFHQa7O7Y&index=1)
 
 **perspective projection / pinhole model:** 3D mapped to 2D
 
