@@ -131,7 +131,7 @@
   - PC now holding return address
 - **system call difference:**
   - CPU hardware has multiple privilege levels: user mode (user code) & kernel mode (OS calls), some instructions can execute only in kernel mode
-  - kernel does not trust user stack, seperate kernel stack used in kernel mode
+  - kernel does not trust user stack, separate kernel stack used in kernel mode
   - kernel does not trust user provided addresses to jump to, interrupt descriptor table (IDT) has addresses of kernel functions to run for system calls and other events (set up at boot time)
 - **system call working:**
   - special trap instruction is run when system call is made (hidden from user by libc), this will move CPU to higher privilege level, switch to kernel stack, save user context on kernel stack, look up IDT and jump to trap handler function in OS code
@@ -170,7 +170,7 @@
   - shortest job first (SJF): process job with shorted execution time, is non-preemptive so can stil get stuck if shorter jobs arrive when long process executing
   - shortest remaining time first (SRTF): preemptive version of SJF (preempts running job), process job closest to completion, also known as shortest time to completion first (STFC)
   - round robin (RR): each job processed for a fixed time slice, preemptive, slice big enough to reduce context switch cost, good for response time & fairness, bad for turnaround time
-  - multi level feedback queue (MLFQ): used in linux, many queues in order of priority, process from highest prioriy queue, within same priority any algorithm like RR, priority of process reduces with its age
+  - multi level feedback queue (MLFQ): used in linux, many queues in order of priority, process from highest priority queue, within same priority any algorithm like RR, priority of process reduces with its age
 
 ### inter-process communication
 - **inter-process communication (IPC):** mechanisms to share information between processes, processes do not share any memory with each other
@@ -199,7 +199,7 @@
 - **memory allocation system calls:**
   - `malloc()` implemented by libc, to grow the heap `brk()`/`sbrk()` system calls used
   - program can use `mmap()` to allocate page sized memory, gets anonymous page from OS
-- **OS address space:** OS is not a seperate process with its own address space, instead OS code is part of the address space of every process, process sees OS as part of its code, page table maps OS addresses to OS code
+- **OS address space:** OS is not a separate process with its own address space, instead OS code is part of the address space of every process, process sees OS as part of its code, page table maps OS addresses to OS code
 
 ### address translation
 - **address translation in simplified OS:** places entire memory image in one chunk, OS tells MMU the base (starting address) & bound (total size of process) values (needs privileged mode), MMU calculates PA from VA, MMU also checks if address is beyond bound, generates faults and traps to OS if access illegal (VA is out of bound), OS updates translation information upon context switch
@@ -208,12 +208,12 @@
   assert (PA < VA + base + bound)
   ```
 - **role of OS in translation:**
-  - maintains free list of memeory
+  - maintains free list of memory
   - allocate space to process during creation and clean up when done
   - maintains information of where space is allocated to each process (in PCB)
   - sets address translation information in hardware and updates this on context switch
   - handles traps due to illegal memory access
-- **segmentation:** generalized base & bounds, each segment of memory image placed seperately, multiple base & bound values stored in MMU, good for sparse address space, but variable sized allocation leads to external framentation due to small holes in memory left between segments  
+- **segmentation:** generalized base & bounds, each segment of memory image placed separately, multiple base & bound values stored in MMU, good for sparse address space, but variable sized allocation leads to external fragmentation due to small holes in memory left between segments  
   ![](./media/operating_systems/segmentation.png)
 - **internal fragmentation:** unused part of memory block assigned to a process cannot be used by other processes, can be solved using dynamic partitioning to allocate space to process  
   **external fragmentation:** total memory space is enough to satisfy a request or to reside a process in it but it is not contiguous so it cannot be used  
@@ -260,7 +260,7 @@
     - **Belady's anomaly:** increasing number of page frames results in increase in number of page faults
   - **least recently/frequently used (LRU/LFU):** replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active/inactive
 - **cold (compulsory) miss:** miss when the first access to a page happens
-- **locality of references:** tendency of computer progam to access instructions whose address are near one another
+- **locality of references:** tendency of computer program to access instructions whose address are near one another
   - temporal: same location will be referenced again in the near future
   - spatial: nearby memory locations will be referenced in the near future
 
@@ -289,7 +289,7 @@
 ## concurrency
 
 ### threads and concurrency
-- **thread:** is like another copy of a process that executes independently, excapt threads share the same address space (code & heap), each thread has seperate PC and stack for independent function calls  
+- **thread:** is like another copy of a process that executes independently, all threads share the same address space (code & heap), each thread has separate PC and stack for independent function calls  
   ![](./media/operating_systems/single_vs_multi_threaded.png)
 - **process vs thread:**
   - parent forks a child: parent & child do not share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
@@ -299,7 +299,7 @@
 - **why threads:** with parallelism a single process can effectively utilize multiple CPU cores, even without parallelism concurrency of threads ensures effective use of CPU when one of the threads blocked
 - **scheduling threads:** OS schedules threads that are ready to run independently (much like processes), context of a thread (PC, registers) is saved into/restored from thread control block (TCB), every PCB has one or more linked TCBs
 - **kernel threads:** threads that are scheduled independently by kernel, example: linux pthreads  
-  **user-level threads:** procided by some libraries, library multiplexes large number of user threads over a smaller number of kernel threads, low overhead for switching (expensive context switch not required), but all user threads cannot run in parallel
+  **user-level threads:** provided by some libraries, library multiplexes large number of user threads over a smaller number of kernel threads, low overhead for switching (expensive context switch not required), but all user threads cannot run in parallel
 - example: thread creation:
   ```cpp
   #include <assert.h>
@@ -344,7 +344,7 @@
   ```
 - **critical section:** portion of code that can lead to race conditions
 - **mutual exclusion:** only one thread should be executing critical section at any time
-- **atomicity:** critical section should execute like one uninterrupible instruction
+- **atomicity:** critical section should execute like one uninterruptible instruction
 
 ### locks
 - **lock:** is just a variable that is either available (no thread holds the lock) or acquired (one thread holds the lock, other threads waiting), makes sure only one thread is executing critical section
@@ -409,7 +409,7 @@
     - userspace: most lock implementations are (sleeping) mutex since CPU wasted by spinning contending threads
     - OS: uses spinlocks since OS is default software layer and has no other thread to yield to, OS must disable interrupts while lock is held since an interrupt handler could request same lock leading to deadlock, OS must never perform any blocking operation (go to sleep) with a locked spinlock
 - **coarse-grained locking:** one big lock for all shared data, example: one lock for any change in entire linked-list  
-  **fine-grained locking:** seperate locks for individual shared data, allows more parallelism, but multiple locks may be harder to manage, example: individual locks for each linked-list element
+  **fine-grained locking:** separate locks for individual shared data, allows more parallelism, but multiple locks may be harder to manage, example: individual locks for each linked-list element
 
 ### conditional variables
 - other than mutex, another common requirement in multi-threaded applications is waiting & signaling, can accomplish using busy-wait but inefficient, example: thread T1 wants to continue only after T2 has finished some task
@@ -449,7 +449,7 @@
       // why mutex lock?
       // possible race condition (missed wakeup), parent checks condition then interrupted
       // child sets to 0 and signals but no one sleeping yet
-      // parent resumes now and goes to sleep forver
+      // parent resumes now and goes to sleep forever
       // mutex lock must be held when calling wait & signal
       // wait function implementation releases the lock before putting thread to sleep
 
@@ -636,7 +636,7 @@
   pthread_mutex_lock(l1);
   ```
   ![](./media/operating_systems/deadlock_dependency.png)
-- example: cicular wait prevention: total ordering:
+- example: circular wait prevention: total ordering:
   ```cpp
   // grab locks in high-to-low address order
   // code assumes m1 != m2
@@ -667,7 +667,7 @@
 
 ### communication with I/O devices
 - **port:** point of connection to the system, I/O devices connect to the CPU & memory via a bus to a port on the machine
-- **simple device model:** block devices store a set of numbered blocks (disks), character devices produce/consume stream of bytes (keyboard), devices expose an interface of memory registers (like current status of device, command to excute, data to transfer), internals of device are usually hidden
+- **simple device model:** block devices store a set of numbered blocks (disks), character devices produce/consume stream of bytes (keyboard), devices expose an interface of memory registers (like current status of device, command to execute, data to transfer), internals of device are usually hidden
 - **OS registers read/write:**
   - **explicit I/O instructions:** privileged instructions used by OS to read & write to specific registers on device
   - **memory mapped I/O:** device makes registers appear like memory locations, OS simply reads/writes from memory (part of address space reserved for I/O devices), memory hardware routes accesses to these special memory addresses to devices
@@ -779,12 +779,12 @@
   ![](./media/operating_systems/file_system_organization.png)
 - **inode table:** inodes usually stored in array, inode number of a file is index into this array, inode stores file metadata (like permissions, last accessed time) & pointers (disk block numbers) of file data  
   ![](./media/operating_systems/inode_table.png)
-- **inode structure:** file data not stored contiguously on disk, so need to track multiple block numbers of file, inode tracks disk block bumbers using
+- **inode structure:** file data not stored contiguously on disk, so need to track multiple block numbers of file, inode tracks disk block numbers using
   - direct pointers: numbers of first few blocks are stored in inode itself, enough for small files
   - indirect block: for larger files inode stores number of indirect blocks which has block numbers of file data
   - similarly double & triple indirect blocks (multi-level index)
 - **file allocation table (FAT):** alternate way to track file blocks, FAT stores next block pointer for each block, each disk block has one entry with number of next file block (or null if last block), pointer to first block stored in inode, similar to a linked list
-- **directory structure:** directory stores records mapping filename to inode number, this mapping can be done using algoriths like linked list or hash table or binary search tree, directory is a special type of file and has inode & data blocks (which store the file records)
+- **directory structure:** directory stores records mapping filename to inode number, this mapping can be done using algorithms like linked list or hash table or binary search tree, directory is a special type of file and has inode & data blocks (which store the file records)
 - **free space management:** to track free blocks
   - bitmap: store one bit per data block to indicate if free or not
   - free list: super block stores pointer to first free block which inturn stores address of next free block

@@ -21,9 +21,9 @@
 - **declarative:** "what is true" knowledge, example: `y` is `sqrt(x)` if `y^2 = x`  
 **imperative:** "how to" knowledge, example: square-root by successive averaging of guess `g` & `x/g` until result doesn't change much
 - **techniques for controlling complexity:** make building very large programs possible
-  - **black-box abstraction:** putting something in a box to supress details to go ahead & build bigger boxes OR your "how-to" method is an instance of a more general thing, example: fixed point of a function (`f(y) = y`) by succesive applying `f(g)` until result doesn't change much can be used for square-root if `f(g)` is average of `g` & `x/g`
+  - **black-box abstraction:** putting something in a box to suppress details to go ahead & build bigger boxes OR your "how-to" method is an instance of a more general thing, example: fixed point of a function (`f(y) = y`) by successive applying `f(g)` until result doesn't change much can be used for square-root if `f(g)` is average of `g` & `x/g`
   - **conventional interfaces:** agreed upon ways of plugging things together, example: use `(* x (+ a b))` to add numbers, vectors, polynomial, analog signals etc
-  - **metalinguistic abstraction:** pick a new design language to highlight different aspect of the system (supress some kind of details & emphasize others)
+  - **metalinguistic abstraction:** pick a new design language to highlight different aspect of the system (suppress some kind of details & emphasize others)
 - **lisp basics:** for learning any language we need to know three things: primitive elements, means of combination & means of abstraction  
 prefix notation `(+ x y)` used uniformly since it is more generic & can take multiple arguments
   ```lisp
@@ -59,12 +59,12 @@ prefix notation `(+ x y)` used uniformly since it is more generic & can take mul
 - **procedure:** is the description/recipe of the process  
 **process:** is the result of applying a procedure to arguments  
 example: procedure is the blueprint, while process is the actual building construction
-- computer science deals with idealised components unlike physical system where one has to worry about constraints of tolerance, approximation & noise  
+- computer science deals with idealized components unlike physical system where one has to worry about constraints of tolerance, approximation & noise  
 so for building a large program there isn't much difference between what I can imagine & what I can build
 - **formal parameter:** parameter written in function definition  
 **actual parameter:** parameter written in function call
 - **recursive definitions:** allows you to do infinite computations that go on until something is true
-- **example: square root by sucessive averaging:**
+- **example: square root by successive averaging:**
   ```lisp
   ; block structure: package internals inside of definition
   (define (sqrt x)
@@ -131,7 +131,7 @@ so for building a large program there isn't much difference between what I can i
       7
       ```
     - lambda expressions, definitions
-- **peano arithmetic:** formalizes arithematic operations on natural numbers & their properties  
+- **peano arithmetic:** formalizes arithmetic operations on natural numbers & their properties  
 there are two ways to add whole numbers, both are recursive definitions but lead to different process types: iteration & recursion  
 number of steps is approximation for time it takes to execute & width is the the space that needs to be remembered
   - **iteration:** time `O(x)` (steps increase as `x` increases) & space `O(1)` (same width for any `x`)  
@@ -192,7 +192,7 @@ this is possible through recursion because we always count down here & 0 high to
   ![](media/programming/towers_of_hanoi.png)  
 
 ## higher order procedures
-- whenever trying to make complicated systems and understand them, it is crucual to divide the things up into as many pieces as I can, each of which I understand separately  
+- whenever trying to make complicated systems and understand them, it is crucial to divide the things up into as many pieces as I can, each of which I understand separately  
 summation of integers & summation of squares have almost the same program with only term differing (`a` & `(square a)`), but we don't like repetition & no repetition means you only write it once (also only understand and debug it once)
   ```lisp
   ; Σ i, for i=a to i=b
@@ -250,7 +250,7 @@ procedure `sum` is encapsulated in other procedures, improving this will benefit
   ```
   - why should this converge?  
     here for finding `(sqrt x)` (such that `y^2 = x` or its equivalent form `y = x/y`) we can search for the fixed point using `f(y) = x/y` (`(fixed_point (lambda (y) (/ x y)) 1)`)  
-    considering intial guess `y1`, this never converges, it keeps oscilating between `y1` & `y2` (`y2 = x/y1` -> `y3 = x/y2 = x/(x/y1) = y1`)  
+    considering intial guess `y1`, this never converges, it keeps oscillating between `y1` & `y2` (`y2 = x/y1` -> `y3 = x/y2 = x/(x/y1) = y1`)  
     average is used to damp out these oscillations
     ```lisp
     (define (sqrt x)
@@ -263,7 +263,7 @@ procedure `sum` is encapsulated in other procedures, improving this will benefit
         (lambda (x) (average (f x) x))))     ; & return procedure as a value
     ```
 - **higher order procedures:** take procedural arguments & produce procedural values ot help us clarify & abstract some otherwise complicated processes
-- **example: netwon's method to find square roots:** used to find roots of a function  
+- **example: Netwon's method to find square roots:** used to find roots of a function  
 to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 = lim y->yn (y - f(y)/(df/dy))`
   ```lisp
   (define (sqrt x)

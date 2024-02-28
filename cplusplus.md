@@ -394,9 +394,9 @@
 ### move semantics
 - **lvalue:** occupies memory  
   **rvalue:** everything else, defined using `&&`
-- `std::move` converts lvalue to rvalue, transfers ownership, dont access moved variable (undefined by cpp standard), performance better than copying but worse than passing by reference
+- `std::move` converts lvalue to rvalue, transfers ownership, don't access moved variable (undefined by cpp standard), performance better than copying but worse than passing by reference
   ```cpp
-  int b = std::move(a)  // memory tranferred to b
+  int b = std::move(a)  // memory transferred to b
   ```
 - **copy/move constructor/assignment operator:** use move constructor/assignment operator to take ownership of another object
   ```cpp
@@ -432,7 +432,7 @@
   ```
 
 ### inheritance
-- inherit public & protected data & functions from another class, seperate 6 special functions & private members
+- inherit public & protected data & functions from another class, separate 6 special functions & private members
   ```cpp
   class rectangleClass
   {
@@ -601,7 +601,7 @@
     // source1.c
     #include "header.h"
     int g_val = 77;
-    int incrememt(void) { return (++g_val); }
+    int increment(void) { return (++g_val); }
 
     // source2.c
     #include "header.h"
@@ -694,7 +694,7 @@
   - can reassign vs cannot
   - can be NULL vs cannot
   - indirection (levels of pointers) vs single level
-  - can apply arithematic operations vs cannot
+  - can apply arithmetic operations vs cannot
   - can store in vector/array vs cannot
 - **arrow operator:** `obj->myFunc()` is same as `(*obj).myFunc()`
 - **pointer polymorphism:** used for strategy pattern, initialize to NULL & check interface pointer before calling its methods
@@ -780,8 +780,8 @@
   - **explicit:** force type conversion, two types
     ```cpp
     float a = 1.2;
-    int b = (int)a + 1;  // C-like notation explicit coversion
-    int c = int(a) + 1;  // functional C-like explicit coversion
+    int b = (int)a + 1;  // C-like notation explicit conversion
+    int c = int(a) + 1;  // functional C-like explicit conversion
     ```
     ```cpp
     unsigned char u = (unsigned char)(-9);  // same bit pattern (2s complement), 247
@@ -789,10 +789,10 @@
 - **type casting operators:**
   ```cpp
     // newType new_var = static_cast<newType>(var);
-    static_cast       // compile-time implicit convertion
+    static_cast       // compile-time implicit conversion
     const_cast        // remove const from const ref of non-const variable
     reinterpret_cast  // reinterpret bytes of one type as another type
-    dynamic_cast      // runtime convertion of derivedClass pointer to baseClass pointer, nullptr if failed
+    dynamic_cast      // runtime conversion of derivedClass pointer to baseClass pointer, nullptr if failed
     ```
 - **function pointer:**
   ```cpp
@@ -905,7 +905,7 @@
   ```
 
 ## templates
-- **generic programming:** seperate algorithms from data type
+- **generic programming:** separate algorithms from data type
 - **templates:** compile-time type-independent/generic algorithms, `<T>` macro expanded, no definition till expansion is done (linker error)  
   **template function:** can use any type that is copy constructable, assignable & defined by the time template compiled (custom classes)
   ```cpp
@@ -914,7 +914,7 @@
   {
   }
 
-  func(10);     // type infered by compiler
+  func(10);     // type inferred by compiler
   func<int>();  // explicit type (in case data type cannot be determined by compiler)
   ```
   **template class:** used for meta programming (programs that modify programs), compiler generates objects based on types we passed
@@ -956,7 +956,7 @@
   - `length_error`: exceeds max size
   - `out_of_range`: access out of bounds
   - `runtime_error`
-  - `range_error`: requested operation doesn't make mathematical sense in the domain considered, example: `srqt(negative_number)` in real domain
+  - `range_error`: requested operation doesn't make mathematical sense in the domain considered, example: `sqrqt(negative_number)` in real domain
   - `overflow_error`/`underflow_error`: result exceeds capacity of underlying type
 - `try` ⟶ `throw` ⟶ `catch`
   ```cpp
@@ -1007,7 +1007,7 @@
   type1 a, b;  // "a" pointer-to struct but "b" just struct
   type2 c, d;  // both "c" & "d" pointer
   ```
-- **name mangling:** encoding of function/variable names so linker can seperate common names (overloading, namespaces)  
+- **name mangling:** encoding of function/variable names so linker can separate common names (overloading, namespaces)  
   to link C code use:
   ```cpp
   extern "C"
@@ -1043,7 +1043,7 @@
   ```
 - **enum:** assign names to integral constants, by default starts with 0
   - **unscoped:** can implicitly convert
-  - **scoped:** implicit convertion leads to error, use `static_cast` if required
+  - **scoped:** implicit conversion leads to error, use `static_cast` if required
   ```cpp
   enum uFoo  // unscoped
   {
@@ -1061,7 +1061,7 @@
       d = b + c
   };
 
-  int enumValue = uFoo::a;  // implicit convertion
+  int enumValue = uFoo::a;  // implicit conversion
   int enumValue = sFoo::a;  // error
   ```
 - **union:** different variables of different types in same memory location

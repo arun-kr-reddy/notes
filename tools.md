@@ -44,7 +44,7 @@
   git push origin <branch>        # head -> remote
   git remote add origin <server>  # connect local repo to a remote server
   ```
-- **branching:** used to develop featus isolated from each other, `master` is the default branch, use other branches for development and merge them back to master upon completion
+- **branching:** used to develop features isolated from each other, `master` is the default branch, use other branches for development and merge them back to master upon completion
   ```sh
   git checkout <branch>     # checkout/switch-to a branch
   git checkout -b <branch>  # create a branch & switch to it
@@ -54,7 +54,7 @@
   ```sh
   git fetch <name>           # fetch changes (but doesn't change anything in workspace)
   git merge <name>/<branch>  # integrate changes from someone else
-  git pull                   # detch & merge in a single command
+  git pull                   # detach & merge in a single command
   ```
 - **diff:**
   ```sh
