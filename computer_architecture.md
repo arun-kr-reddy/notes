@@ -27,7 +27,7 @@
 - [Hamming speech](https://www.youtube.com/watch?v=a1zDuOPkMSw)
 - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
-- perceptron branch predictor
+- intel itanium
 - [computer architecture (ETHZ 2019)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 
 ## introduction
@@ -540,13 +540,6 @@ the current cycle
       // PC + 4: most likely code
   }
   ```
-- branch removal: get rid of control flow instructions or minimize their occurrence
-  - predicate combining: get rid of unnecessary control flow instructions  
-    example: instead of checking each predicate with a branch, check each predicate individually then check the combined predicate
-    ```cpp
-    if ((a != 5) && (b == 10) && (!c) && (d < 3))
-    ```
-  - predicated execution: convert control dependencies into data dependencies
 - for better instruction-per-cycle:
   - reduce branch misprediction penalty (branch resolution latency): resolve branch condition and calculate target address in earlier stages
   - increase branch probability: better branch prediction
@@ -594,47 +587,62 @@ the current cycle
   - hybrid branch predictor: use more than one type of predictor and select the best prediction, better accuracy since different predictors are better for different branches, reduced warmup time (faster-warmup predictor used until the slower-warmup predictor warms up)  
     example: tournament predictor  
     ![](./media/computer_architecture/tournament_predictor.png)
+  - loop branch detector & predictor: loop iteration count detector/predictor, works well for loops with small number of iterations (where iteration count is predictable)  
+    ![](./media/computer_architecture/loop_branch_predictor.png)
+  - perceptron branch predictor: use a perceptron to learn the correlations between branch history register bits and branch outcome  
+    perceptron: simple binary classifier modelled on biological neuron that learns the linear function of how each input affects the output using a set of weights  
+    ![](media/computer_architecture/perceptron.png)  
+    in branch prediction input is branch history register bits and output is branch direction (correlation of each bit with branch direction)  
+    positive correlation will have positive weight, negative correlation large negative weight  
+    working: express GHR bits as +1 (taken) & -1 (not taken), take dot product of GHR & weights, predict taken if output is greater than 0  
+    ![](media/computer_architecture/perceptron_predictor.png)
+  - history length based predictor: different branches require different history lengths for better prediction accuracy, so have multiple PHTs indexed with GHRs with different history lengths and intelligently allocate PHT entries to different branches  
+  ![](media/computer_architecture/history_length_based_predictor.png)
+- branch confidence estimation: estimate if the prediction is likely to be correct, useful in deciding how to speculate (like which predictor to choose or whether to keep fetching on this path)
+- **delayed branching:** delay the execution of a branch, `N` instructions (delay slots) that come after the branch are always executed regardless of branch direction, branch must be independent of the delay slot instructions, easier to find instructions for unconditional branches, compiler finds delay slot instructions (`NOP` added if delay slot not found), keeps the pipeline full with useful instructions but not easy to fill the delay slots  
+  ![](./media/computer_architecture/delayed_branching.png)
+  - with squashing: if the branch is not-taken then the delay slot instruction is not executed (instruction squashed)  
+    ![](./media/computer_architecture/delayed_branching_squashing.png)
+  - filling delay slots: reordering independent instructions does not change program semantics  
+    ![](./media/computer_architecture/delayed_branching_delay_slots.png)
+- **predicate combining:** combine predicate operations to feed a single branch instruction instead of having one branch for each, complex predicates are usually converted into multiple branches  
+  example: instead of checking each predicate with a branch, a single branch checks the value of the combined predicate
+  ```cpp
+  if if ((a == b) && (c < d) && (a > 5000)) { ... }
+  ```
+- **predicated execution:** compiler converts control dependency to data dependency  
+  each instruction has predicate bit set based on predicate computation, only instructions with predicates true are commited (others are turned into `NOP`s), enables straight line code by eliminating branches, useful for hard-to-predict branches, avoids misprediction cost (no flushing) so high performance and energy efficient, avoids misprediction cost but some instructions fetched/executed but discarded (backward branches like loops)  
+  example: convert tertiary operator using conditional move (`CMOV`)
+  ```cpp
+  r1 = (condition == true) ? r1 : r2
 
-  [CONTINUE](https://www.youtube.com/watch?v=RPwv580t2ZU&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=19)
+  CMOV cond, r1, r2
+  ```  
+  example: branches to `CMOV`s
+  ```cpp
+  if (a == 5) { b = 4; } else { b = 3 }
+  
+  CMPEQ condition, a, 5
+  CMOV condition, b, 4
+  CMOV !condition, b, 3
+  ```  
+  ![](media/computer_architecture/predicated_execution.png)
+- example: predicated execution in Intel Itanium: each instruction can be separately predicated, has 64 one-bit predicate registers, each instruction carries predicate field (6-bit), instruction is effectively a `NOP` if its predicate is false  
+  ![](media/computer_architecture/predicated_execution_itanium.png)
+- **multipath execution:** execute both paths (if you know the addresses) after a conditional branch, use for hard-to-predict branches if prediction confidence is low, improves performance is misprediction cost greater than useless work, for multiple nested branches paths followed will become exponential, duplicate work if paths merge (same instructions after branch)  
+  ![](./media/computer_architecture/multipath_vs_predicated_execution.png)
+- **handling other branch types:**
+  - call: easy to predict, always taken and single target address, call marked in BTB and target predicted by BTB
+  - return: can be called from many points in code (indirect branches), usually a return matches a call so use a stack to predict return addresses (return address stack)  
+  when fetching a call: push the return address (next instruction) to stack  
+  when fetching return: pop the stack and use the address as its predicted target
+  - indirect: register-indirect branches have multiple targets, two ideas: predict the last resolved target as the next fetch address or use history based target prediction (similar to gshare predictor)  
+    ![](./media/computer_architecture/indirect_branches.png)  
+    ![](./media/computer_architecture/indirect_branch_predictor.png)
+- branch prediction latency: prediction is latency critical, need to generate next fetch address for the next cycle, more complex predictors are more accurate but slower  
+  ![](./media/computer_architecture/branch_prediction_latency.png)
 
-  - perceptron branch predictor: perceptron is simple binary classifier (modelled on biological neuron) that learns how each element affects the output, perceptron contains sets of weights, each weight corresponds to a bit in GHR, how much each bit is correlated with direction of the branch, positive correlation large positive weight, negative correlation large negative weight
-  - history length based predictor: different branches require different history lengths for better prediction accuracy, have multiple PHTs indexed with GHRs of different history lengths and intelligently allocate PHT entries to different branches
-
-**example: tournament predictor:**
-
-![](./media/computer_architecture/tournament_predictor.png)
-
-**example: perceptron predictor:**
-
-![](media/computer_architecture/perceptron_weights.png)
-![](media/computer_architecture/perceptron_predictor.png)
-
-**example: history length based predictor:**
-
-![](media/computer_architecture/history_length_based_predictor.png)
-
-**branch confidence estimation:** estimate if the prediction is likely to be correct, useful in deciding how to speculate (example: whether to stop fetching on this path)
-
-**delayed branching:** delay the execution of a branch, `N` instructions (delay slots) that come after the branch are always executed regardless of branch direction, branch must be independent of the delay slot instructions, compiler finds delay slot instructions, `NOP` added if delay slot not found
-
-**delayed branching with squashing:** if the branch is not-taken then the delay slot instruction is not executed (instruction squashed), keeps the pipeline full with useful instructions
-
-**predicate combining:** combine predicate operations to feed a single branch instruction instead of having one branch for each, complex predicates (like `if ((a == b) && (c < d) && (a > 5000))`) are usually converted into multiple branches, single branch checks checks the value of the combined predicate
-
-**predicated execution:** compiler converts control dependency to data dependency, each instruction has predicate bit set based on predicate computation, instruction is effectively a `NOP` if its predicate is false, example: `if (a == 5) { b = 4; } else { b = 3 }` converted to `CMPEQ condition, a, 5; CMOV condition, b, 4; CMOV !condition, b, 3`, eliminates branches and enables straight line code, avoids misprediction cost but useless work (some instructions fetched/executed but discarded)
-
-![](media/computer_architecture/predicated_execution.png)
-
-**multipath execution:** execute both paths after a conditional branch, improves performance is misprediction cost greater than useless work, for multiple branches paths followed will become exponential, duplicate work if paths merge (same instructions after branch)
-
-![](media/computer_architecture/multipath_execution.png)
-
-**handling other branch types:**
-1. **call:** easy to predict, always taken and single target address, calls marked in BTB and target predicted by BTB
-2. **return:** can be called from many points in code (indirect branches), usually return matches a call so use a stack to predict return address (return address stack), push return (next instruction) address to stack when call fetched, pop stack and use the address as its predicted target when return fetched
-3. **indirect:** register-indirect branches have multiple targets, two ideas - predict the last resolved target as the next fetch address and use history based target prediction
-
-**branch prediction latency:** need to generate next fetch address for the next cycle, more complex predictors are more accurate but slower
+[CONTINUE](https://youtu.be/RPwv580t2ZU?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3903)
 
 ## very-long instruction word
 
