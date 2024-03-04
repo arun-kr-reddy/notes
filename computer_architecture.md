@@ -27,7 +27,7 @@
 - [Hamming speech](https://www.youtube.com/watch?v=a1zDuOPkMSw)
 - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
-- intel itanium
+- Intel itanium
 - [computer architecture (ETHZ 2019)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 
 ## introduction
@@ -642,62 +642,72 @@ the current cycle
 - branch prediction latency: prediction is latency critical, need to generate next fetch address for the next cycle, more complex predictors are more accurate but slower  
   ![](./media/computer_architecture/branch_prediction_latency.png)
 
-[CONTINUE](https://youtu.be/RPwv580t2ZU?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3903)
-
 ## very-long instruction word
-
-**very-long instruction word (VLIW):** compiler finds independent instructions and statically schedules (packs/bundles) them into a single VLIW instruction to be fetched & executed concurrently, no need for hardware dependency checking between concurrently-fetched instructions (like in superscalar execution), all instructions in a bundle are executed in lockstep, if any operation in the VLIW instruction stalls then all operations stall, if independent instructions not found then `NOP`s inserted, recompilation required when execution width (`N`) or instruction latencies or functional units change
-
-![](media/computer_architecture/very_long_instruction_word.png)
-
-**reduced instruction set computer (RISC):** compiler does the hardwork to translate high-level language code to simpler instructions, VLIW philosophy similar to RISC but compiler does the hardwork to find instruction level parallelism
-
-**explicitly parallel instruction computing (EPIC):** intel's implementation of VLIW, not fully VLIW but based in VLIW principles, instruction bundles can have dependent instructions, a few bits in the instruction format specify explicitly which instructions in the bundle are dependent on which other ones
+- software (compiler) finds independent instructions (insert `NOP`s if not found) and statically schedules (packs/bundles) them into a single VLIW instruction, hardware fetches & executes the instructions in the bundle concurrently  
+  instructions can be logically unrelated (like `mov` & `add` together)  
+  no need for hardware dependency checking between concurrently-fetched instructions in the VLIW model  
+  recompilation required when execution width (`N`), instruction latencies or functional units change  
+  ![](media/computer_architecture/vliw.png)
+- **lockstep execution:** all instructions in a bundle are executed in lockstep, if any operation in a VLIW instruction stalls then all operations stall  
+  in a truly VLIW machine, the compiler handles all dependency-related stalls, hardware does not perform dependency checking  
+  no instruction can progress until the longest-latency instruction completes
+- reduced instruction set computer (RISC): simple instructions and hardware, compiler does the hardwork to translate high-level language code to simpler instructions, hardware does little translation/decoding  
+  VLIW philosophy similar to RISC, compiler does the hardwork to find instruction level parallelism, hardware stays as simple & streamlined as possible
+- example: Intel IA-64: explicitly parallel instruction computing (EPIC) was not fully VLIW but based on VLIW principles  
+  instruction bundles can have dependent instructions, a few bits in the instruction format specify explicitly which instructions in the bundle are dependent on which other ones
 
 ## fine-grained multithreading
-
-**fine-grained multithreading:** hardware has multiple thread contexts (PC & registers), each cycle fetch engine fetches from a different thread, used to handle data & control dependencies, no instruction fetched from same thread till the fetched branch/instruction is resolved, branch/instruction resolution latency overlapped with execution of other threads' instructions, reduced single thread performance since one instruction fetched every `N` cycles from the same thread, does not overlap latency if not enough threads to cover the whole pipeline
-
-![](media/computer_architecture/fine_grained_multithreading.png)
+- switch to another thread every cycle such that no two instructions from a thread are in the pipeline concurrently  
+  tolerates the control and data dependency latencies by overlapping the latency with useful work from other threads  
+  improves pipeline utilization by taking advantage of multiple threads  
+  reduced single thread performance since one instruction fetched every `N` cycles from the same thread  
+  needs extra logic for keeping thread contexts & does not overlap latency if not enough threads to cover the whole pipeline  
+  ![](./media/computer_architecture/fine_grained_multithreading.png)  
+  ![](./media/computer_architecture/fine_grained_multithreading_example.png)
 
 ## single instruction multiple data
+- ***to program a vector machine, the compiler or hand coder must make the data structures in the code fit nearly exactly the regilar structure built in to the hardware. that's hard to do in first place, and just as hard to change. one tweak, and the low-level code has to be rewritten by a very smart and dedicated programmer who knows the hardware and often the subtleties of the application area***
+- **Flynn's taxonomy of computers:**
+  - SISD: single instruction operates on single data element, example: single core processor
+  - SIMD: single instruction operates on multiple data elements, example: array & vector processor
+  - MISD: multiple instructions operates on single data element, example: systolic array processor, streaming processor
+  - MISD: multiple instructions operates on multiple data elements (multiple instruction streams), example: multi-core processor
+- **data parallelism:** concurrency arises from performing the same operation on different pieces of data, it is a form of instruction level parallelism where instruction happens to be the same across data
+- **time-space duality:** single instruction operates on multiple data elements in time or in space  
+  ![](./media/computer_architecture/array_vs_vector_processor.png)
+  - array processor: instruction operates on multiple data elements at the same time using different spaces (functional units), example: 4 adders operates on 4 different input pairs concurrently
+  - vector processor: instruction operates on multiple data elements in consecutive time steps using the same space, pipelined functional units (each stage operates on a different data element)
+- **regular parallelism:** tasks are similar and have predictable dependencies, example: array processor  
+  **irregular parallelism:** the tasks are dissimilar in a way that creates unpredictable dependencies, example: VLIW
+- vector: one-dimensional array of numbers  
+  stride: distance in memory between two elements of a vector
+- **vector processor:** is one whose instructions operate on vectors rather than scalar (single data) values, requirements are
+  - vector data registers: to load/store vectors, each register holds `N` number of `M`-bit values
+  - vector length register (VLEN): to operate on vectors of different lengths, maximum can be `N`
+  - vector stride register (VSTR): elements of a vector might be stored apart from each other in memory, can be used to access non-consecutive elements  
+  example: set `VSTR = 8` to access `A` ⟶ `A+8` ⟶ `A+16` ⟶ `A+24`
+  - vector mask register (VMASK): indicates which elements of vector to operate on, set by vector test instructions
+- vector instructions allow deeper pipelines:
+  - no intra-vector dependencies
+  - no control flow within a vector
+  - known stride allows easy address calculation for all elements, enables prefetching into registers/cache/memory
+- vector functional units: use a deep pipeline to execute element operations (fast clock cycle), control of deep pipeline is simple because elements in vector are independent  
+  ![](media/computer_architecture/vector_functional_unit.png)
+- ***if you were plowing a field, which would you rather use: two strong oxen or 1024 chickens***  
+  scalar processing units are still required, here oxen are scalar processing and chicken is vector processing
+- loading/storing multiple elements from/to memory is required, but elements can be loaded in consecutive cycles if we can start the load of one element per cycle  
+  if memory access takes more than 1 cycle: bank the memory and interleave the elements across banks  
+  **memory banking:** memory is divided into banks that can be accessed independently, banks share address & data buses (to minimize cost)  
+  can start and in parallel complete one bank access per cycle, can sustain `N` parallel accesses if all `N` go to different banks  
+  ![](./media/computer_architecture/memory_banking.png)
+- vector memory system:  
+  ![](./media/computer_architecture/vector_memory_system.png)  
+  we know `next address = previous address + stride`  
+  we can sustain 1 element/cycle throughput if all three conditions are satisfied:
+  - stride is 1
+  - consecutive elements are interleaved across banks  
+    if consecutive elements are from the same bank then second element access can be started only after first element access is completed (bank latency)
+  - number of banks is greater than or equal to bank latency  
+    starting from `0 + bank_latency` cycle we can get 1 element/cycle
 
-**flynn's taxonomy of computers:**
-1. **single instruction single data (SISD):** single instruction operates on single data element, example: single core processor
-2. **single instruction multiple data (SIMD):** single instruction operates on multiple data elements, example: array & vector processor
-3. **multiple instruction single data (MISD):** multiple instructions operates on single data element, example: systolic array processor
-4. **multiple instruction multiple data (MISD):** multiple instructions operates on multiple data elements, multiple instruction streams, example: multi-core processor
-
-**data parallelism:** concurrency arises from performing the same operation on different pieces of data, form of instruction level parallelism where instruction happens to be same across data
-
-**contrast to data flow:** concurrency arises from executing different operations in parallel  
-**contrast to thread parallelism:** cocurrency arises from executing different threads of control in parallel
-
-**time-space duality:** single instruction operates on multiple data elements in time or in space
-1. **array processor:** instruction operates on multiple data elements at the same time using different spaces
-2. **vector processor:** instruction operates on multiple data elements in consecutive time steps using the same space, functional units are pipelined
-
-![](media/computer_architecture/array_vs_vector_processor.png)
-
-**VLIW vs array processor:** multiple independent operations packed together by compiler vs single operation on multiple different data elements, irregular vs regular parallelism
-
-**regular parallelism:** tasks are similar and have predictable dependencies  
-**irregular parallelism:** the tasks are dissimilar in a way that creates unpredictable dependencies
-
-**vector:** one-dimensional array of numbers
-**stride:** distance in memory between two elements of a vector
-
-**vector processor:** is one whose instructions operate on vectors rather than scalar (single data) values, requirements are
-1. **vector data registers:** to load/store vectors, each holds `N` number of `M`-bit values
-2. **vector length register (VLEN):** to operate on vectors of different lengths
-3. **vector stride register (VSTR):** elements of a vector might be stored apart from each other in memory, can be used to access non-consecutive elements, example: with `VSTR == 8` access `A` ⟶ `A+8` ⟶ `A+16` ⟶ `A+24`
-4. **vector mask register (VMASK):** indicates which elements of vector to operate on, set bu vector test instructions
-
-**vector instructions allow deeper pipelines:**
-1. no intra-vector dependencies
-2. no control flow within a vector
-3. known stride allows easy address calculation for all elements, enables prefetching into registers/cache/memory
-
-**vector functional units:** use deep pipeline to execute element operations, control of deep pipeline is simple because elements in vector are independent
-
-![](media/computer_architecture/vector_functional_unit.png)
+[CONTINUE](https://youtu.be/ROpatkOqgjU?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3425)
