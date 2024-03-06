@@ -708,6 +708,82 @@ the current cycle
   - consecutive elements are interleaved across banks  
     if consecutive elements are from the same bank then second element access can be started only after first element access is completed (bank latency)
   - number of banks is greater than or equal to bank latency  
-    starting from `0 + bank_latency` cycle we can get 1 element/cycle
+    starting from `0 + bank_latency` cycle we can get 1 element/cycle, ensures there are enough banks to overlap enough memory operations to cover memory latency
+- example: scalar code element wise average:  
+  number of dynamic operations: `6 × 50 + 4 = 304` operations  
+  execution time on in-order processor with 1 bank (load cannot be pipelined): `40 × 50 + 4 = 2004` cycles  
+  execution time on in-order processor with 16 bank (> 11 (bank latency), first two loads can be pipelined): `30 × 50 + 4 = 1504` cycles
+  ```cpp
+  // C
+  for (i = 0; i < 50; i++)
+  {
+      C[i] = (A[i] + B[i]) / 2;
+  }
 
-[CONTINUE](https://youtu.be/ROpatkOqgjU?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3425)
+  // scalar ASM
+  MOVI R0 = 50          //; 1
+  MOVA R1 = A           //; 1
+  MOVA R2 = B           //; 1
+  MOVA R3 = C           //; 1
+  X: LD R4 = MEM[R1++]  //; 11 autoincrement addressing
+  LD R5 = MEM[R2++]     //; 11
+  ADD R6 = R4 + R5      //; 4
+  SHFR R7 = R6 >> 1     //; 1
+  ST MEM[R3++] = R7     //; 11
+  DECBNZ R0, X          //; 2 decrement and branch if NZ
+  ```
+- vectorizable loops: a loop is vectorizable if each iteration is independent of any other
+- **vector chaining:** data forwarding from one vector functional unit to another  
+  ![](./media/computer_architecture/vector_chaining.png)
+- example: vector code element wise average:  
+  number of dynamic operations: `7` operations  
+  execution time with 16 banks with 1 memory port each (1 load access at a time) but no chaining (so entire vector register needs to be ready before any element of it can be used as part of another operation):`285` cycles  
+  ![](./media/computer_architecture/vector_average_example_1.png)  
+  execution time with 16 bank with 1 memory port each with chaining :`182` cycles  
+  ![](./media/computer_architecture/vector_average_example_2.png)  
+  execution time with 16 bank with 2 load ports and 1 store port each (2 load + 1 store at once) with chaining:`79` cycles  
+  ![](./media/computer_architecture/vector_average_example_3.png)
+  ```cpp
+  // vector ASM
+  MOVI VLEN = 50        //; 1
+  MOVI VSTR = 1         //; 1
+  VLD V0 = A            //; 11 + VLEN - 1
+  VLD V1 = B            //; 11 + VLEN – 1
+  VADD V2 = V0 + V1     //; 4 + VLEN - 1
+  VSHFR V3 = V2 >> 1    //; 1 + VLEN - 1
+  VST C = V3            //; 11 + VLEN – 1
+  ```
+- **vector stripmining:** if number of data elements is larger than `VLEN` then break loops so that each iteratioon operates on `VLEN` elements in a vector register  
+  example: for 527 elements and 64-element registers, 8 iterations where `VLEN == 64`, last iteration where `VLEN == 15`
+- **scatter/gather operations:** use indirection to combine/pack elements into vector registers if vector data is not stored in a strided fashion in memory  
+  vector load/store use an index vector which is added to the base registre to generate the addresses  
+  sparse vector: vector having a relatively small number of non-zero elements, used to implement gather/scatter operations  
+  ![](./media/computer_architecture/vector_scatter_gather_operations.png)
+- **masked operations:** is some operations should not be executed on a vector based on a dynamically determined condition  
+  `VMASK` register is a bit mask determining which data element should not be acted upon  
+  this is predicated execution, execution predicated on mask bit
+  ```cpp
+  // C
+  for (i = 0; i < N; i++)
+  {
+      if (A[i] != 0)
+      {
+          B[i] = A[i] * B[i];
+      }
+  }
+
+  // vector ASM
+  VLD V0 = A
+  VLD V1 = B
+  VMASK = (V0 != 0)
+  VMUL V1 = V0 * V1
+  VST B = V1
+  ```
+- masked vector instructions implementations:
+  - simple: execute all N operations, turn off result writeback according to mask  
+  ![](./media/computer_architecture/vector_masked_instruction_simple.png)
+  - density-time: scan mask vector and only execute elements with non-zero masks  
+  ![](./media/computer_architecture/vector_masked_instruction_density_time.png)
+
+
+[CONTINUE](https://www.youtube.com/watch?v=5VEA0NehLhk&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=21)
