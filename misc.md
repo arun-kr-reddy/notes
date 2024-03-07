@@ -9,8 +9,7 @@
 
 
 ## [why sell RSUs on vest](https://www.reddit.com/r/cscareerquestions/comments/102llxy/what_in_the_world_do_i_do_with_rsus/)
-- even if you sell all your already-vested stocks, you still have a large number of unvested stocks as well  
-if the price goes up your large number of unvested stocks increases in value by a lot, and all you have to do to keep that value is to keep working there  
+- even if you sell all your already-vested stocks, you still have a large number of unvested stocks as well, if the price goes up your large number of unvested stocks increases in value by a lot, and all you have to do to keep that value is to keep working there  
 so it doesn't make sense to hold on to the ones that vest, your unvested stocks already give you a lot of exposure to potential stock price growth in your employer, with the ones that vest it's better to diversify  
 you don't want a huge proportion of your net worth tied up in the company that you also work at, there's a lot of overlap between the scenarios where your employer's stock price drops a lot and the scenarios where you're laid off, and you don't want your net worth to drop a bunch right at the moment you're being laid off
 

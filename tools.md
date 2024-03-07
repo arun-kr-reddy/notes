@@ -30,7 +30,7 @@
   git clone /path/to/repo                # copy of a local repo
   git clone username@host:/path/to/repo  # from a remote server
   ```
-- **workflow:** local repo consists of 3 trees maintained by git  
+- **workflow:** local repo consists of 3 trees maintained by git
   - working directory: holds actual files
   - index: acts as staging area
   - head: points to last commit made by you

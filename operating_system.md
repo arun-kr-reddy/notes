@@ -42,7 +42,7 @@
   - efficient use of CPU, memory, etc
   - isolation between multiple processes
 - **procedure call:** jumps to a process defined elsewhere in the program  
-  **system call:** runs at higher privilege level of CPU, sensitive operations (external device access) allowed only at higher privilege level
+**system call:** runs at higher privilege level of CPU, sensitive operations (external device access) allowed only at higher privilege level
 
 ## processes
 
@@ -60,7 +60,7 @@
   - opens basic files (stdin, stdout, stderr)
   - initialize CPU registers (PC points to first instruction)
 - **process states:**  
-  ![](./media/operating_systems/process_states.png)
+![](./media/operating_systems/process_states.png)
   - running: currently executing on CPU
   - ready: waiting to be scheduled
   - blocked: suspended, not ready to run, waiting for some event like read from disk (disk will issue an interrupt when data is ready)
@@ -120,7 +120,7 @@
   - `init` process created after initialization of hardware
   - `init` process spawns a shell (like `bash`)
   - shell reads user command ⟶ forks a child ⟶ execs command executable ⟶ waits for it to finish ⟶ reads next command  
-    common commands like `ls` are all executables that are exec'ed by the shell, `ls > foo.txt` shell rewires stdout of child to file then calls exec on the child
+  common commands like `ls` are all executables that are exec'ed by the shell, `ls > foo.txt` shell rewires stdout of child to file then calls exec on the child
 
 ### process execution mechanism
 - **function call working:**
@@ -142,9 +142,9 @@
   - before calling trap, a number stored in a CPU register to identify which IDT entry to use
   - when OS is done, it calls special return-from-trap instruction, this will restore user context on kernel stack, change CPU privilege from kernel mode to user mode, restore PC and jump to user code after trap
   - before returning to user mode, OS checks if it must switch to different process (context switch):  
-    process has exited or must be terminated (program fault)  
-    process made a blocking system call (waiting for disk data)  
-    process has run for too long (CPU timesharing)
+  process has exited or must be terminated (program fault)  
+  process made a blocking system call (waiting for disk data)  
+  process has run for too long (CPU timesharing)
 - **CPU scheduler mechanism types:**
   - **non-preemptive (cooperative):** switch only if process blocked or terminated
   - **preemptive (non-cooperative):** switch even when process is ready to continue, CPU generates periodic timer interrupt, after servicing this interrupt OS checks if current process has run for too long
@@ -155,7 +155,7 @@
   - restore kernel context from B's kernel stack (stored when B was switched out)
   - now CPU running B in kernel mode, return-from-trap to switch to user mode of B
 - **user context:** when going from user mode to kernel mode, saved on kernel stack by trap instruction  
-  **kernel context:** during context switch, saved on kernel stack by context switching code
+**kernel context:** during context switch, saved on kernel stack by context switching code
 
 ### scheduling policies
 - **CPU burst:** CPU time used by a process in a continuous stretch, counted as a fresh burst if a process comes back after a I/O wait
@@ -178,8 +178,8 @@
   - **signals:** can be sent to a process by OS or another process, some signals have fixed meaning (`ctrl + C` send `SIGINT` signal), every process has a default code to execute for each signal (signal handler) like exit on terminate signal, some signal handlers can be overriden to do other things
   - **sockets:** can be used for two processes on same machine (Unix sockets) or different machine (TCP/UDP sockets) to communicate, two processes open sockets and connect them to each other, messages written into one socket can be read from another, OS transfers data across socket buffers
   - **pipes:** one-way communication (half-duplex), pipe system call returns two handles (file descriptors), data written in write handle can be read through read handle, pipe data buffered in OS buffers between read & write  
-    regular pipes: both file descriptor are in same process, parent & child share file descriptor after fork, parent uses one end and child uses other end  
-    named pipes: two endpoints in different processes
+  regular pipes: both file descriptor are in same process, parent & child share file descriptor after fork, parent uses one end and child uses other end  
+  named pipes: two endpoints in different processes
   - **message queue:** mailbox abstraction, process can open a mailbox at a specified location, processes can send/receive messages from mailbox, OS buffers messages between send & receive
 - **blocking vs non-blocking communication:** some IPC actions like reading from empty socket/pipe/message queue or writing to full socket/pipe/message queue can block, system calls to read/write have versions that return error code instead of blocking
 
@@ -187,9 +187,9 @@
 
 ### virtual memory
 - earlier memory had only code of one running process (and OS code), but now multiple active processes timeshare CPU so memory of many processes must be in memory (non-contiguous too)  
-  ![](./media/operating_systems/actual_memory.png)
+![](./media/operating_systems/actual_memory.png)
 - **virtual address space:** every process assumes it has access to large contiguous space of memory from address 0 to MAX, to hide complexity of multiple processes non-contiguously sharing memory, contains program code, heap & stack (heap & stack grow runtime), is setup during process creation  
-  ![](./media/operating_systems/virtual_memory.png)
+![](./media/operating_systems/virtual_memory.png)
 - **address translation:** CPU issues load/store to virtual addresses (VA) but memory hardware accesses physical addresses (PA), OS allocates memory and tracks location of processes, translation (VA to PA) done by memory management unit (MMU) hardware using necessary information from OS
 - **paging:** OS divides virtual address space into fixed size pages and physical memory into frames, to allocate memory a page is mapped to free physical frame, page table stores mapping from virtual page number to physical frame number for a process
 - **memory virtualization goals:**
@@ -214,15 +214,15 @@
   - sets address translation information in hardware and updates this on context switch
   - handles traps due to illegal memory access
 - **segmentation:** generalized base & bounds, each segment of memory image placed separately, multiple base & bound values stored in MMU, good for sparse address space, but variable sized allocation leads to external fragmentation due to small holes in memory left between segments  
-  ![](./media/operating_systems/segmentation.png)
+![](./media/operating_systems/segmentation.png)
 - **internal fragmentation:** unused part of memory block assigned to a process cannot be used by other processes, can be solved using dynamic partitioning to allocate space to process  
-  **external fragmentation:** total memory space is enough to satisfy a request or to reside a process in it but it is not contiguous so it cannot be used  
-  ![](./media/operating_systems/fragmentation.png)
+**external fragmentation:** total memory space is enough to satisfy a request or to reside a process in it but it is not contiguous so it cannot be used  
+![](./media/operating_systems/fragmentation.png)
 
 ### paging
 - **paging:** allocate memory in fixed size chunks called pages, avoids external fragmentation, but since minimum allocation is page-sized it has internal fragmentation due to partially filled pages
 - example: paging: 64B address space in 128B physical memory with 16B page size  
-  ![](./media/operating_systems/paging.png)
+![](./media/operating_systems/paging.png)
 - **page table:** per process data structure to help VA-PA translation, array stores mappings from virtual page number (VPN) to physical frame number (PFN), part of OS memory (in PCB), MMU has access to page table and uses it for address translation, OS updates page table upon context switch
 - **page table entry (PTE):** simplest page table is linear page table, array of page table entries (one per virtual page), VPN is index in the array, each PTE contains PFN and few other bits like 
   - valid bit: is this page used by process?
@@ -231,29 +231,29 @@
   - dirty bit: has this page been modified?
   - accessed bit: has this page been recently accessed?
 - **address translation in hardware:** most significant bits of VA give the VPN, page table maps VPN to PFN, PA is obtained from PFN and offset within a page, MMU stores physical address of start of page table then walks the page table to get relevant PTE, MMU just translates VPN to PFN and add the same offset  
-  ![](./media/operating_systems/address_translation.png)
+![](./media/operating_systems/address_translation.png)
 - **paging overhead:** when CPU requests data/code at a virtual address, MMU must translate VA to PA (by reading page table entry) adding overhead to memory access
 - **translation lookaside buffer (TLB):** to reduce overhead a cache of recent VA-PA mappings is maintained, for address translation MMU first looks up TLB, if TLB miss then MMU performs additional memory accesses to walk page table, TLB misses are expensive due to multiple memory accesses (locality of reference (defined below) improves hit rate), TLB entries may become invalid on context switch and change of page tables
 - **page tables in memory:** with 32 bit VA, 4KB pages we have `2^32/2^12 = 2^20` entries, if PTE is 4 bytes then each page table is 4MB, one page table per process, to reduce size of page tables:
   - larger pages, so fewer entries, but leads to fragmentation
   - page table is itself split into smaller chunks
 - **multilevel page tables:** page table is spread over many pages, page directory (outer page table) tracks the PFNs of the page table pages, depending on how large the page table is we may need more than 2 levels also (64bit arch may need 7 levels), in case of TLB miss multiple accesses to memory required to access all levels of page tables so very expensive  
-  ![](./media/operating_systems/linear_vs_multilevel_pagetable.png)  
-  for address translation first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs  
-  ![](./media/operating_systems/multilevel_pagetable_address.png)
+![](./media/operating_systems/linear_vs_multilevel_pagetable.png)  
+for address translation first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs  
+![](./media/operating_systems/multilevel_pagetable_address.png)
 
 ### demand paging
 - **demand paging:** main memory not always enough to store all the pages of all active processes, OS uses a part of disk (swap space) to store pages that are not in active use  
-  ![](./media/operating_systems/swap_space.png)
+![](./media/operating_systems/swap_space.png)
 - **page fault:** if page not in main memory (present bit unset) during VA-PA translation MMU raises trap to OS, MMU cannot access the disk
 - **page fault handling:** moves CPU to kernel mode, OS fetches disk address of page and issues read to disk, disk fetch is slow so OS context switches to another process, once disk read completes OS updates page table of process and marks process as ready, when process scheduled again OS restarts the instruction that caused page fault
 - **memory access process:**
   - CPU issues load to a VA, checks CPU cache first, goes to main memory in case of cache miss
   - MMU looks up TLB for VA, if TLB hit obtains PA, fetches memory location and returns to CPU (via CPU caches)
   - if TLB miss MMU accesses memory, walks page table and obtains PTE:  
-    if present bit set in PTE, accesses memory  
-    if not present but valid, raises page fault, OS handles page fault and restarts the CPU load instruction  
-    if invalid page access, trap to OS for illegal access
+  if present bit set in PTE, accesses memory  
+  if not present but valid, raises page fault, OS handles page fault and restarts the CPU load instruction  
+  if invalid page access, trap to OS for illegal access
 - **page replacement policies:** when servicing page fault if OS finds no free page then OS must swap out an existing page and then swap in faulting page, to prevent this much work OS proactively swap out pages to keep list of free pages handy
   - **optimal:** replace page not needed for longest time in future, just theoretical, cannot calculate when page is needed (look into future)
   - **first in first out (FIFO):** replace page that was brought into memory earliest, but that may be a popular page
@@ -267,16 +267,16 @@
 ### memory allocation algorithms
 - **variable sized allocation**: given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s and kernel for its internal data structures
   - **headers:** every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
-    ![](./media/operating_systems/headers.png)
+  ![](./media/operating_systems/headers.png)
   - **free list:** free space managed as a linked list, pointer to the next free chunk is embedded within current free chunk, library/kernel tracks the head of the list (next NULL at tail), allocation happens from the head, must split & coalesce free chunks to satisfy variable sized requests (external fragmentation)  
-    ![](./media/operating_systems/free_list.png)
+  ![](./media/operating_systems/free_list.png)
 - **free list external fragmentation:**
   - **splitting:** on an allocation request allocator will find a free chunk of memory that can satisfy the request and split it into two, first chunk returned to caller and second chunk will remain on the free list
   - **coalescing:** on a free request allocator will check if free chunk of memory being returned sits next to another free chunk, if yes then merge them into a single larger free chunk  
-    example: non-coalesced free list: suppose three allocations of 100 bytes are deallocated in the order: last, first, middle  
-    ![](./media/operating_systems/non_coalesced_free_list.png)
+  example: non-coalesced free list: suppose three allocations of 100 bytes are deallocated in the order: last, first, middle  
+  ![](./media/operating_systems/non_coalesced_free_list.png)
 - **buddy allocation:** allocate memory in size of power-of-2, used by kernel for easy coalescing, two free adjacent/buddy chunks can be merged to form a bigger power-of-2 chunk  
-  ![](./media/operating_systems/buddy_allocation.png)
+![](./media/operating_systems/buddy_allocation.png)
 - **variable size allocation strategies:**
   - **first fit:** allocate first free chunk that is sufficient
   - **best fit:** allocate free chunk that is closest in size
@@ -284,22 +284,22 @@
 - **fixed size allocations:** memory allocation algorithms are much simpler with fixed size allocations, no issue with small holes left behind by fragmentation
   - **page-sized allocations:** has free list of pages, pointer to next page stored in the free page itself
   - **slab allocator:** used by kernel for small allocations like PCB, object caches for each type (size) of objects, within each cache only fixed size allocation, each cache made up of one or more pages/slabs with multiple fixed size objects  
-    ![](./media/operating_systems/slab_allocator.png)
+  ![](./media/operating_systems/slab_allocator.png)
 
 ## concurrency
 
 ### threads and concurrency
 - **thread:** is like another copy of a process that executes independently, all threads share the same address space (code & heap), each thread has separate PC and stack for independent function calls  
-  ![](./media/operating_systems/single_vs_multi_threaded.png)
+![](./media/operating_systems/single_vs_multi_threaded.png)
 - **process vs thread:**
   - parent forks a child: parent & child do not share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
   - parent executes two threads: two threads share parts of address space, global variables can be used for communication, smaller memory footprint
 - **concurrency:** running multiple threads/processes at same time by interleaving their execution (even on single CPU core)  
-  **parallelism:** running multiple threads/processes in parallel over different CPU cores
+**parallelism:** running multiple threads/processes in parallel over different CPU cores
 - **why threads:** with parallelism a single process can effectively utilize multiple CPU cores, even without parallelism concurrency of threads ensures effective use of CPU when one of the threads blocked
 - **scheduling threads:** OS schedules threads that are ready to run independently (much like processes), context of a thread (PC, registers) is saved into/restored from thread control block (TCB), every PCB has one or more linked TCBs
 - **kernel threads:** threads that are scheduled independently by kernel, example: linux pthreads  
-  **user-level threads:** provided by some libraries, library multiplexes large number of user threads over a smaller number of kernel threads, low overhead for switching (expensive context switch not required), but all user threads cannot run in parallel
+**user-level threads:** provided by some libraries, library multiplexes large number of user threads over a smaller number of kernel threads, low overhead for switching (expensive context switch not required), but all user threads cannot run in parallel
 - example: thread creation:
   ```cpp
   #include <assert.h>
@@ -409,7 +409,7 @@
     - userspace: most lock implementations are (sleeping) mutex since CPU wasted by spinning contending threads
     - OS: uses spinlocks since OS is default software layer and has no other thread to yield to, OS must disable interrupts while lock is held since an interrupt handler could request same lock leading to deadlock, OS must never perform any blocking operation (go to sleep) with a locked spinlock
 - **coarse-grained locking:** one big lock for all shared data, example: one lock for any change in entire linked-list  
-  **fine-grained locking:** separate locks for individual shared data, allows more parallelism, but multiple locks may be harder to manage, example: individual locks for each linked-list element
+**fine-grained locking:** separate locks for individual shared data, allows more parallelism, but multiple locks may be harder to manage, example: individual locks for each linked-list element
 
 ### conditional variables
 - other than mutex, another common requirement in multi-threaded applications is waiting & signaling, can accomplish using busy-wait but inefficient, example: thread T1 wants to continue only after T2 has finished some task
@@ -470,7 +470,7 @@
   }
   ```
 - example: producer/consumer problem: one or more producer threads and one or more consumer threads sharing a buffer of bounded size  
-  ![](./media/operating_systems/producer_consumer.png)
+![](./media/operating_systems/producer_consumer.png)
   ```cpp
   cond_t empty, fill;
   mutex_t mutex;
@@ -681,18 +681,18 @@
       ;                               // wait until device is done with your request
   ```
 - **interrupt request (IRQ):** polling wastes CPU cycles, instead OS can put process to sleep and switch to another process, when I/O request completes device raises interrupt  
-  ![](./media/operating_systems/interrupt_request.png)
+![](./media/operating_systems/interrupt_request.png)
 - **interrupt handler:** interrupt switches process to kernel mode, interrupt descriptor table (IDT) stores pointers to interrupt handlers (interrupt service routines (ISR)), IRQ number identifies the interrupt handler to run for a device, interrupt handler acts upon device notification and unblocks the process waiting for I/O (if any) then starts next I/O request (if any pending), handling interrupts imposes kernel mode transition overheads (polling may be faster than interrupts if device is fast)
 - **direct memory access (DMA):** cpu cycles wasted in copying data to/from device, instead special piece of hardware (DMA engine) copies from main memory to device, CPU gives DMA engine the memory location, size & destination of data, in case of read interrupt raised after DMA completes, in case of write disk starts writing after DMA completes  
-  ![](./media/operating_systems/direct_memory_access.png)
+![](./media/operating_systems/direct_memory_access.png)
 - **device driver:** part of OS code that talks to specific device, gives commands and handles interrupts, most OS code abstracts the device details, example: file system code is written on top of a generic block device  
-  ![](./media/operating_systems/device_driver.png)
+![](./media/operating_systems/device_driver.png)
 
 ### files & directories
 - **file:** linear array of bytes, stored persistently, identified with filename (human readable) and a OS level identifier index node (inode) number, inode number is unique within a filesystem
 - **directory:** contains other subdirectories and files along with their inode numbers, stored like a file whose contents are filename-to-inode mappings
 - **directory tree:** files & directories arranged in a tree starting with root (/)  
-  ![](./media/operating_systems/directory_tree.png)
+![](./media/operating_systems/directory_tree.png)
 - **file operations:**
   - **create:** `open()` system call with flag to create, returns a numbers called file descriptor (fd)
   - **open:** existing files must be opened before they can be read/written, also uses `open()` system call and returns fd, all further operations on files uses the fd
@@ -770,15 +770,15 @@
 - **file system:** an organization of files & directories on disk, OS has one or more file systems, disk exposes set of blocks (usually 512 bytes), file system organizes files onto blocks, two main aspects of file systems are
   - data structures to organize data & metadata on disk
   - implementation of system calls like open, read, write using data structures
-- **simple file system organization:**
+- **simple file system organization:**  
+![](./media/operating_systems/file_system_organization.png)
   - data blocks: file data stored in one or more blocks
   - inode: stores metadata about every file
   - inode blocks: each block has one or more inodes
   - bitmaps: indicate which inodes/data blocks are free, `i` & `d` in picture
-  - superblock: holds master plan of all other blocks, example: which are inodes, which are data blocks, `S` in picture  
-  ![](./media/operating_systems/file_system_organization.png)
+  - superblock: holds master plan of all other blocks, example: which are inodes, which are data blocks, `S` in picture
 - **inode table:** inodes usually stored in array, inode number of a file is index into this array, inode stores file metadata (like permissions, last accessed time) & pointers (disk block numbers) of file data  
-  ![](./media/operating_systems/inode_table.png)
+![](./media/operating_systems/inode_table.png)
 - **inode structure:** file data not stored contiguously on disk, so need to track multiple block numbers of file, inode tracks disk block numbers using
   - direct pointers: numbers of first few blocks are stored in inode itself, enough for small files
   - indirect block: for larger files inode stores number of indirect blocks which has block numbers of file data
@@ -811,21 +811,21 @@
 
 ### hard disk internals
 - **hard disk internals:** a set of 512 byte blocks (sectors) that can be read/written atomically, one or more platters connected by a spindle spin at ~10K rpm, each plater has a disk head & arm attached to it, a platter is divided into multiple tracks and each track into 512 byte sectors  
-  ![](./media/operating_systems/hard_disk_internals.png)
+![](./media/operating_systems/hard_disk_internals.png)
 - **hard disk sector access:** seek to the correct track while waiting for disk to rotate, example: sector 30 to 11  
-  ![](./media/operating_systems/hard_disk_sector_access.png)
+![](./media/operating_systems/hard_disk_sector_access.png)
 - **time taken for I/O operation:** given high seek & rotational latency usually rate of sequential access is much higher than random access
   - seek time to get to right track (few ms)
   - rotational latency for disk to spin to correct sector (few ms)
   - data transfer time to read sector (few tens μs)
 - **disk scheduling:** requests to disk are not served in FIFO, they are reordered with other pending requests in order to read blocks in sequence as far as possible (to minimize seek time & rotational delay), OS does not know internal geometry of disk so scheduling done mostly by disk controller
   - **shortest seek time first (SSTF):** access block that we can seek to fastest, problem: some requests that are far from current position or head may never get served (starvation), example: from 30 go to 21 before 2  
-    ![](./media/operating_systems/shortest_seek_time_first.png)
+  ![](./media/operating_systems/shortest_seek_time_first.png)
   - **elevator/SCAN algorithm:** disk head does one sweep over tracks and serves requests that fall on the path
     - **elevator/SCAN:** sweep outer to inner then inner to outer
     - **circular-SCAN:** sweep only one direction and circle back to start again, sweeping back & forth favors middle tracks more
     - **freeze-SCAN:** freeze queue while scanning to avoid starving far away requests
   - **shortest positioning time first (SPTF):** considers both seek time & rotational latency, example: better to serve 8 before 16 even though seek time is higher but 16 incurs a much higher rotational latency  
-    ![](./media/operating_systems/shortest_positioning_time_first.png)
+  ![](./media/operating_systems/shortest_positioning_time_first.png)
 - **error detection/correction:** bits stored on disk with some error detection/correction bits, correct random bit flips or detect corruption of data, disk controller or OS can handle some errors (blacklisting certain sectors), if errors cannot be masked user perceives hard disk failures
 - **redundant array of inexpensive disks (RAID):** provide high reliability & performance by replicating across multiple disks
