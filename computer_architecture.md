@@ -60,26 +60,26 @@
   ![](./media/computer_architecture/truth_table.png)
 - simple equations:
   - OR: (`+`)
-  - AND: (`·`)
+  - AND: (`.`)
 - **Boolean algebra:**
-  - commutative: `A + B = B + A`, `A · B = B · A`
-  - identities: `A + 0 = A`, `A · 1 = A`
-  - distributive: ` A + (B · C) = (A + B) · (A + C)`, `A · (B + C) = (A · B) + (A · C)`
-  - complement: `A + ~A = 1`, `A · ~A = 0`
-  - duality: replace `+` with `·` and `0` with `1`
+  - commutative: `A + B = B + A`, `A . B = B . A`
+  - identities: `A + 0 = A`, `A . 1 = A`
+  - distributive: ` A + (B . C) = (A + B) . (A + C)`, `A . (B + C) = (A . B) + (A . C)`
+  - complement: `A + ~A = 1`, `A . ~A = 0`
+  - duality: replace `+` with `.` and `0` with `1`
 - **DeMorgan's law:**
   ```cpp
-  ~(X + Y) == ~X · ~Y
-  ~(X · Y) == ~X + ~Y
+  ~(X + Y) == ~X . ~Y
+  ~(X . Y) == ~X + ~Y
   ```
 - **complement:** inverse of a variable  
   `~A, ~B, ~C`  
   **literal:** variable or its complement  
   `A, ~A, B, ~B, C, ~C `  
   **implicant:** product of literals  
-  `(A · B · ~C), (~A · C)`  
+  `(A . B . ~C), (~A . C)`  
   **minterm:** product that includes all input's literals  
-  `(A · B · ~C), (~A · ~B · C)`  
+  `(A . B . ~C), (~A . ~B . C)`  
   **maxterm:** sum that includes all input's literals  
   `(A + B + ~C), (~A + ~B + C)`
 - many alternative Boolean expressions (logic gate realization) may have the same truth table (function)  
@@ -158,7 +158,7 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   **critical path:** path with longest propagation delay  
   ![](./media/computer_architecture/delay_types.png)
 - **glitch:** one input transition causes multiple output transitions, visible on K-maps since it shows results of a change in a single input  
-  resolve the glitch by adding the consensus term (`~A · C`) to ensure no transition  
+  resolve the glitch by adding the consensus term (`~A . C`) to ensure no transition  
   ![](./media/computer_architecture/timing_glitch.png)
 - **sequential circuit timing:** `D` & `Q` in a D flip flop have their own timing requirement
   - input: `D` must be stable when sampled at rising clock edge  
@@ -313,8 +313,8 @@ find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate
   in multi cycle machines, control signals needed in the next cycle can be generated in
 the current cycle
 - performance basics: execution time of
-  - instruction: `cycles-per-instruction × clock-cycle-time`
-  - program: `num-instructions × average-cycles-per-instruction × clock-cycle-time`, also known as iron law of performance
+  - instruction: `cycles-per-instruction x clock-cycle-time`
+  - program: `num-instructions x average-cycles-per-instruction x clock-cycle-time`, also known as iron law of performance
 - for a single cycle machine, how long each instruction takes is determined by how long slowest instruction takes to execute, even though many instructions don't need that long to execute (average-CPI always 1)
 - **μArch design principles:**
   - critical design path: find & decrease the maximum combinational logic delay, break a path in to multiple cycles if it takes too long
@@ -510,7 +510,7 @@ the current cycle
 ## superscalar execution
 - fetch, decode, execute & retire multiple instructions per cycle, needs multiple copies of hardware resources  
   `N` wide superscalar means `N` instructions per cycle  
-  superscalar & out-of-order execution are orthogonal concepts, can have all 4 combinations of processors: [in-order, out-of-order] × [scalar, superscalar]
+  superscalar & out-of-order execution are orthogonal concepts, can have all 4 combinations of processors: [in-order, out-of-order] x [scalar, superscalar]
 - **dependency checking:** dependencies make it tricky to issue multiple instructions at once, hardware performs the dependence checking between concurrently-fetched instructions, superscalar has vertical axis (within a pipeline stage) dependency check as well, OoO has only horizontal check (across pipeline stages)
 - example: 2-wide superscalar execution:  
   ![](./media/computer_architecture/superscalar_dependency_example_1.png)  
@@ -525,7 +525,7 @@ the current cycle
   - fine-grained multithreading: do something else
   - predicated execution: eliminate control-flow instructions
   - multipath execution: fetch from both possible paths, need to know the addresses of both possible paths
-- **branch problem:** control flow instructions are frequent and next fetch address after a control-flow instruction is not determined after `N` cycles (branch resolution latency) in a pipelined processor, if we are fetching `W` instructions per cycle then branch prediction leads to `N × W` wasted instruction slots  
+- **branch problem:** control flow instructions are frequent and next fetch address after a control-flow instruction is not determined after `N` cycles (branch resolution latency) in a pipelined processor, if we are fetching `W` instructions per cycle then branch prediction leads to `N x W` wasted instruction slots  
   ![](media/computer_architecture/branch_prediction.png)
 - branch misprediction penalty: number of instructions flushed in case of misprediction  
   ![](./media/computer_architecture/branch_misprediction_penalty.png)
@@ -666,7 +666,7 @@ the current cycle
   ![](./media/computer_architecture/fine_grained_multithreading_example.png)
 
 ## single instruction multiple data
-- ***to program a vector machine, the compiler or hand coder must make the data structures in the code fit nearly exactly the regilar structure built in to the hardware. that's hard to do in first place, and just as hard to change. one tweak, and the low-level code has to be rewritten by a very smart and dedicated programmer who knows the hardware and often the subtleties of the application area***
+- ***to program a vector machine, the compiler or hand coder must make the data structures in the code fit nearly exactly the regular structure built in to the hardware. that's hard to do in first place, and just as hard to change. one tweak, and the low-level code has to be rewritten by a very smart and dedicated programmer who knows the hardware and often the subtleties of the application area***
 - **Flynn's taxonomy of computers:**
   - SISD: single instruction operates on single data element, example: single core processor
   - SIMD: single instruction operates on multiple data elements, example: array & vector processor
@@ -680,7 +680,7 @@ the current cycle
 - **regular parallelism:** tasks are similar and have predictable dependencies, example: array processor  
   **irregular parallelism:** the tasks are dissimilar in a way that creates unpredictable dependencies, example: VLIW
 - vector: one-dimensional array of numbers  
-  stride: distance in memory between two elements of a vector
+  stride: distance in memory between two consecutive elements of a vector
 - **vector processor:** is one whose instructions operate on vectors rather than scalar (single data) values, requirements are
   - vector data registers: to load/store vectors, each register holds `N` number of `M`-bit values
   - vector length register (VLEN): to operate on vectors of different lengths, maximum can be `N`
@@ -694,7 +694,7 @@ the current cycle
 - vector functional units: use a deep pipeline to execute element operations (fast clock cycle), control of deep pipeline is simple because elements in vector are independent  
   ![](media/computer_architecture/vector_functional_unit.png)
 - ***if you were plowing a field, which would you rather use: two strong oxen or 1024 chickens***  
-  scalar processing units are still required, here oxen are scalar processing and chicken is vector processing
+  scalar operations limit vector machine performance, here oxen are scalar processing and chicken is vector processing
 - loading/storing multiple elements from/to memory is required, but elements can be loaded in consecutive cycles if we can start the load of one element per cycle  
   if memory access takes more than 1 cycle: bank the memory and interleave the elements across banks  
   **memory banking:** memory is divided into banks that can be accessed independently, banks share address & data buses (to minimize cost)  
@@ -710,9 +710,9 @@ the current cycle
   - number of banks is greater than or equal to bank latency  
     starting from `0 + bank_latency` cycle we can get 1 element/cycle, ensures there are enough banks to overlap enough memory operations to cover memory latency
 - example: scalar code element wise average:  
-  number of dynamic operations: `6 × 50 + 4 = 304` operations  
-  execution time on in-order processor with 1 bank (load cannot be pipelined): `40 × 50 + 4 = 2004` cycles  
-  execution time on in-order processor with 16 bank (> 11 (bank latency), first two loads can be pipelined): `30 × 50 + 4 = 1504` cycles
+  number of dynamic operations: `6 x 50 + 4 = 304` operations  
+  execution time on in-order processor with 1 bank (load cannot be pipelined): `40 x 50 + 4 = 2004` cycles  
+  execution time on in-order processor with 16 bank (> 11 (bank latency), first two loads can be pipelined): `30 x 50 + 4 = 1504` cycles
   ```cpp
   // C
   for (i = 0; i < 50; i++)
@@ -725,7 +725,7 @@ the current cycle
   MOVA R1 = A           //; 1
   MOVA R2 = B           //; 1
   MOVA R3 = C           //; 1
-  X: LD R4 = MEM[R1++]  //; 11 autoincrement addressing
+  X: LD R4 = MEM[R1++]  //; 11 auto increment addressing
   LD R5 = MEM[R2++]     //; 11
   ADD R6 = R4 + R5      //; 4
   SHFR R7 = R6 >> 1     //; 1
@@ -753,11 +753,12 @@ the current cycle
   VSHFR V3 = V2 >> 1    //; 1 + VLEN - 1
   VST C = V3            //; 11 + VLEN – 1
   ```
-- **vector stripmining:** if number of data elements is larger than `VLEN` then break loops so that each iteratioon operates on `VLEN` elements in a vector register  
+- **vector stripmining:** if number of data elements is larger than `VLEN` then break loops so that each iteration operates on `VLEN` elements in a vector register  
   example: for 527 elements and 64-element registers, 8 iterations where `VLEN == 64`, last iteration where `VLEN == 15`
 - **scatter/gather operations:** use indirection to combine/pack elements into vector registers if vector data is not stored in a strided fashion in memory  
-  vector load/store use an index vector which is added to the base registre to generate the addresses  
+  vector load/store use an index vector which is added to the base register to generate the addresses  
   sparse vector: vector having a relatively small number of non-zero elements, used to implement gather/scatter operations  
+  gather is for loading data and scatter is for storing data  
   ![](./media/computer_architecture/vector_scatter_gather_operations.png)
 - **masked operations:** is some operations should not be executed on a vector based on a dynamically determined condition  
   `VMASK` register is a bit mask determining which data element should not be acted upon  
@@ -784,6 +785,22 @@ the current cycle
   ![](./media/computer_architecture/vector_masked_instruction_simple.png)
   - density-time: scan mask vector and only execute elements with non-zero masks  
   ![](./media/computer_architecture/vector_masked_instruction_density_time.png)
+- **stride with banking:** we can sustain 1 element/cycle throughput as long as they are relatively prime (not divisible to each other) and there are enough banks to cover bank access latency
+- **storage of a matrix:**  
+  ![](./media/computer_architecture/row_column_major.png)
+  - row major: consecutive elements in a row are laid out consecutively in memory
+  - column major: consecutive elements in a column are laid out consecutively in memory
+- example: matrix multiply: considering two matrices (`4 x 6`, `6 x 10`) stored in row major format  
+  when loading A0 memory accesses stride will be 1, it will be 10 for B0, different strides can  lead to bank conflicts  
+  better data layout can help minimize bank conflicts, like transpose matrix B to get stride 1  
+  ![](./media/computer_architecture/matrix_multiplication_example.png)
+- modern SIMD processors exploit data parallelism in both time & space  
+  ![](./media/computer_architecture/time_space_duality_example.png)
+- **vector instruction level parallelism:** overlap execution of multiple vector instructions  
+  example: machine has 32 elements per vector register and 8 lanes (so need 4 cycles to complete loading entire register)  
+  completes 24 operations/cycle while issuing 1 vector instruction/cycle  
+  ![](./media/computer_architecture/vector_instruction_level_parallelism.png)
+- **automatic code vectorization:** compile-time reordering of operation sequencing, required extensive loop dependence analysis  
+  ![](./media/computer_architecture/auto_code_vectorization.png)
 
-
-[CONTINUE](https://www.youtube.com/watch?v=5VEA0NehLhk&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=21)
+[CONTINUE](https://youtu.be/5VEA0NehLhk?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2494)

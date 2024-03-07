@@ -30,7 +30,7 @@
 
 ![](media/computer_vision/lambertian_model.png)  
 `S` light source  
-`intensity = S · N`
+`intensity = S . N`
 
 **histogram:** frequency distribution of pixel intensities
 
@@ -44,7 +44,7 @@
 
 **correlation (`⦻`):** process of moving kernel over the image & computing the sum of products at each location
 
-**convolution (`∗`):** same as correlation but kernel flipped vertically then horizontally or vice-versa (180°), convolution & correlation same for symmetric kernels (like gaussian)
+**convolution (`*`):** same as correlation but kernel flipped vertically then horizontally or vice-versa (180°), convolution & correlation same for symmetric kernels (like gaussian)
 
 **seperable:** from `n×n` multiplications to `2n`
 
@@ -121,28 +121,28 @@
 
 **prewitt filter:**
 ```
-mean × central difference
+mean x central difference
 
                         [ 1 ]   [-1   0   1 ]
-f'(x) = [-1   0   1 ] × [ 1 ] = [-1   0   1 ]
+f'(x) = [-1   0   1 ] x [ 1 ] = [-1   0   1 ]
                         [ 1 ]   [-1   0   1 ]
 ```
 
 **scharr filter:**
 ```
-weighed mean × central difference
+weighed mean x central difference
 
                         [ 3  ]   [ -3   0   3  ]
-f'(x) = [-1   0   1 ] × [ 10 ] = [-10   0   10 ]
+f'(x) = [-1   0   1 ] x [ 10 ] = [-10   0   10 ]
                         [ 3  ]   [ -3   0   3  ]
 ```
 
 **sobel filter:**
 ```
-gaussian × central difference
+gaussian x central difference
 
                         [ 1 ]   [-1   0   1 ]
-f'(x) = [-1   0   1 ] × [ 2 ] = [-2   0   2 ]
+f'(x) = [-1   0   1 ] x [ 2 ] = [-2   0   2 ]
                         [ 1 ]   [-1   0   1 ]
 ```
 
@@ -200,7 +200,7 @@ score to determine corner
 
 ![](media/computer_vision/harris_response_function.png)
 
-if `λ1` & `λ2` are eigenvalues of `M`, `det(M) = λ1 × λ2`, `trace(M) = λ1 + λ2`
+if `λ1` & `λ2` are eigenvalues of `M`, `det(M) = λ1 x λ2`, `trace(M) = λ1 + λ2`
 
 ![](media/computer_vision/harris_response_function_graph_1.png)
 ![](media/computer_vision/harris_response_function_graph_2.png)

@@ -7,6 +7,7 @@
 ## completed
 - [C++](./cplusplus.md)
 - [operating systems](./operating_system.md)
+- [misc](./misc.md)
 
 ## in progress
 - [programming](./programming.md)
@@ -38,12 +39,10 @@
 ∝                       # proportional
 ∞                       # infinity
 ∞                       # infinity
-×                       # multiply
 ∠                       # angle
 °                       # degree
 ∆                       # delta
 ∑                       # sigma
-·                       # dot product
 α                       # alpha
 β                       # beta
 γ                       # gamma
@@ -60,6 +59,5 @@
 ψ                       # psi
 ω                       # omega
 ⦻                      # correlation
-∗                       # convolution
                         # invisible character
 ```
