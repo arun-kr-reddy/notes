@@ -14,7 +14,8 @@ so it doesn't make sense to hold on to the ones that vest, your unvested stocks 
 you don't want a huge proportion of your net worth tied up in the company that you also work at, there's a lot of overlap between the scenarios where your employer's stock price drops a lot and the scenarios where you're laid off, and you don't want your net worth to drop a bunch right at the moment you're being laid off
 
 ## [why stay back in India]()
-- products are expensive and services are extremely cheap in India, products are cheap and services are extremely expensive in US, products are one time purchase, services are a regular expense  
+- ***grass is greener where you water it***  
+products are expensive and services are extremely cheap in India, products are cheap and services are extremely expensive in US, products are one time purchase, services are a regular expense  
 your running expenses if you're working is about 4k USD, so let's say you end up saving 2k USD every month to your Indian account, that's 1.5L INR monthly, annually it's about 18L INR, this is what my experienced bachelor friends are saving by living frugally and sharing living space with 3 more people, reality check, you'll go crazy if you stay indoors and say I'll save everything I earn  
 if someone is unable to cut it out in the Indian market, chances of them doing well abroad are also the same  
 many who went to get their masters that I know are still paying education loans without jobs  

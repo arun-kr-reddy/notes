@@ -12,6 +12,7 @@
 - [an even easier introduction to CUDA](https://developer.nvidia.com/blog/even-easier-introduction-cuda/)
 - [Amdahl's law paper](https://inst.eecs.berkeley.edu//~n252/paper/Amdahl.pdf)
 - [Arrayfire](https://github.com/arrayfire/arrayfire)
+- [Duff's device](https://en.wikipedia.org/wiki/Duff%27s_device)
 
 ## introduction
 - **iron law of processor performance:** trade-off between complexity and the number of primitive instructions that processors use to perform calculation  

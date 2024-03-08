@@ -15,6 +15,7 @@
 - [very-long instruction word](#very-long-instruction-word)
 - [fine-grained multithreading](#fine-grained-multithreading)
 - [single instruction multiple data](#single-instruction-multiple-data)
+- [graphics processing units](#graphics-processing-units)
 
 ## links  <!-- omit from toc -->
 - [design of digital circuits (ETHZ 2018)](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
@@ -552,7 +553,7 @@ target address remains the same for a conditional direct branch across dynamic i
 ![](./media/computer_architecture/branch_prediction_fetch_stage.png)
 - **compile time (static) prediction schemes:** predict branches at compile time, cannot adapt to dynamic changes in branch behavior, this can be mitigated (but not at a fine granularity) by a dynamic compiler (like java just in time compiler) but has extra overheads
   - always not-taken: simple to implement, no need for BTB, no direction prediction, low accuracy, for better accuracy compiler can layout code such that the likely path is the not-taken path
-  - always taken: no direction prediction, better accuracy, backward branch (target address lower than branch PC) like loops are usually taken
+  - always taken: no direction prediction, better accuracy, backward branch (target address lower than branch `PC`) like loops are usually taken
   - backward taken forward not-taken: for backward branch predict taken, others not-taken
   - profile based: compiler determines likely direction for each branch using a profile run, encodes that direction as a hint bit in the branch instruction format, has a per branch prediction, accuracy depends on the representativeness of profile input set
   - program analysis based: use heuristics (loosely based rules) based on program analysis to determine statically-predicted direction, heuristics should be representative  
@@ -580,7 +581,7 @@ uses two level of history:
 global history register (GHR): keep track of the  taken/no-taken history of last `N` branches in a register, gets updated by the time we move to the next branch  
 pattern history table (PHT): use GHR to index into a table that recorded the outcome that was seen for each GHR value in the recent past  
 ![](media/computer_architecture/global_branch_history_predictor.png)
-    - gshare predictor: GHR `XOR`ed (hashed) with branch PC to get PHT index, more context information and better utilization of PHT (better distribution)  
+    - gshare predictor: GHR `XOR`ed (hashed) with branch `PC` to get PHT index, more context information and better utilization of PHT (better distribution)  
   ![](media/computer_architecture/gshare_predictor.png)
   - local branch history predictor: a branch outcome can be correlated with past outcomes of the same branch (not just last 1 or 2 times), similar to global branch history but on a per-branch basis  
   ![](./media/computer_architecture/local_branch_history_predictor.png)
@@ -803,4 +804,36 @@ completes 24 operations/cycle while issuing 1 vector instruction/cycle
 - **automatic code vectorization:** compile-time reordering of operation sequencing, required extensive loop dependence analysis  
 ![](./media/computer_architecture/auto_code_vectorization.png)
 
-[CONTINUE](https://youtu.be/5VEA0NehLhk?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2494)
+## graphics processing units
+- **programming model:** how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
+**execution model:** how the hardware executes the code underneath, example: OoO execution, vector processor, array processor  
+execution model can be very different from the programming model, example: von Neumann model implemented by OoO processor
+- single program multiple data (SPMD): multiple processors cooperate in the execution of a program in order to obtain results faster, can be considered a subcategory of MIMD since it refers to MIMD execution of a given single program  
+single instruction multiple thread (SIMT): modern term for an array processor, Nvidia terminology
+- loop unrolling: increase a program's speed by reducing/eliminating loop control logic such as pointer arithmetic, end-of-loop tests at the expense of its binary size (space–time tradeoff)  
+it is often counterproductive on modern processors as the increased code size can cause more cache misses
+- example: exploit parallelism:
+  ```cpp
+  for (i = 0; i < N; i++)
+  {
+      C[i] = A[i] + B[i];
+  }
+  ```
+  - sequential (SISD): can be executed in a pipelined processor, OoO execution processor or superscalar/VLIW processor  
+  in OoO processor different iterations are present in the instruction window and can execute in parallel in multiple functional units (loop dynamically unrolled by hardware)
+  - data parallel (SIMD): programmer/compiler generates a SIMD instruction to execute the same instruction from all iterations across different data  
+  can be executed on a vector or array processor
+  - multi-threaded (MIMD, SPMD): programmer/compiler generates a thread to execute each iteration, each thread does the same thing but on different data  
+  can be executed on a MIMD machine  
+  ![](./media/computer_architecture/multi_threaded_parallelism_example.png)
+- GPUs is a SIMD (SIMT) engine underneath, except it is programmed using threads not SIMD instructions  
+each thread executes the same code but operates on a different piece of data, each thread has its own context, so can be treated/restarted/executed independently  
+**warp (wavefront):** set of threads that execute same instruction (same `PC`), warp is essentially a SIMD operation formed by hardware, warp is Nvidia terminology and wavefront AMD
+- example: SPMD on SIMT machine:  
+![](./media/computer_architecture/gpu_spmd_on_simt.png)
+
+[CONTINUE](https://youtu.be/5VEA0NehLhk?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3632)
+
+- SIMD vs SIMT: single sequential instruction stream of SIMD instructions vs multiple instruction streams of scalar operations, advantages of SIMT are:
+  - can treat each thread separately: can execute each thread independently on any type of scalar pipeline
+  - can group threads into warps flexibly: can group threads that are supposed to truly execute the same instruction, dynamically obtain & maximize benefits of SIMD processing
