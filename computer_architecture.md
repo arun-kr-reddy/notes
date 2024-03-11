@@ -797,6 +797,8 @@ better data layout can help minimize bank conflicts, like transpose matrix B to 
 ![](./media/computer_architecture/matrix_multiplication_example.png)
 - modern SIMD processors exploit data parallelism in both time & space  
 ![](./media/computer_architecture/time_space_duality_example.png)
+- vector unit structure:  
+![](./media/computer_architecture/vector_unit_structure.png)
 - **vector instruction level parallelism:** overlap execution of multiple vector instructions  
 example: machine has 32 elements per vector register and 8 lanes (so need 4 cycles to complete loading entire register)  
 completes 24 operations/cycle while issuing 1 vector instruction/cycle  
@@ -808,8 +810,8 @@ completes 24 operations/cycle while issuing 1 vector instruction/cycle
 - **programming model:** how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
 **execution model:** how the hardware executes the code underneath, example: OoO execution, vector processor, array processor  
 execution model can be very different from the programming model, example: von Neumann model implemented by OoO processor
-- single program multiple data (SPMD): multiple processors cooperate in the execution of a program in order to obtain results faster, can be considered a subcategory of MIMD since it refers to MIMD execution of a given single program  
-single instruction multiple thread (SIMT): modern term for an array processor, Nvidia terminology
+- single program multiple data (SPMD): each processing element executes the same procedure except in different data elements, procedures can synchronize at certain points in program using barriers, each program can execute a different control-flow path at runtime, run on MIMD hardware  
+single instruction multiple thread (SIMT): multiple instruction streams of scalar operations, Nvidia terminology
 - loop unrolling: increase a program's speed by reducing/eliminating loop control logic such as pointer arithmetic, end-of-loop tests at the expense of its binary size (space–time tradeoff)  
 it is often counterproductive on modern processors as the increased code size can cause more cache misses
 - example: exploit parallelism:
@@ -828,12 +830,56 @@ it is often counterproductive on modern processors as the increased code size ca
   ![](./media/computer_architecture/multi_threaded_parallelism_example.png)
 - GPUs is a SIMD (SIMT) engine underneath, except it is programmed using threads not SIMD instructions  
 each thread executes the same code but operates on a different piece of data, each thread has its own context, so can be treated/restarted/executed independently  
-**warp (wavefront):** set of threads that execute same instruction (same `PC`), warp is essentially a SIMD operation formed by hardware, warp is Nvidia terminology and wavefront AMD
+**warp (wavefront):** set of threads that execute same instruction (same `PC`) on different data elements, warp is essentially a SIMD operation formed by hardware, warp is Nvidia terminology and wavefront AMD  
+![](./media/computer_architecture/gpu_warp.png)
 - example: SPMD on SIMT machine:  
 ![](./media/computer_architecture/gpu_spmd_on_simt.png)
-
-[CONTINUE](https://youtu.be/5VEA0NehLhk?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3632)
-
 - SIMD vs SIMT: single sequential instruction stream of SIMD instructions vs multiple instruction streams of scalar operations, advantages of SIMT are:
-  - can treat each thread separately: can execute each thread independently on any type of scalar pipeline
+  - can treat each thread separately: can execute each thread independently on any type of scalar pipeline (MIMD processing)
   - can group threads into warps flexibly: can group threads that are supposed to truly execute the same instruction, dynamically obtain & maximize benefits of SIMD processing
+- GPU high level view: each scalar pipeline corresponds to one vector lane of an array processor  
+![](./media/computer_architecture/gpu_high_level.png)
+- **warp multithreading:** hide latency via warp-level fine grained multithreading  
+one instruction per thread in pipeline at a time (no interlocking)  
+interleave warp execution to hide latencies, FGMT enabled long latency tolerance (like cache miss data load)  
+![](./media/computer_architecture/gpu_latency_hiding.png)
+- SIMD execution unit structure:  
+![](./media/computer_architecture/simd_execution_unit_structure.png)
+- warp instruction level parallelism: in modern GPU's for a given warp we cannot issue next instruction until previous load is done  
+![](./media/computer_architecture/warp_intruction_level_parallelism.png)
+- example: vector add GPU programming:
+  ```cpp
+  // C
+  for (ii = 0; ii < 100000; ++ii)
+  {
+      C[ii] = A[ii] + B[ii];
+  }
+
+  // CUDA
+  __global__ void KernelFunction(…)
+  {
+      int tid = blockDim.x * blockIdx.x + threadIdx.x;
+      int varA = aa[tid];
+      int varB = bb[tid];
+      C[tid] = varA + varB;
+  }
+  ```
+- traditional SIMD vs warp-based SIMD: single thread vs multiple scalar threads executing in a SIMD manner
+- SIMD utilization: fraction of SIMD lanes executing a useful
+operation
+- control flow problem: each thread can execute different control flow paths but they have a common PC  
+![](./media/computer_architecture/gpu_control_flow_paths.png)  
+**branch divergence:** when threads inside warps branch to different execution paths  
+resolved using masked execution (similar to masked vector operations)  
+![](./media/computer_architecture/gpu_control_flow_masked_execution.png)  
+if we have many threads, we can find individual threads that are at the same PC and group them together into a single warp dynamically, this reduces divergence and hence improves SIMD utilization
+- **dynamic warp formation/merging:** dynamically merge threads executing the same instruction after branch divergence  
+enough threads branching to each path enabled the creation of full new warps  
+![](./media/computer_architecture/dynamic_warp_merging_1.png)  
+![](./media/computer_architecture/dynamic_warp_merging_2.png)
+- example: dynamic warp formation:  
+![](./media/computer_architecture/dynamic_warp_merging_example.png)
+
+
+
+[CONTINUE](https://www.youtube.com/watch?v=y40-tY5WJ8A&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=22)
