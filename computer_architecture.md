@@ -562,7 +562,7 @@ target address remains the same for a conditional direct branch across dynamic i
   example: negative integers used as error values in many programs so predict `BLZ` as not-taken  
   example: pointer or floating-point comparisons as not-equal  
   example: predict a branch guarding a loop execution as taken  
-  ```cpp
+    ```cpp
     if (x == TRUE)
     {
         while ()
@@ -621,15 +621,15 @@ example: convert tertiary operator using conditional move (`CMOV`)
 
   CMOV cond, r1, r2
   ```  
-example: branches to `CMOV`s
+  example: branches to `CMOV`s
   ```cpp
   if (a == 5) { b = 4; } else { b = 3 }
   
-CMPEQ condition, a, 5
+  CMPEQ condition, a, 5
   CMOV condition, b, 4
   CMOV !condition, b, 3
   ```  
-![](media/computer_architecture/predicated_execution.png)
+  ![](media/computer_architecture/predicated_execution.png)
 - example: predicated execution in Intel Itanium: each instruction can be separately predicated, has 64 one-bit predicate registers, each instruction carries predicate field (6-bit), instruction is effectively a `NOP` if its predicate is false  
 ![](media/computer_architecture/predicated_execution_itanium.png)
 - **multipath execution:** execute both paths (if you know the addresses) after a conditional branch, use for hard-to-predict branches if prediction confidence is low, improves performance is misprediction cost greater than useless work, for multiple nested branches paths followed will become exponential, duplicate work if paths merge (same instructions after branch)  
@@ -647,24 +647,25 @@ when fetching return: pop the stack and use the address as its predicted target
 
 ## very-long instruction word
 - software (compiler) finds independent instructions (insert `NOP`s if not found) and statically schedules (packs/bundles) them into a single VLIW instruction, hardware fetches & executes the instructions in the bundle concurrently  
-instructions can be logically unrelated (like `mov` & `add` together)  
-no need for hardware dependency checking between concurrently-fetched instructions in the VLIW model  
-recompilation required when execution width (`N`), instruction latencies or functional units change  
+unlike SIMD, instructions can be logically unrelated (like `mov` & `add` together)  
+unlike superscalar execution, no need for dependency checking between concurrently-fetched instructions in the VLIW model  
+recompilation required when execution width (`N`) or instruction latencies or functional units change (unlike superscalar execution)  
 ![](media/computer_architecture/vliw.png)
-- **lockstep execution:** all instructions in a bundle are executed in lockstep, if any operation in a VLIW instruction stalls then all operations stall  
-in a truly VLIW machine, the compiler handles all dependency-related stalls, hardware does not perform dependency checking  
-no instruction can progress until the longest-latency instruction completes
-- reduced instruction set computer (RISC): simple instructions and hardware, compiler does the hardwork to translate high-level language code to simpler instructions, hardware does little translation/decoding  
-VLIW philosophy similar to RISC, compiler does the hardwork to find instruction level parallelism, hardware stays as simple & streamlined as possible
+- **lockstep (all or none) execution:** if any operation in a VLIW instruction (bundle) stalls then all operations stall  
+in a truly VLIW machine, the compiler handles all dependency-related stalls and hardware does not perform dependency checking  
+so no instruction can progress until the longest-latency instruction in the bundle completes
+- **reduced instruction set computer (RISC):** compiler does the hardwork to translate high-level language code to simpler instructions, hardware does little translation/decoding  
+VLIW philosophy similar to RISC (simple instructions and hardware), compiler does the hardwork to find instruction level parallelism, hardware stays as simple & streamlined as possible
 - example: Intel IA-64: explicitly parallel instruction computing (EPIC) was not fully VLIW but based on VLIW principles  
-instruction bundles can have dependent instructions, a few bits in the instruction format specify explicitly which instructions in the bundle are dependent on which other ones
+instruction bundles can have dependent instructions, a few bits in the instruction format specify explicitly which instructions in the bundle are dependent on which other ones  
+useful because it is not easy to find independent instructions
 
 ## fine-grained multithreading
-- switch to another thread every cycle such that no two instructions from a thread are in the pipeline concurrently  
+- hardware has multiple thread contexts, switch to another thread every cycle such that no two instructions from a thread are in the pipeline concurrently  
 tolerates the control and data dependency latencies by overlapping the latency with useful work from other threads  
 improves pipeline utilization by taking advantage of multiple threads  
-reduced single thread performance since one instruction fetched every `N` cycles from the same thread  
-needs extra logic for keeping thread contexts & does not overlap latency if not enough threads to cover the whole pipeline  
+reduced single thread performance since one instruction (from the same thread) fetched every `N` cycles  
+needs extra logic for keeping thread contexts and does not overlap latency if not enough threads to cover the whole pipeline  
 ![](./media/computer_architecture/fine_grained_multithreading.png)  
 ![](./media/computer_architecture/fine_grained_multithreading_example.png)
 
