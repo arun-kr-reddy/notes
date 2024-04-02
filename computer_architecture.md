@@ -614,7 +614,7 @@ example: instead of checking each predicate with a branch, a single branch check
   if if ((a == b) && (c < d) && (a > 5000)) { ... }
   ```
 - **predicated execution:** compiler converts control dependency to data dependency  
-each instruction has predicate bit set based on predicate computation, only instructions with predicates true are commited (others are turned into `NOP`s), enables straight line code by eliminating branches, useful for hard-to-predict branches, avoids misprediction cost (no flushing) so high performance and energy efficient, avoids misprediction cost but some instructions fetched/executed but discarded (backward branches like loops)  
+each instruction has predicate bit set based on predicate computation, only instructions with predicates true are committed (others are turned into `NOP`s), enables straight line code by eliminating branches, useful for hard-to-predict branches, avoids misprediction cost (no flushing) so high performance and energy efficient, avoids misprediction cost but some instructions fetched/executed but discarded (backward branches like loops)  
 example: convert tertiary operator using conditional move (`CMOV`)
   ```cpp
   r1 = (condition == true) ? r1 : r2
@@ -676,7 +676,9 @@ needs extra logic for keeping thread contexts and does not overlap latency if no
   - SIMD: single instruction operates on multiple data elements, example: array & vector processor
   - MISD: multiple instructions operates on single data element, example: systolic array processor, streaming processor
   - MISD: multiple instructions operates on multiple data elements (multiple instruction streams), example: multi-core processor
-- **data parallelism:** concurrency arises from performing the same operation on different pieces of data, it is a form of instruction level parallelism where instruction happens to be the same across data
+- **data parallelism:** concurrency arises from performing the same operation on different pieces of data, it is a form of instruction level parallelism where instruction happens to be the same across data  
+contrast with data flow: concurrency arises from executing different operations in parallel in a data driven manner  
+contrast with thread parallelism: concurrency arises from executing threads of control in parallel
 - **time-space duality:** single instruction operates on multiple data elements in time or in space  
 ![](./media/computer_architecture/array_vs_vector_processor.png)
   - array processor: instruction operates on multiple data elements at the same time using different spaces (functional units), example: 4 adders operates on 4 different input pairs concurrently
@@ -697,9 +699,9 @@ example: set `VSTR = 8` to access `A` ⟶ `A+8` ⟶ `A+16` ⟶ `A+24`
   - known stride allows easy address calculation for all elements, enables prefetching into registers/cache/memory
 - vector functional units: use a deep pipeline to execute element operations (fast clock cycle), control of deep pipeline is simple because elements in vector are independent  
 ![](media/computer_architecture/vector_functional_unit.png)
-- ***if you were plowing a field, which would you rather use: two strong oxen or 1024 chickens***  
-scalar operations limit vector machine performance, here oxen are scalar processing and chicken is vector processing
-- loading/storing multiple elements from/to memory is required, but elements can be loaded in consecutive cycles if we can start the load of one element per cycle  
+- ***if you were plowing a field, which would you rather use: two strong oxen or 1024 chickens?***  
+scalar operations limit vector machine performance, here oxe is scalar processing and chicken is vector processing
+- **loading/storing vectors from/to memory:** requires loading/storing multiple elements,  elements can be loaded in consecutive cycles if we can start the load of one element per cycle  
 if memory access takes more than 1 cycle: bank the memory and interleave the elements across banks  
 **memory banking:** memory is divided into banks that can be accessed independently, banks share address & data buses (to minimize cost)  
 can start and in parallel complete one bank access per cycle, can sustain `N` parallel accesses if all `N` go to different banks  
