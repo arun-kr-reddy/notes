@@ -743,7 +743,7 @@ execution time on in-order processor with 16 bank (> 11 (bank latency), first tw
 ![](./media/computer_architecture/vector_chaining.png)
 - example: vector code element wise average:  
 number of dynamic operations: `7` operations  
-execution time with 16 banks with 1 memory port each (1 load access at a time) but no chaining (so entire vector register needs to be ready before any element of it can be used as part of another operation):`285` cycles  
+execution time with 16 banks with 1 memory port each (1 memory access at a time) but no chaining (so entire vector register needs to be ready before any element of it can be used as part of another operation):`285` cycles  
 ![](./media/computer_architecture/vector_average_example_1.png)  
 execution time with 16 bank with 1 memory port each with chaining :`182` cycles  
 ![](./media/computer_architecture/vector_average_example_2.png)  
@@ -761,12 +761,26 @@ execution time with 16 bank with 2 load ports and 1 store port each (2 load + 1 
   ```
 - **vector stripmining:** if number of data elements is larger than `VLEN` then break loops so that each iteration operates on `VLEN` elements in a vector register  
 example: for 527 elements and 64-element registers, 8 iterations where `VLEN == 64`, last iteration where `VLEN == 15`
-- **scatter/gather operations:** use indirection to combine/pack elements into vector registers if vector data is not stored in a strided fashion in memory  
+- **scatter/gather operations:** use indirection to combine/pack elements into vector registers if vector data is not stored in a strided fashion in memory, example: `A[i] = B[i] + C[D[i]]`  
 vector load/store use an index vector which is added to the base register to generate the addresses  
 sparse vector: vector having a relatively small number of non-zero elements, used to implement gather/scatter operations  
 gather is for loading data and scatter is for storing data  
 ![](./media/computer_architecture/vector_scatter_gather_operations.png)
-- **masked operations:** is some operations should not be executed on a vector based on a dynamically determined condition  
+  ```cpp
+  // C
+  for (i = 0; i < N; i++)
+  {
+      A[i] = B[i] + C[D[i]]
+  }
+
+  //vector ASM
+  LV vD, rD          //; load indices in D vector
+  LVI vC, rC, vD     //; load indirect from rC base
+  LV vB, rB          //; load B vector
+  ADDV.D vA, vB, vC  //; do addition
+  SV vA, rA          //; store result
+  ```
+- **masked operations:** if some operations should not be executed on a vector based on a dynamically determined condition  
 `VMASK` register is a bit mask determining which data element should not be acted upon  
 this is predicated execution, execution predicated on mask bit
   ```cpp
@@ -791,25 +805,26 @@ this is predicated execution, execution predicated on mask bit
 ![](./media/computer_architecture/vector_masked_instruction_simple.png)
   - density-time: scan mask vector and only execute elements with non-zero masks  
 ![](./media/computer_architecture/vector_masked_instruction_density_time.png)
-- **stride with banking:** we can sustain 1 element/cycle throughput as long as they are relatively prime (not divisible to each other) and there are enough banks to cover bank access latency
 - **storage of a matrix:**  
 ![](./media/computer_architecture/row_column_major.png)
   - row major: consecutive elements in a row are laid out consecutively in memory
   - column major: consecutive elements in a column are laid out consecutively in memory
+- **stride with banking:** we can sustain 1 element/cycle throughput as long as they are co-primes (no common factors except 1) and there are enough banks to cover bank access latency
 - example: matrix multiply: considering two matrices (`4 x 6`, `6 x 10`) stored in row major format  
-when loading A0 memory accesses stride will be 1, it will be 10 for B0, different strides can  lead to bank conflicts  
-better data layout can help minimize bank conflicts, like transpose matrix B to get stride 1  
+when loading A0 memory accesses stride will be 1, but will be 10 for B0, different strides can  lead to bank conflicts (if not co-primes)  
+better data layout can help minimize bank conflicts, example: transpose matrix B to get stride 1  
 ![](./media/computer_architecture/matrix_multiplication_example.png)
 - modern SIMD processors exploit data parallelism in both time & space  
 ![](./media/computer_architecture/time_space_duality_example.png)
 - vector unit structure:  
 ![](./media/computer_architecture/vector_unit_structure.png)
 - **vector instruction level parallelism:** overlap execution of multiple vector instructions  
-example: machine has 32 elements per vector register and 8 lanes (so need 4 cycles to complete loading entire register)  
-completes 24 operations/cycle while issuing 1 vector instruction/cycle  
+example: machine has 32 elements per vector register and 8 lanes (so need 4 cycles to complete loading entire register), completes 24 operations/cycle when using all three functional codes  
 ![](./media/computer_architecture/vector_instruction_level_parallelism.png)
-- **automatic code vectorization:** compile-time reordering of operation sequencing, required extensive loop dependence analysis  
+- **automatic code vectorization:** compile-time reordering of operation sequencing, requires extensive loop dependence analysis  
 ![](./media/computer_architecture/auto_code_vectorization.png)
+
+[continue review](https://youtu.be/5VEA0NehLhk?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2483)
 
 ## graphics processing units
 - **programming model:** how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
@@ -1019,4 +1034,4 @@ CPU-GPU data transfer ⟶ kernel execution ⟶ GPU-CPU data transfer
 applications with independent computation of different data instances (like video processing) can benefit from this by overlapping communication & computation  
 ![](./media/computer_architecture/asynchronous_data_transfer_example.png)
 
-[CONTINUE](https://www.youtube.com/watch?v=QOi6ctI4W-8&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=23)
+[continue](https://www.youtube.com/watch?v=QOi6ctI4W-8&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=23)

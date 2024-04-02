@@ -289,7 +289,7 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
   - to be returned as values of procedures
   - to be incorporating into data structures
 
-- [CONTINUE](https://www.youtube.com/watch?v=DrFkf-T-6Co&list=PLE18841CABEA24090&index=5)
+- [continue](https://www.youtube.com/watch?v=DrFkf-T-6Co&list=PLE18841CABEA24090&index=5)
 
 
 ## misc

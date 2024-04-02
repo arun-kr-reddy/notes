@@ -10,12 +10,13 @@
 - [misc](./misc.md)
 
 ## in progress
-- [programming](./programming.md)
 - [computer architecture](./computer_architecture.md)
+- [design patterns](./design_patterns.md)
 - [maths](./maths.md)
 - [tools](./tools.md)
 
 ## todo
+- [programming](./programming.md)
 - [performance](./performance.md)
 - [computer vision](./computer_vision.md)
 - [algorithms](./algorithms.md)
