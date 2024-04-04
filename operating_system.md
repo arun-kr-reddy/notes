@@ -34,9 +34,9 @@
 
 ## introduction
 - **operating system:** is a middleware that sits between user programs & system hardware and manage hardware for the user programs
-  - manage CPU: provide process abstraction, each process has illusion of having complete CPU (CPU virtualization), timeshare CPU between processes, enables coordination between processes
-  - manage memory: of the process (code, data, stack, heap), each process thinks it has dedicated memory space (code, data, stack, heap) for itself, abstracts out details of actual location of memory, translates virtual addresses to actual physical addresses
-  - manage devices: device driver (OS code) talks the language of hardware devices, issues instruction to device (data fetch) and responds to device interrupts (key press), persistent data organized as a filesystem on disk
+  - **manage CPU:** provide process abstraction, each process has illusion of having complete CPU (CPU virtualization), timeshare CPU between processes, enables coordination between processes
+  - **manage memory:** of the process (code, data, stack, heap), each process thinks it has dedicated memory space (code, data, stack, heap) for itself, abstracts out details of actual location of memory, translates virtual addresses to actual physical addresses
+  - **manage devices:** device driver (OS code) talks the language of hardware devices, issues instruction to device (data fetch) and responds to device interrupts (key press), persistent data organized as a filesystem on disk
 - **OS design goals:**
   - convenience, abstraction of hardware resources
   - efficient use of CPU, memory, etc
@@ -48,8 +48,8 @@
 
 ### process abstraction
 - **CPU scheduler:** pick one of the many active processes to execute on CPU
-  - policy: which process to run next
-  - mechanism: how to context-switch between processes
+  - **policy:** which process to run next
+  - **mechanism:** how to context-switch between processes
 - **process constituents:**
   - unique identifier (PID)
   - memory: static (code, data) & dynamic (stack, heap)
@@ -61,11 +61,11 @@
   - initialize CPU registers (PC points to first instruction)
 - **process states:**  
 ![](./media/operating_systems/process_states.png)
-  - running: currently executing on CPU
-  - ready: waiting to be scheduled
-  - blocked: suspended, not ready to run, waiting for some event like read from disk (disk will issue an interrupt when data is ready)
-  - new: being created, yet to run
-  - dead: terminated
+  - **running:** currently executing on CPU
+  - **ready:** waiting to be scheduled
+  - **blocked:** suspended, not ready to run, waiting for some event like read from disk (disk will issue an interrupt when data is ready)
+  - **new:** being created, yet to run
+  - **dead:** terminated
 - **process control block:** stores information about a process, OS maintains a data structure (made up of PCBs) of all active processes
   - process identifier
   - process state
@@ -78,10 +78,10 @@
 - **application programming interface (API):** functions available to write user programs
 - **process API:** set of system calls provided by OS, some blocking system calls (disk read) can cause process to be blocked and descheduled
 - **portable operating system interface (POSIX) API:** standard set of system calls that compliant OS must implement, ensures program portability, programming language libraries hide details of invoking system calls (`printf` calls `write` system call to write to screen)
-  - `fork()`: create new child process, all processes created by forking from a parent, `init` process is ancestor of all processes
-  - `exec()`: make process execute a given executable
-  - `exit()`: terminate a process
-  - `wait()`: causes parent to block until child terminates
+  - **`fork()`:** create new child process, all processes created by forking from a parent, `init` process is ancestor of all processes
+  - **`exec()`:** make process execute a given executable
+  - **`exit()`:** terminate a process
+  - **`wait()`:** causes parent to block until child terminates
 - **fork working:**
   - new process created by making a copy of parent's memory image
   - new process is added to OS process list and scheduled
@@ -116,7 +116,7 @@
 - **exec working:**
   - load another executable into child memory image, so child can run different program from parent
   - variants of exec where arguments to new executable passed
-- example: shell working:
+- **example: shell working:**
   - `init` process created after initialization of hardware
   - `init` process spawns a shell (like `bash`)
   - shell reads user command ⟶ forks a child ⟶ execs command executable ⟶ waits for it to finish ⟶ reads next command  
@@ -135,10 +135,10 @@
   - kernel does not trust user provided addresses to jump to, interrupt descriptor table (IDT) has addresses of kernel functions to run for system calls and other events (set up at boot time)
 - **system call working:**
   - special trap instruction is run when system call is made (hidden from user by libc), this will move CPU to higher privilege level, switch to kernel stack, save user context on kernel stack, look up IDT and jump to trap handler function in OS code
-  - trap usecases:
-    - system call: program needs OS service
-    - program fault: program does something illegal, example: access memory it doesn't have access to
-    - interrupt: external device needs attention of OS, example: network packet arrived on network card
+  - **trap usecases:**
+    - **system call:** program needs OS service
+    - **program fault:** program does something illegal, example: access memory it doesn't have access to
+    - **interrupt:** external device needs attention of OS, example: network packet arrived on network card
   - before calling trap, a number stored in a CPU register to identify which IDT entry to use
   - when OS is done, it calls special return-from-trap instruction, this will restore user context on kernel stack, change CPU privilege from kernel mode to user mode, restore PC and jump to user code after trap
   - before returning to user mode, OS checks if it must switch to different process (context switch):  
@@ -160,17 +160,18 @@
 ### scheduling policies
 - **CPU burst:** CPU time used by a process in a continuous stretch, counted as a fresh burst if a process comes back after a I/O wait
 - **CPU scheduler policy goals:**
-  - maximize utilization: fraction of time CPU is used
-  - minimize average turnaround time: time from process arrival to completion
-  - minimize average response time: time from process arrival to first scheduling
-  - fairness: all processes must be treated equally
-  - minimize overhead: run process long enough to reduce cost of context switch (~1ms)
+  - **maximize utilization:** fraction of time CPU is used
+  - **minimize average turnaround time:** time from process arrival to completion
+  - **minimize average response time:** time from process arrival to first scheduling
+  - **fairness:** all processes must be treated equally
+  - **minimize overhead:** run process long enough to reduce cost of context switch (~1ms)
 - **CPU scheduler policies:** on context switch based on CPU burst which process to run next
-  - first come first serve (FCFS): process job in the order they are received, convoy effect: stuck behind long process so high turnaround time
-  - shortest job first (SJF): process job with shorted execution time, is non-preemptive so can stil get stuck if shorter jobs arrive when long process executing
-  - shortest remaining time first (SRTF): preemptive version of SJF (preempts running job), process job closest to completion, also known as shortest time to completion first (STFC)
-  - round robin (RR): each job processed for a fixed time slice, preemptive, slice big enough to reduce context switch cost, good for response time & fairness, bad for turnaround time
-  - multi level feedback queue (MLFQ): used in linux, many queues in order of priority, process from highest priority queue, within same priority any algorithm like RR, priority of process reduces with its age
+  - **first come first serve (FCFS):** process job in the order they are received  
+  **convoy effect:** stuck behind long process so high turnaround time
+  - **shortest job first (SJF):** process job with shorted execution time, is non-preemptive so can stil get stuck if shorter jobs arrive when long process executing
+  - **shortest remaining time first (SRTF):** preemptive version of SJF (preempts running job), process job closest to completion, also known as shortest time to completion first (STFC)
+  - **round robin (RR):** each job processed for a fixed time slice, preemptive, slice big enough to reduce context switch cost, good for response time & fairness, bad for turnaround time
+  - **multi level feedback queue (MLFQ):** used in linux, many queues in order of priority, process from highest priority queue, within same priority any algorithm like RR, priority of process reduces with its age
 
 ### inter-process communication
 - **inter-process communication (IPC):** mechanisms to share information between processes, processes do not share any memory with each other
@@ -178,8 +179,8 @@
   - **signals:** can be sent to a process by OS or another process, some signals have fixed meaning (`ctrl + C` send `SIGINT` signal), every process has a default code to execute for each signal (signal handler) like exit on terminate signal, some signal handlers can be overriden to do other things
   - **sockets:** can be used for two processes on same machine (Unix sockets) or different machine (TCP/UDP sockets) to communicate, two processes open sockets and connect them to each other, messages written into one socket can be read from another, OS transfers data across socket buffers
   - **pipes:** one-way communication (half-duplex), pipe system call returns two handles (file descriptors), data written in write handle can be read through read handle, pipe data buffered in OS buffers between read & write  
-  regular pipes: both file descriptor are in same process, parent & child share file descriptor after fork, parent uses one end and child uses other end  
-  named pipes: two endpoints in different processes
+  **regular pipes:** both file descriptor are in same process, parent & child share file descriptor after fork, parent uses one end and child uses other end  
+  **named pipes:** two endpoints in different processes
   - **message queue:** mailbox abstraction, process can open a mailbox at a specified location, processes can send/receive messages from mailbox, OS buffers messages between send & receive
 - **blocking vs non-blocking communication:** some IPC actions like reading from empty socket/pipe/message queue or writing to full socket/pipe/message queue can block, system calls to read/write have versions that return error code instead of blocking
 
@@ -193,9 +194,9 @@
 - **address translation:** CPU issues load/store to virtual addresses (VA) but memory hardware accesses physical addresses (PA), OS allocates memory and tracks location of processes, translation (VA to PA) done by memory management unit (MMU) hardware using necessary information from OS
 - **paging:** OS divides virtual address space into fixed size pages and physical memory into frames, to allocate memory a page is mapped to free physical frame, page table stores mapping from virtual page number to physical frame number for a process
 - **memory virtualization goals:**
-  - transparency: user programs should not be aware of the messy details
-  - efficiency: minimize overhead & wastage in terms of memory space & access time
-  - isolation & protection: user process should not be able to access anything outside its address space
+  - **transparency:** user programs should not be aware of the messy details
+  - **efficiency:** minimize overhead & wastage in terms of memory space & access time
+  - **isolation & protection:** user process should not be able to access anything outside its address space
 - **memory allocation system calls:**
   - `malloc()` implemented by libc, to grow the heap `brk()`/`sbrk()` system calls used
   - program can use `mmap()` to allocate page sized memory, gets anonymous page from OS
@@ -221,15 +222,15 @@
 
 ### paging
 - **paging:** allocate memory in fixed size chunks called pages, avoids external fragmentation, but since minimum allocation is page-sized it has internal fragmentation due to partially filled pages
-- example: paging: 64B address space in 128B physical memory with 16B page size  
+- **example: paging:** 64B address space in 128B physical memory with 16B page size  
 ![](./media/operating_systems/paging.png)
 - **page table:** per process data structure to help VA-PA translation, array stores mappings from virtual page number (VPN) to physical frame number (PFN), part of OS memory (in PCB), MMU has access to page table and uses it for address translation, OS updates page table upon context switch
 - **page table entry (PTE):** simplest page table is linear page table, array of page table entries (one per virtual page), VPN is index in the array, each PTE contains PFN and few other bits like 
-  - valid bit: is this page used by process?
-  - protection bits: read/write permissions
-  - present bit: is this page in main memory?
-  - dirty bit: has this page been modified?
-  - accessed bit: has this page been recently accessed?
+  - **valid bit:** is this page used by process?
+  - **protection bits:** read/write permissions
+  - **present bit:** is this page in main memory?
+  - **dirty bit:** has this page been modified?
+  - **accessed bit:** has this page been recently accessed?
 - **address translation in hardware:** most significant bits of VA give the VPN, page table maps VPN to PFN, PA is obtained from PFN and offset within a page, MMU stores physical address of start of page table then walks the page table to get relevant PTE, MMU just translates VPN to PFN and add the same offset  
 ![](./media/operating_systems/address_translation.png)
 - **paging overhead:** when CPU requests data/code at a virtual address, MMU must translate VA to PA (by reading page table entry) adding overhead to memory access
@@ -261,11 +262,11 @@ for address translation first few bits of VA to identify outer page table entry,
   - **least recently/frequently used (LRU/LFU):** replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active/inactive
 - **cold (compulsory) miss:** miss when the first access to a page happens
 - **locality of references:** tendency of computer program to access instructions whose address are near one another
-  - temporal: same location will be referenced again in the near future
-  - spatial: nearby memory locations will be referenced in the near future
+  - **temporal:** same location will be referenced again in the near future
+  - **spatial:** nearby memory locations will be referenced in the near future
 
 ### memory allocation algorithms
-- **variable sized allocation**: given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s and kernel for its internal data structures
+- **variable sized allocation:** given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s and kernel for its internal data structures
   - **headers:** every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
   ![](./media/operating_systems/headers.png)
   - **free list:** free space managed as a linked list, pointer to the next free chunk is embedded within current free chunk, library/kernel tracks the head of the list (next NULL at tail), allocation happens from the head, must split & coalesce free chunks to satisfy variable sized requests (external fragmentation)  
@@ -292,15 +293,15 @@ for address translation first few bits of VA to identify outer page table entry,
 - **thread:** is like another copy of a process that executes independently, all threads share the same address space (code & heap), each thread has separate PC and stack for independent function calls  
 ![](./media/operating_systems/single_vs_multi_threaded.png)
 - **process vs thread:**
-  - parent forks a child: parent & child do not share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
-  - parent executes two threads: two threads share parts of address space, global variables can be used for communication, smaller memory footprint
+  - **parent forks a child:** parent & child do not share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
+  - **parent executes two threads:** two threads share parts of address space, global variables can be used for communication, smaller memory footprint
 - **concurrency:** running multiple threads/processes at same time by interleaving their execution (even on single CPU core)  
 **parallelism:** running multiple threads/processes in parallel over different CPU cores
 - **why threads:** with parallelism a single process can effectively utilize multiple CPU cores, even without parallelism concurrency of threads ensures effective use of CPU when one of the threads blocked
 - **scheduling threads:** OS schedules threads that are ready to run independently (much like processes), context of a thread (PC, registers) is saved into/restored from thread control block (TCB), every PCB has one or more linked TCBs
 - **kernel threads:** threads that are scheduled independently by kernel, example: linux pthreads  
 **user-level threads:** provided by some libraries, library multiplexes large number of user threads over a smaller number of kernel threads, low overhead for switching (expensive context switch not required), but all user threads cannot run in parallel
-- example: thread creation:
+- **example: thread creation:**
   ```cpp
   #include <assert.h>
   #include <pthread.h>
@@ -354,7 +355,7 @@ for address translation first few bits of VA to identify outer page table entry,
   - fairness: all threads should eventually get the lock, no thread should starve
   - low overhead: acquiring, releasing & waiting for lock should not consume too many resources
 - **is disabling interrupts enough:** this technique is used to implement locks on single processor systems inside the OS, disabling interrupt is a privileged instruction and malicious programs can misuse it (like run forever), will not work on multiprocessor systems since another thread on another core can enter critical section
-- example: lock implementation using flag variable: spin on a flag variable until it is unset, then set it to acquire lock, reset flag variable once done, race condition has moved to lock acquisition code, if thread context switched after spin wait but before setting flag, then both threads acquire the lock
+- **example: lock implementation using flag variable:** spin on a flag variable until it is unset, then set it to acquire lock, reset flag variable once done, race condition has moved to lock acquisition code, if thread context switched after spin wait but before setting flag, then both threads acquire the lock
   ```cpp
   typedef struct _lock_t(int flag;) lock_t;
 
@@ -414,9 +415,9 @@ for address translation first few bits of VA to identify outer page table entry,
 ### conditional variables
 - other than mutex, another common requirement in multi-threaded applications is waiting & signaling, can accomplish using busy-wait but inefficient, example: thread T1 wants to continue only after T2 has finished some task
 - **conditional variables:** is a queue that a thread can put itself into when waiting on some condition, another thread that makes the condition true can signal the conditional variable to wake up a waiting thread
-  - signal: wake up one thread
-  - broadcast: wake up all waiting threads
-- example: parent waits for child: mutex is there to protect the process of sleeping & waiting
+  - **signal:** wake up one thread
+  - **broadcast:** wake up all waiting threads
+- **example: parent waits for child:** mutex is there to protect the process of sleeping & waiting
   ```cpp
   int done = 0;
   pthread_mutex_t m = pthread_MUTEX_INITIALIZER;
@@ -469,7 +470,7 @@ for address translation first few bits of VA to identify outer page table entry,
       return 0;
   }
   ```
-- example: producer/consumer problem: one or more producer threads and one or more consumer threads sharing a buffer of bounded size  
+- **example: producer/consumer problem:** one or more producer threads and one or more consumer threads sharing a buffer of bounded size  
 ![](./media/operating_systems/producer_consumer.png)
   ```cpp
   cond_t empty, fill;
@@ -507,7 +508,7 @@ for address translation first few bits of VA to identify outer page table entry,
 
 ### semaphores
 - **semaphores:** is a variable with an underlying counter (not visible to user), two functions - up/post increments and down/wait decrements counter, calling thread blocked if resulting value negative, binary semaphore (init value 1) acts as a mutex
-- example: binary semaphore:
+- **example: binary semaphore:**
   ```cpp
   semt_t m;
   sem_init(&m, 0, 1);
@@ -516,7 +517,7 @@ for address translation first few bits of VA to identify outer page table entry,
   // critical section
   sem_post(&m);
   ```
-- example: parent child with semaphore:
+- **example: parent child with semaphore:**
   ```cpp
   sem_t s;
 
@@ -538,7 +539,7 @@ for address translation first few bits of VA to identify outer page table entry,
       return 0;
   }
   ```
-- example: producer/consumer with semaphore: need two semaphore for signaling full & empty and one binary semaphore to act as mutex for buffer
+- **example: producer/consumer with semaphore:** need two semaphore for signaling full & empty and one binary semaphore to act as mutex for buffer
   ```cpp
   sem_t empty;
   sem_t full;
@@ -594,7 +595,7 @@ for address translation first few bits of VA to identify outer page table entry,
     - **hold-and-wait:** thread holds a resource and is waiting for another, to prevent acquire all locks at once by acquiring a master lock first
     - **no preemption:** thread cannot be made to give up its resource
     - **circular wait:** there exists a cycle in the resource dependency graph, to prevent always acquire locks in certain fixed order, total ordering (or partial ordering on related locks) must be followed
-- example: atomicity bug: one threads reads & prints a shared data item while another concurrently modifies it
+- **example: atomicity bug:** one threads reads & prints a shared data item while another concurrently modifies it
   ``` cpp
   // thread 1
   if (thd->proc_info)
@@ -607,7 +608,7 @@ for address translation first few bits of VA to identify outer page table entry,
   // thread 2
   thd->proc_info = NULL;
   ```
-- example: order-violation bug: thread1 assumes thread2 has already run
+- **example: order-violation bug:** thread1 assumes thread2 has already run
   ```cpp
   // thread 1
   void init()
@@ -625,7 +626,7 @@ for address translation first few bits of VA to identify outer page table entry,
       // ...
   }
   ```
-- example: deadlock: thread1 holds lock1 and is waiting for lock2, thread2 holds lock2 and is waiting for lock1
+- **example: deadlock:** thread1 holds lock1 and is waiting for lock2, thread2 holds lock2 and is waiting for lock1
   ```cpp
   // thread 1
   pthread_mutex_lock(l1);
@@ -636,7 +637,7 @@ for address translation first few bits of VA to identify outer page table entry,
   pthread_mutex_lock(l1);
   ```
   ![](./media/operating_systems/deadlock_dependency.png)
-- example: circular wait prevention: total ordering:
+- **example: circular wait prevention:** total ordering:
   ```cpp
   // grab locks in high-to-low address order
   // code assumes m1 != m2
@@ -651,7 +652,7 @@ for address translation first few bits of VA to identify outer page table entry,
       pthread_mutex_lock(m1);
   }
   ```
-- example: hold-and-wait prevention: master lock:
+- **example: hold-and-wait prevention:** master lock:
   ```cpp
   pthread_mutex_lock(prevention);  // begin lock acquisition
   pthread_mutex_lock(l1);
@@ -671,7 +672,7 @@ for address translation first few bits of VA to identify outer page table entry,
 - **OS registers read/write:**
   - **explicit I/O instructions:** privileged instructions used by OS to read & write to specific registers on device
   - **memory mapped I/O:** device makes registers appear like memory locations, OS simply reads/writes from memory (part of address space reserved for I/O devices), memory hardware routes accesses to these special memory addresses to devices
-- example: simple execution of I/O requests: polling status to see if device ready, wastes CPU cycles, CPU explicitly copies data to/from device (programmed I/O)
+- **example: simple execution of I/O requests:** polling status to see if device ready, wastes CPU cycles, CPU explicitly copies data to/from device (programmed I/O)
   ```cpp
   while (STATUS == BUSY)
       ;                               // wait until device is not busy
@@ -700,7 +701,7 @@ for address translation first few bits of VA to identify outer page table entry,
   - **read/write:** `read()`/`write()` system calls, reading/writing happens sequentially by default (successive read/write calls fetch from current offset), `lseek()` system call lets you seek to random offset, writes are buffered in memory temporarily so `fsync()` system call flushes all writes to disk
   - other operations: rename file delete (unlink) file, get statistics of a file
 - **directory operations:** directory can also be accessed like files, operations like create, open, read & close
-- example: `ls` program: `ls` program opens and reads all directory entries
+- **example: `ls` program:** `ls` program opens and reads all directory entries
   ```cpp
   int main(int argc, char *argv[])
   {
@@ -763,8 +764,8 @@ for address translation first few bits of VA to identify outer page table entry,
   a b
   ```
 - **memory mapping a file:** alternate way of accessing a file instead of using fd & read/write syscalls, `mmap()` allocates a page in virtual address space of a process, when file is mmaped file data copied into one or more pages in memory, can be accessed like any other memory location in program
-  - anonymous page: used to store program data
-  - file-backed page: contains data of file, filename provided as arg to `mmap()`
+  - **anonymous page:** used to store program data
+  - **file-backed page:** contains data of file, filename provided as arg to `mmap()`
 
 ### file system implementation
 - **file system:** an organization of files & directories on disk, OS has one or more file systems, disk exposes set of blocks (usually 512 bytes), file system organizes files onto blocks, two main aspects of file systems are
@@ -772,29 +773,29 @@ for address translation first few bits of VA to identify outer page table entry,
   - implementation of system calls like open, read, write using data structures
 - **simple file system organization:**  
 ![](./media/operating_systems/file_system_organization.png)
-  - data blocks: file data stored in one or more blocks
-  - inode: stores metadata about every file
-  - inode blocks: each block has one or more inodes
-  - bitmaps: indicate which inodes/data blocks are free, `i` & `d` in picture
-  - superblock: holds master plan of all other blocks, example: which are inodes, which are data blocks, `S` in picture
+  - **data blocks:** file data stored in one or more blocks
+  - **inode:** stores metadata about every file
+  - **inode blocks:** each block has one or more inodes
+  - **bitmaps:** indicate which inodes/data blocks are free, `i` & `d` in picture
+  - **superblock:** holds master plan of all other blocks, example: which are inodes, which are data blocks, `S` in picture
 - **inode table:** inodes usually stored in array, inode number of a file is index into this array, inode stores file metadata (like permissions, last accessed time) & pointers (disk block numbers) of file data  
 ![](./media/operating_systems/inode_table.png)
 - **inode structure:** file data not stored contiguously on disk, so need to track multiple block numbers of file, inode tracks disk block numbers using
-  - direct pointers: numbers of first few blocks are stored in inode itself, enough for small files
-  - indirect block: for larger files inode stores number of indirect blocks which has block numbers of file data
+  - **direct pointers:** numbers of first few blocks are stored in inode itself, enough for small files
+  - **indirect block:** for larger files inode stores number of indirect blocks which has block numbers of file data
   - similarly double & triple indirect blocks (multi-level index)
 - **file allocation table (FAT):** alternate way to track file blocks, FAT stores next block pointer for each block, each disk block has one entry with number of next file block (or null if last block), pointer to first block stored in inode, similar to a linked list
 - **directory structure:** directory stores records mapping filename to inode number, this mapping can be done using algorithms like linked list or hash table or binary search tree, directory is a special type of file and has inode & data blocks (which store the file records)
 - **free space management:** to track free blocks
-  - bitmap: store one bit per data block to indicate if free or not
-  - free list: super block stores pointer to first free block which inturn stores address of next free block
+  - **bitmap:** store one bit per data block to indicate if free or not
+  - **free list:** super block stores pointer to first free block which inturn stores address of next free block
 - **opening a file:** to have the inode readily available (in memory) for future operations (read/write) on file
   - pathname of file is traversed starting from root, inode of root is known
   - recursively do: fetch inode of parent directory ⟶ read its data blocks ⟶ get inode number of each child ⟶ fetch inode of child, repeat till end of path
   - if new file: new inode & data blocks will have to be allocated using bitmap and directory entry updated
 - **open file table:** set of data structures to track open files
-  - global open file table: one entry for every file opened (even sockets & pipes), entry points to in-memory copy of inode
-  - per-process open file table: array of files opened by process, fd number is index into this array, per-process table entry points to global open file table entry, every process has three files open by default: std in, std out & std err (fd 0, 1 & 2), `open()` system call creates entries in both tables and returns fd number
+  - **global open file table:** one entry for every file opened (even sockets & pipes), entry points to in-memory copy of inode
+  - **per-process open file table:** array of files opened by process, fd number is index into this array, per-process table entry points to global open file table entry, every process has three files open by default: std in, std out & std err (fd 0, 1 & 2), `open()` system call creates entries in both tables and returns fd number
 - **reading/writing a file:**
   - access in-memory inode via fd
   - find location of data block at current read/write offset
@@ -803,8 +804,8 @@ for address translation first few bits of VA to identify outer page table entry,
   - update time of access & other metadata in inode
 - **virtual file system (VFS):** file systems differ in implementations of data structures, hence linux supports VFS abstraction, VFS looks a file systems as objects (files, directories, inodes, superblock) and operations on these objects (like lookup filename in directory), system call logic is written on VFS objects, to develop a new file system simply implement functions on VFS objects and provide pointers to these functions to kernel, syscall implementation does not have to change with file system implementation details
 - **disk buffer cache:** results of recently fetched disk blocks are cached, file system issues block read/write requests via buffer cache, served from cache if cache hit, else block fetched to cache and returned to file system, unified page cache: free pages allocated to both processes and disk buffer cache from common pool, writes are applied to cache block either
-  - synchronously (write-through): cache writes to disk immediately
-  - asynchronously (write-back): cache stores dirty block in memory and writes back after delay
+  - **synchronously (write-through):** cache writes to disk immediately
+  - **asynchronously (write-back):** cache stores dirty block in memory and writes back after delay
 - **disk buffer benefits:**
   - improved performance due to reduced disk I/O
   - single copy of block in memory, so no inconsistency across processes

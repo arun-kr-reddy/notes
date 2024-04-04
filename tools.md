@@ -31,9 +31,9 @@
   git clone username@host:/path/to/repo  # from a remote server
   ```
 - **workflow:** local repo consists of 3 trees maintained by git
-  - working directory: holds actual files
-  - index: acts as staging area
-  - head: points to last commit made by you
+  - **working directory:** holds actual files
+  - **index:** acts as staging area
+  - **head:** points to last commit made by you
 - **add & commit:**
   ```sh
   git add   <filename>       # working -> index

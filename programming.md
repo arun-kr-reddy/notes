@@ -83,7 +83,7 @@ so for building a large program there isn't much difference between what I can i
   (sqrt 2)                                  ; 1.41421568
   ```
 - **substitution model:** when we evaluate a name we substitute its definition in place of the name & then evaluate the resulting definition
-  - combinations:
+  - **combinations:**
     ```lisp
     (define (sos x y) (+ (sq x) (sq y)))  ; sum of squares
     (define (sq a) (* a a))
@@ -98,8 +98,8 @@ so for building a large program there isn't much difference between what I can i
     (+ 9 16)
     25
     ```
-  - special forms
-    - conditionals: evaluate predicate first then the consequent/alternative expression
+  - **special forms:**
+    - **conditionals:** evaluate predicate first then the consequent/alternative expression
       ```lisp
       (if <predicate>
           <consequent>
@@ -294,7 +294,7 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
 
 ## misc
 - **programming constructs:** programming requires dividing a task (unit of work) into smaller tasks
-  - sequential: if task can be broken down into two subtasks one following the other
-  - conditional: if task can be broken down into two subtasks but not both executed
-  - iterative: if task consists of doing a subtask a number of times but only as long as some condition is true
+  - **sequential:** if task can be broken down into two subtasks one following the other
+  - **conditional:** if task can be broken down into two subtasks but not both executed
+  - **iterative:** if task consists of doing a subtask a number of times but only as long as some condition is true
   ![](./media/programming/programming_constructs.png)

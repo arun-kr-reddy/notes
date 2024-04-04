@@ -107,13 +107,13 @@
   A<<2  = 1111 0000     RSH
   A>>2  = 0000 1111     LSH
   ```
-  example: XOR number swap:
+- **example: XOR number swap:**
   ```cpp
   x = x ^ y;  // x == x ^ y
   y = x ^ y;  // y == (x ^ y) ^ y ⟶ (y ^ y) ^ x ⟶ 0 ^ x ⟶ x
   x = x ^ y;  // x == (x ^ y) ^ x ⟶ (x ^ x) ^ y ⟶ 0 ^ y ⟶ y
   ```
-  example: bit manipulation:
+- **example: bit manipulation:**
   ```cpp
   #define setBit(num, idx) (num |= (0x1 << idx))     // num |= 1 << idx;
   #define clearBit(num, idx) (num &= ~(0x1 << idx))  // num &= ~(1 << idx);
@@ -204,7 +204,7 @@
   ```  
 
 ### sequence
-- data structures that can be accessed sequentially
+- **sequence containers:** data structures that can be accessed sequentially
 - **string:**
   ```cpp
   #include <string>
@@ -249,7 +249,7 @@
   ```
 
 ### associative
-- sorted data structures that can be quickly searched
+- **associative containers:** sorted data structures that can be quickly searched
 - **pair:**
   ```cpp
   #include <utility>
@@ -269,7 +269,7 @@
   ```
 
 ### unordered associative
-- unsorted hashed data structures that can be quickly searched
+- **unordered associative containers:** unsorted hashed data structures that can be quickly searched
 - **unordered map:** similar to map but unsorted, instead organized into buckets based on hash of its key
   ```cpp
   #include <unordered_map>
@@ -432,7 +432,7 @@ if class has constant data member then above 4 functions are implicitly marked `
   ```
 
 ### inheritance
-- inherit public & protected data & functions from another class, separate 6 special functions & private members
+- **inheritance:** inherit public & protected data & functions from another class, separate 6 special functions & private members
   ```cpp
   class rectangleClass
   {
@@ -451,9 +451,9 @@ if class has constant data member then above 4 functions are implicitly marked `
   };
   ```
 - **types:**
-  - `public`: public & protected same as base
-  - `protected`: both protected
-  -  `private`: both private
+  - **`public`:** public & protected same as base
+  - **`protected`:** both protected
+  -  **`private`:** both private
 - **composition:** combining simpler objects to make more complex ones  
 inheritance is `is a` relationship, example: square is a rectangle  
 composition is `has a` relationship, example: car has a wheel
@@ -520,8 +520,8 @@ composition is `has a` relationship, example: car has a wheel
   ate     // seek to EOF when opened
   trunc   // overwrite existing file
   ```
-  `ifstream`: file stream with default mode `in`  
-`ofstream`: file stream with default mode `out`
+  **`ifstream`:** file stream with default mode `in`  
+**`ofstream`:** file stream with default mode `out`
 - ```cpp
   // read one line at a time
   while (getline(ifstream, string))
@@ -534,7 +534,7 @@ composition is `has a` relationship, example: car has a wheel
   std::ofstream output_file("output.bin", ios_base::out | ios_base::binary);
   output_file.write(reinterpret_cast<char*>(data), sizeof(data));
   ```
-- example: read regular columns: every line should have all columns
+- **example: read regular columns:** every line should have all columns
   ```cpp
   // 1   one     0.1
   // 2   two     0.2
@@ -651,7 +651,7 @@ composition is `has a` relationship, example: car has a wheel
   big endian:     12, 34, 56, 78  // most significant byte at smallest memory address
   little endian:  78, 56, 34, 12  // least significant byte at smallest memory address
   ```
-- swap endianness:
+- **swap endianness:**
   ```cpp
   uint32_t num = 9;
   uint32_t b0, b1, b2, b3;
@@ -751,13 +751,13 @@ composition is `has a` relationship, example: car has a wheel
         return 0;                                           // dead
     }
     ```
-- example: smart pointer with local variable: both stack & smart pointer will try to dealloc that memory leading to error
+- **example: smart pointer with local variable:** both stack & smart pointer will try to dealloc that memory leading to error
   ```cpp
       int a = 0;
       auto a_ptr = std ::unique_ptr<int>(&a);
       return 0;  // *** Error in `file ': free (): invalid pointer: 0 x00007fff30a9a7bc ***
   ```
-- example: smart pointer polymorphism: good way of using smart pointer
+- **example: smart pointer polymorphism:** good way of using smart pointer
   ```cpp
   std::vector<unique_ptr<baseClass>> vec;
 
@@ -1119,14 +1119,14 @@ to link C code use:
   ```
 
 ### cpp core guidelines
-- basics:
+- **basics:**
   ```cpp
   int some_random_var;  // snake case
   int some-random-var;  // kebab case
   int someRandomVar;    // camel case
   int SomeRandomVar;    // pascal case
   ```
-- naming:
+- **naming:**
   ```cpp
   // snake_case: variables
   int some_var;
