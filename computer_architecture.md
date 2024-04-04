@@ -5,7 +5,7 @@
 - [timing \& verification](#timing--verification)
 - [instruction set architecture](#instruction-set-architecture)
 - [microarchitecture (μArch)](#microarchitecture-μarch)
-  - [microprogramming](#microprogramming)
+- [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
 - [reorder buffer](#reorder-buffer)
 - [out-of-order execution](#out-of-order-execution)
@@ -16,8 +16,8 @@
 - [fine-grained multithreading](#fine-grained-multithreading)
 - [single instruction multiple data](#single-instruction-multiple-data)
 - [graphics processing units](#graphics-processing-units)
-  - [programming](#programming)
-  - [performance considerations](#performance-considerations)
+- [GPU programming](#gpu-programming)
+- [GPU performance considerations](#gpu-performance-considerations)
 
 ## links  <!-- omit from toc -->
 - [design of digital circuits (ETHZ 2018)](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
@@ -324,7 +324,7 @@ the current cycle
   - common case design: spend time & resources on where it matters most, similar to Amdahl's law
   - balanced design: balance instruction/data flow through hardware components to eliminate bottlenecks
 
-### microprogramming
+## microprogramming
 - for a multi cycle μArch, instruction processing cycle is divided into states  
 sequences from state to state to process an instruction  
 the behavior of the entire processor is specified fully by a FSM
@@ -824,14 +824,11 @@ example: machine has 32 elements per vector register and 8 lanes (so need 4 cycl
 - **automatic code vectorization:** compile-time reordering of operation sequencing, requires extensive loop dependence analysis  
 ![](./media/computer_architecture/auto_code_vectorization.png)
 
-[continue review](https://youtu.be/5VEA0NehLhk?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2483)
-
 ## graphics processing units
-- **programming model:** how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
-**execution model:** how the hardware executes the code underneath, example: OoO execution, vector processor, array processor  
+- GPU instruction pipeline operates like a SIMD pipeline, but the programming is done using threads (not SIMD instructions)
+- **programming model:** refers to how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
+**execution model:** refers to how the hardware executes the code underneath, example: OoO execution, vector processor, array processor  
 execution model can be very different from the programming model, example: von Neumann model implemented by OoO processor
-- single program multiple data (SPMD): each processing element executes the same procedure except in different data elements, procedures can synchronize at certain points in program using barriers, each program can execute a different control-flow path at runtime, run on MIMD hardware  
-single instruction multiple thread (SIMT): multiple instruction streams of scalar operations, Nvidia terminology
 - loop unrolling: increase a program's speed by reducing/eliminating loop control logic such as pointer arithmetic, end-of-loop tests at the expense of its binary size (space–time tradeoff)  
 it is often counterproductive on modern processors as the increased code size can cause more cache misses
 - example: exploit parallelism:
@@ -841,16 +838,20 @@ it is often counterproductive on modern processors as the increased code size ca
       C[i] = A[i] + B[i];
   }
   ```
-  - sequential (SISD): can be executed in a pipelined processor, OoO execution processor or superscalar/VLIW processor  
+  - sequential (SISD): code implemented as-is, can be executed on a pipelined processor, OoO execution processor or superscalar/VLIW processor  
   in OoO processor different iterations are present in the instruction window and can execute in parallel in multiple functional units (loop dynamically unrolled by hardware)
   - data parallel (SIMD): programmer/compiler generates a SIMD instruction to execute the same instruction from all iterations across different data  
   can be executed on a vector or array processor
-  - multi-threaded (MIMD, SPMD): programmer/compiler generates a thread to execute each iteration, each thread does the same thing but on different data  
+  - multi-threaded (MIMD): programmer/compiler generates a thread to execute each iteration, each thread does the same thing but on different data  
   can be executed on a MIMD machine  
   ![](./media/computer_architecture/multi_threaded_parallelism_example.png)
-- GPUs is a SIMD (SIMT) engine underneath, except it is programmed using threads not SIMD instructions  
+- single program multiple data (SPMD): programming model where each processing element executes the same procedure on different data elements, procedures can synchronize at certain points in program using barriers, each program can execute a different control-flow path at runtime, run on MIMD hardware  
+single instruction multiple thread (SIMT): execution model to run SPMD programs, Nvidia terminology
+- GPUs is a SIMD engine underneath, except it is programmed using threads (SPMD programmingmodel) not SIMD instructions  
 each thread executes the same code but operates on a different piece of data, each thread has its own context, so can be treated/restarted/executed independently  
-**warp (wavefront):** set of threads that execute same instruction (same `PC`) on different data elements, warp is essentially a SIMD operation formed by hardware, warp is Nvidia terminology & wavefront AMD  
+**warp (wavefront):** dynamic grouping of threads that execute same instruction (same `PC`) on different data elements, warp is essentially a SIMD operation formed by hardware, warp is Nvidia terminology & wavefront AMD  
+analogous to threads that run lengthwise in a woven fabric  
+warps can be interleaved on the same pipeline (FGMT of warps)  
 ![](./media/computer_architecture/gpu_warp.png)
 - example: SPMD on SIMT machine:  
 ![](./media/computer_architecture/gpu_spmd_on_simt.png)
@@ -859,13 +860,12 @@ each thread executes the same code but operates on a different piece of data, ea
   - can group threads into warps flexibly: can group threads that are supposed to truly execute the same instruction, dynamically obtain & maximize benefits of SIMD processing
 - GPU high level view: each scalar pipeline corresponds to one vector lane of an array processor  
 ![](./media/computer_architecture/gpu_high_level.png)
-- **warp multithreading:** hide latency via warp-level fine grained multithreading  
-one instruction per thread in pipeline at a time (no interlocking)  
-interleave warp execution to hide latencies, FGMT enabled long latency tolerance (like cache miss data load)  
+- **latency hiding via warp-level FGMT:** one instruction per thread in pipeline at a time (no interlocking)  
+interleave warp execution to hide latencies, FGMT enables long latency tolerance (like cache miss data load)  
 ![](./media/computer_architecture/gpu_latency_hiding.png)
 - SIMD execution unit structure:  
 ![](./media/computer_architecture/simd_execution_unit_structure.png)
-- warp instruction level parallelism: in modern GPU's for a given warp we cannot issue next instruction until previous load is done  
+- warp instruction level parallelism: in modern GPU's for a given warp we cannot issue next instruction until previous load is done (no forwarding), so next instruction issue for a different warp  
 ![](./media/computer_architecture/warp_intruction_level_parallelism.png)
 - example: vector add GPU programming:
   ```cpp
@@ -884,34 +884,34 @@ interleave warp execution to hide latencies, FGMT enabled long latency tolerance
       C[tid] = varA + varB;
   }
   ```
-- traditional SIMD vs warp-based SIMD: single thread vs multiple scalar threads executing in a SIMD manner
+- traditional SIMD contains a single thread, warp-based SIMD consists of multiple scalar threads executing in a SIMD manner
 - SIMD utilization: fraction of SIMD lanes executing a useful
 operation
-- control flow problem: each thread can execute different control flow paths but they have a common PC  
+- **control flow problem:** each thread can execute different control flow paths but they have a common PC  
 ![](./media/computer_architecture/gpu_control_flow_paths.png)  
 **branch divergence:** when threads inside warps branch to different execution paths  
 resolved using masked execution (similar to masked vector operations)  
 ![](./media/computer_architecture/gpu_control_flow_masked_execution.png)  
-if we have many threads, we can find individual threads that are at the same PC and group them together into a single warp dynamically, this reduces divergence and hence improves SIMD utilization
+executing both paths for all warps reduces SIMD utilization, instead we can find individual threads that are at the same PC and group them together into a single warp dynamically, this reduces divergence and improves utilization
 - **dynamic warp formation/merging:** dynamically merge threads executing the same instruction after branch divergence  
-enough threads branching to each path enabled the creation of full new warps  
+form new warps from warps that are waiting, enough threads branching to each path enables the creation of full new warps  
 ![](./media/computer_architecture/dynamic_warp_merging_1.png)  
 ![](./media/computer_architecture/dynamic_warp_merging_2.png)
 - example: dynamic warp formation:  
 ![](./media/computer_architecture/dynamic_warp_merging_example.png)
+
+## GPU programming
+- easier programming of SIMD processors with SPMD programming model  
+GPUs have democratized high performance computing, since many workloads like matrices or image processing exhibit inherent parallelism  
+but new programming model and algorithms need to be re-implemented & rethought  
+and still some bottlenecks like CPU-GPU data transfer (PCIe) and DRAM memory bandwidth (GDDR5) exist
+- CPU has few OoO cores, GPU has many in-order FGMT cores  
+![](./media/computer_architecture/cpu_vs_gpu.png)
 - example: Nvidia GeForce GTX 285: released in 2009, 30 cores x 8 SIMD functional units per core (240 vector lanes or stream processors)  
 Nvidia terminology for core is streaming multiprocessor  
+group/warp of 32 threads share instruction stream, upto 32 warps are interleaved in a FGMT manner, upto 1024 thread contexts can be stored  
 ![](./media/computer_architecture/gpu_nvidia_285_1.png)  
-group of 32 threads (each group is a warp) share instruction stream, upto 32 warps are interleaved in a FGMT manner, upto 1024 thread contexts can be stored  
 ![](./media/computer_architecture/gpu_nvidia_285_2.png)
-
-### programming
-- easier programming of SIMD processors with SPMD, GPUs have democratized high performance computing  
-many workloads like matrices or image processing exhibit inherent parallelism  
-new programming memory, algorithms need to be re-implemented & rethought  
-some bottlenecks like CPU-GPU data transfer (PCIe) and DRAM memory bandwidth (GDDR5)
-- CPU vs GPU: a few OoO cores vs many in-order FGMT cores  
-![](./media/computer_architecture/cpu_vs_gpu.png)
 - **GPU computing:** computation is offloaded to the GPU, has three steps:  
 ![](./media/computer_architecture/gpu_computing.png)
   - CPU-GPU data transfer
@@ -947,7 +947,7 @@ within a block shared memory and synchronization
   - 2D:  
   ![](./media/computer_architecture/image_indexing_2D.png)
 
-### performance considerations
+## GPU performance considerations
 - **latency hiding:** FGMT can hide long latency operations like memory accesses  
 ![](./media/computer_architecture/latency_hiding.png)
 - **memory coalescing:** concurrent threads access nearby memory locations when accessing global memory, peak utilization occurs when all threads in a warp access one cache line  
