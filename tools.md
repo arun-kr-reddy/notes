@@ -8,6 +8,7 @@
 ## todo  <!-- omit from toc -->
 - [undo (almost) anything with git](https://github.blog/2015-06-08-how-to-undo-almost-anything-with-git/)
 - [regex basics](https://www.youtube.com/watch?v=sa-TUpSx1JA)
+- linux commands (from archived ?)
 - gdb
 - cmake
 - gtest

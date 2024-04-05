@@ -5,7 +5,7 @@
 - [timing \& verification](#timing--verification)
 - [instruction set architecture](#instruction-set-architecture)
 - [microarchitecture](#microarchitecture)
-- [microprogramming](#microprogramming)
+  - [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
 - [reorder buffer](#reorder-buffer)
 - [out-of-order execution](#out-of-order-execution)
@@ -16,8 +16,8 @@
 - [fine-grained multithreading](#fine-grained-multithreading)
 - [single instruction multiple data](#single-instruction-multiple-data)
 - [graphics processing units](#graphics-processing-units)
-- [GPU programming](#gpu-programming)
-- [GPU performance considerations](#gpu-performance-considerations)
+  - [GPU programming](#gpu-programming)
+  - [GPU performance considerations](#gpu-performance-considerations)
 
 ## links  <!-- omit from toc -->
 - [design of digital circuits (ETHZ 2018)](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
@@ -324,7 +324,7 @@ the current cycle
   - **common case design:** spend time & resources on where it matters most, similar to Amdahl's law
   - **balanced design:** balance instruction/data flow through hardware components to eliminate bottlenecks
 
-## microprogramming
+### microprogramming
 - **microprogramming:** for a multi cycle μArch, instruction processing cycle is divided into states  
 sequences from state to state to process an instruction  
 the behavior of the entire processor is specified fully by a FSM
@@ -900,18 +900,13 @@ form new warps from warps that are waiting, enough threads branching to each pat
 - **example: dynamic warp formation:**  
 ![](./media/computer_architecture/dynamic_warp_merging_example.png)
 
-## GPU programming
+### GPU programming
 - easier programming of SIMD processors with SPMD programming model  
 GPUs have democratized high performance computing, since many workloads like matrices or image processing exhibit inherent parallelism  
 but new programming model and algorithms need to be re-implemented & rethought  
 and still some bottlenecks like CPU-GPU data transfer (PCIe) and DRAM memory bandwidth (GDDR5) exist
 - CPU has few OoO cores, GPU has many in-order FGMT cores  
 ![](./media/computer_architecture/cpu_vs_gpu.png)
-- **example: Nvidia GeForce GTX 285:** released in 2009, 30 cores x 8 SIMD functional units per core (240 vector lanes or stream processors)  
-Nvidia terminology for core is streaming multiprocessor  
-group/warp of 32 threads share instruction stream, upto 32 warps are interleaved in a FGMT manner, upto 1024 thread contexts can be stored  
-![](./media/computer_architecture/gpu_nvidia_285_1.png)  
-![](./media/computer_architecture/gpu_nvidia_285_2.png)
 - **GPU computing:** computation is offloaded to the GPU, has three steps:  
 ![](./media/computer_architecture/gpu_computing.png)
   - CPU-GPU data transfer
@@ -921,36 +916,42 @@ group/warp of 32 threads share instruction stream, upto 32 warps are interleaved
 ![](./media/computer_architecture/gpu_traditional_program_structure.png)
 - **CUDA/OpenCL programming model:** global/coarse-grain synchronization between kernels (bulk synchronous programming)  
 host (CPU) allocates memory, copies data and launches kernels  
-device (GPU) executes kernels over grids (NDRange), blocks (work group) & threads (work item)  
-within a block shared memory and synchronization
-
-[continue review](https://youtu.be/y40-tY5WJ8A?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=1262)
-
+device (GPU) executes kernels over grids (NDRange), blocks (work group) & threads (work item), within a block synchronization and shared memory available
 - **transparent scalability:** hardware is free to schedule thread blocks, each block can execute in any order relative to other blocks  
 ![](./media/computer_architecture/transparent_scalability.png)
+- **example: Nvidia Tesla architecture:** group/warp of 8 threads share instruction stream, upto 32 warps are interleaved in a FGMT manner, upto 1024 thread contexts can be stored (in the registers)  
+streaming multi processors (SM) or compute units (CU) are SIMD pipelines  
+streaming processor (SP) or CUDA cores are vector lanes  
+30 SMs x 8 SPs  
+![](./media/computer_architecture/gpu_nvidia_tesla.png)
+- **example: Nvidia Fermi architecture:** specialized load store units  
+16 SMs x 32 SPs  
+![](./media/computer_architecture/gpu_nvidia_fermi.png)
 - **memory hierarchy:**  
 ![](./media/computer_architecture/gpu_memory_hierarchy.png)
 - **traditional CUDA program structure:**
   - define kernel `__global__ void kernel(...)`  
-  shared memory using `__shared__`  
+  local variables go to local memory or registers, shared memory using `__shared__`  
   intra-block synchronization using `__syncthreads()`
   - allocate memory on device using `cudaMalloc((void**)&d_in, num_bytes)`
   - transfer data from host to device using `cudaMemcpy(d_in, h_in, num_bytes, cudaMemcpyHostToDevice)`
   - execution configuration setup `num_blocks` & `num_threads`
   - kernel call `kernel<<<num_blocks, num_threads>>>(args)`
-  - transfer results from device to host `cudaMemCpy()`
+  - transfer results from device to host using `cudaMemcpy(h_in, d_in, num_bytes, cudaMemcpyDeviceToHost)`
   - deallocate memory `cudaFree(d_in)`
   - use explicit synchronization `cudaDeviceSynchronize()` to make sure execution is done, useful for profiling
-- images are 2D data structures but in a row-major memory layout will be accessed as `image[j][i] = image[j x width + i]`  
+- **images layout in memory:** images are 2D data structures but in a row-major memory layout will be accessed as `image[j][i] = image[j x width + i]`  
 ![](./media/computer_architecture/image_2d.png)  
 ![](./media/computer_architecture/image_1d.png)
-- **indexing and memory access:** 1 GPU thread per pixel
+- **indexing and memory access:** assuming one GPU thread per pixel, grid of block of threads
   - **1D:**  
   ![](./media/computer_architecture/image_indexing_1D.png)
   - **2D:**  
   ![](./media/computer_architecture/image_indexing_2D.png)
 
-## GPU performance considerations
+[continue review](https://youtu.be/y40-tY5WJ8A?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2669)
+
+### GPU performance considerations
 - **latency hiding:** FGMT can hide long latency operations like memory accesses  
 ![](./media/computer_architecture/latency_hiding.png)
 - **memory coalescing:** concurrent threads access nearby memory locations when accessing global memory, peak utilization occurs when all threads in a warp access one cache line  
