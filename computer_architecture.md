@@ -16,8 +16,11 @@
 - [fine-grained multithreading](#fine-grained-multithreading)
 - [single instruction multiple data](#single-instruction-multiple-data)
 - [graphics processing units](#graphics-processing-units)
-  - [GPU programming](#gpu-programming)
-  - [GPU performance considerations](#gpu-performance-considerations)
+  - [programming](#programming)
+  - [performance considerations](#performance-considerations)
+- [systolic arrays](#systolic-arrays)
+- [decoupled access execute](#decoupled-access-execute)
+- [memory organization](#memory-organization)
 
 ## links  <!-- omit from toc -->
 - [design of digital circuits (ETHZ 2018)](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
@@ -31,6 +34,7 @@
 - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
 - Intel itanium
+- [systolic arrays](https://safari.ethz.ch/digitaltechnik/spring2018/lib/exe/fetch.php?media=1982-kung-why-systolic-architecture.pdf)
 - [computer architecture (ETHZ 2019)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 
 ## introduction
@@ -828,7 +832,7 @@ example: machine has 32 elements per vector register and 8 lanes (so need 4 cycl
 - **programming model:** refers to how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
 **execution model:** refers to how the hardware executes the code underneath, example: OoO execution, vector processor, array processor  
 execution model can be very different from the programming model, example: von Neumann model implemented by OoO processor
-- **loop unrolling:** increase a program's speed by reducing/eliminating loop control logic such as pointer arithmetic, end-of-loop tests at the expense of its binary size (space–time tradeoff)  
+- **loop unrolling:** replicate loop body multiple times within an iteration, increase speed (by reducing/eliminating loop control logic) at the potential expense of its binary size (space–time tradeoff)  
 it is often counterproductive on modern processors as the increased code size can cause more cache misses
 - **example: exploit parallelism:**
   ```cpp
@@ -900,7 +904,7 @@ form new warps from warps that are waiting, enough threads branching to each pat
 - **example: dynamic warp formation:**  
 ![](./media/computer_architecture/dynamic_warp_merging_example.png)
 
-### GPU programming
+### programming
 - easier programming of SIMD processors with SPMD programming model  
 GPUs have democratized high performance computing, since many workloads like matrices or image processing exhibit inherent parallelism  
 but new programming model and algorithms need to be re-implemented & rethought  
@@ -949,24 +953,35 @@ streaming processor (SP) or CUDA cores are vector lanes
   - **2D:**  
   ![](./media/computer_architecture/image_indexing_2D.png)
 
-[continue review](https://youtu.be/y40-tY5WJ8A?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=2669)
-
-### GPU performance considerations
+### performance considerations
 - **latency hiding:** FGMT can hide long latency operations like memory accesses  
-![](./media/computer_architecture/latency_hiding.png)
-- **memory coalescing:** concurrent threads access nearby memory locations when accessing global memory, peak utilization occurs when all threads in a warp access one cache line  
-![](./media/computer_architecture/memory_coalescing.png)  
-![](./media/computer_architecture/memory_uncoalesced.png)  
+![](./media/computer_architecture/latency_hiding.png)  
+**occupancy:** ratio of active warps to maximum possible number of warps, calculated using:
+  - number of threads per block (defined by programmer)
+  - registers per thread (known at compile time)
+  - shared memory per block (defined by programmer)
+- **memory coalescing:** concurrent threads access nearby memory locations when accessing global memory, peak memory bandwidth utilization occurs when all threads in a warp access one cache line  
+![](./media/computer_architecture/memory_coalescing.png)
+- **example: uncoalesced memory access:**  
+![](./media/computer_architecture/memory_uncoalesced.png)
+- **example: coalesced memory access:**  
 ![](./media/computer_architecture/memory_coalesced.png)
-- **AoS vs SoA:** CPUs prefer array-of-structures, GPUs prefer structure-of-arrays  
+- **AoS vs SoA:** GPUs prefer structure-of-arrays because each thread in a warp will access same cache line  
+CPUs prefer array-of-structures because for a particular thread all the required data will be on the same cache line  
 ![](./media/computer_architecture/soa_aos.png)
-- **tiling:** same memory locations accessed by neighboring threads, so to take advantage of data reuse we divide the input into tiles that can be loaded into shared memory  
-example: `3x3` gaussian needs 9 pixels to output 1 pixel, keep 16 pixels in shared memory to output 4 pixels  
+- **data reuse (tiling):** same memory locations accessed by neighboring threads, so to take advantage of data reuse we divide the input into tiles that can be loaded into shared memory  
+example: for `3x3` kernel, 1 output pixel needs 9 pixels, but can output 4 pixels by keeping 16 pixels in shared memory  
+use `__syncthreads()` after each thread in a warp is done loading data into the shared memory  
 ![](./media/computer_architecture/tiling_1.png)
 ![](./media/computer_architecture/tiling_2.png)
-- assume consecutive threads are accessing same memory bank, padding (unused cells) can help with reducing shared memory bank conflicts  
-![](./media/computer_architecture/bank_conflicts_memory_padding.png)
-- **example: reducing divergences:**
+- **shared memory:** is an banked memory, each bank can service one address per cycle  
+typically 32 banks in Nvidia GPUs, successive 32bit words are assigned to successive banks, `bank = address % 32`
+- **shared memory bank conflicts:** only possible within a warp  
+![](./media/computer_architecture/shared_memory_bank_conflict_1.png)  
+![](./media/computer_architecture/shared_memory_bank_conflict_2.png)  
+assume stride is equal to number of banks, here padding (unused cells) can help with reducing bank conflicts  
+![](./media/computer_architecture/shared_memory_bank_conflict_padding.png)
+- **example: reducing divergences:** even-odd threads
   ```cpp
   // intra warp divergence
   compute(threadIdx.x);
@@ -982,6 +997,7 @@ example: `3x3` gaussian needs 9 pixels to output 1 pixel, keep 16 pixels in shar
   ![](./media/computer_architecture/reducing_divergence_1.png)
   ```cpp
   // divergence free execution
+  // all if (or else) threads belong to the same warp
   compute(threadIdx.x);
   if (threadIdx.x < 32)
   {
@@ -993,7 +1009,7 @@ example: `3x3` gaussian needs 9 pixels to output 1 pixel, keep 16 pixels in shar
   }
   ```  
   ![](./media/computer_architecture/reducing_divergence_2.png)
-- **example: increasing SIMD utilization:**
+- **example: increasing SIMD utilization:** vector reduction
   ```cpp
   // low SIMD utilization
   __shared__ float partialSum[];
@@ -1004,13 +1020,14 @@ example: `3x3` gaussian needs 9 pixels to output 1 pixel, keep 16 pixels in shar
   {
       __syncthreads();
 
-      if (t % (2 * stride) == 0)
+      if (t % (2 * stride) == 0)  // issue
           partialSum[t] += partialSum[t + stride];
   }
   ```  
   ![](./media/computer_architecture/simd_utilization_1.png)
   ```cpp
   // high SIMD utilization
+  // all active threads belong to the same warp
   __shared__ float partialSum[];
 
   unsigned int t = threadIdx.x;
@@ -1019,23 +1036,70 @@ example: `3x3` gaussian needs 9 pixels to output 1 pixel, keep 16 pixels in shar
   {
       __syncthreads();
 
-      if (t < stride)
+      if (t < stride)  // fix
           partialSum[t] += partialSum[t + stride];
   }
   ```  
   ![](./media/computer_architecture/simd_utilization_2.png)
-- **atomic operations:** are needed when threads might update the same memory location at the same time  
+- **atomic operations:** are needed when threads might update the same memory locations at the same time  
 **conflict degree:** number of threads in a warp that update the same memory position  
 ![](./media/computer_architecture/atomic_conflicts.png)
-- **example: histogram calculation:** histograms count the number of data instances in disjoint bins, but frequent conflicts in natural images  
+- **example: histogram calculation:** histograms count the number of data instances in disjoint categories, but frequent conflicts in natural images  
 ![](./media/computer_architecture/histogram_calculation.png)  
-**privatization:** per-block sub-histograms in shared memory, to reduce atomic shared memory latency adding up  
+**privatization:** per-block sub-histograms in shared memory to reduce atomic shared memory latency adding up  
 ![](./media/computer_architecture/histogram_calculation_privatization.png)
 - **stream (command queue):** sequence of operations that are performed in order  
 CPU-GPU data transfer ⟶ kernel execution ⟶ GPU-CPU data transfer
 - **asynchronous data transfer:** between CPU & GPU, computation divided into `nStreams`  
 ![](./media/computer_architecture/asynchronous_data_transfer.png)  
-applications with independent computation of different data instances (like video processing) can benefit from this by overlapping communication & computation  
+applications with independent computation of different data instances (like video processing) can benefit by overlapping communication & computation  
 ![](./media/computer_architecture/asynchronous_data_transfer_example.png)
 
-[continue](https://www.youtube.com/watch?v=QOi6ctI4W-8&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=23)
+## systolic arrays
+- **systolic array:** replace a single processing element (PE) with a regular array of PEs and carefully orchestrate flow of data between the PEs such that they collectively transform a piece of input data before outputting it to memory, maximizes computation done on a single piece of data element brought from memory, balance computation and memory bandwidth  
+![](./media/computer_architecture/systolic_array.png)  
+array structure can be non-linear and multi-dimensional, PE connections can be multidirectional
+- **example: CNN:** machine learning has hundreds of convolutional layers  
+![](./media/computer_architecture/convolutional_neural_network.png)  
+convolve input with weights (determined based on training on many images)
+![](./media/computer_architecture/convolutional_neural_network_matrix_multiplication.png)  
+**systolic computation for convolution:** here weights `wi` stay the same and `xi`s & `yi`s move systolically in opposite directions
+one needs to carefully orchestrate when data elements are input to the array (interleaved by one cycle) and when output is buffered (every cycle)  
+![](./media/computer_architecture/systolic_computation_convolution.png)  
+![](./media/computer_architecture/systolic_computation_convolution_equation.png)
+- **systolic array features:**
+  - **principled:** efficiently makes use of limited memory bandwidth by using each data item multiple times, balances computation to I/O bandwidth availability
+  - **specialized:** computation needs to fit PE functions and organization, not generic for arbitrary operations
+- **programmable systolic arrays:** each PE in systolic array can store multiple weights (selected on the fly), eases implementation of usecases like adaptive filtering
+- **pipelined programs:** loop iterations are divided into code segments which are executed on different cores, used in file compression nowadays:  
+allocate buffers -> read input file -> compress -> write output file --> deallocate  
+![](./media/computer_architecture/pipelined_programs.png)  
+- **example: tensor processing unit:** systolic data flow of the matrix multiply unit, software has the illusion that each 256B input is read at once and they instantly update one location of each of 256 output accumulator RAMs, multiply-accumulate operation moves through the matrix as a diagonal wave  
+![](./media/computer_architecture/tensor_processing_unit.png)
+
+## decoupled access execute
+- **decoupled access execute:** decouple operand access and execution via two separate instruction streams that communicate via ISA-visible queues  
+was proposed because Tomasulo's algorithm is too complex  
+![](./media/computer_architecture/decoupled_access_execute.png)  
+compiler generates two instruction streams (A & E)  
+branch instruction requires synchronization between A & E
+execute stream can run ahead of the access stream and vice versa, example: if A is waiting for memory E can perform useful work, or if A hits in cache it supplies data to lagging E  
+limited out-of-order execution without tagging, renaming, etc complexity
+- **example: DAE code:** compile Livermore loops (parallel computers benchmark) into CRAY-1 and DAE  
+![](./media/computer_architecture/decoupled_access_execute_example.png)
+- **example: Astronautics ZS-1:** single stream steered into A & E(/X) queues, each queue/pipeline in-order  
+![](./media/computer_architecture/decoupled_access_execute_single_stream_example.png)
+- **example: DAE in Intel Pentium 4:**  
+![](./media/computer_architecture/decoupled_access_execute_pentium4_example.png)
+
+## memory organization
+- physical memory size is much smaller than what the programmer assumes (infinite), system software along with hardware cooperatively ensure that this assumption holds by mapping virtual memory address to physical memory  
+life is easier for the programmer, but more complex system software and hardware architecture (programmer-architect tradeoff)
+- a larger level of storage is needed to manage a small amount of physical memory (RAM) automatically, so physical memory has a backing store as disk
+- **memory storage types:**
+  - **latches (flip flops):** very fast & parallel access, very expensive (one bit costs tens of transistors)
+  - **static RAM:** relatively fast but one data word access at a time, expensive (6 transistors)
+  - **dynamic RAM:** slower and one data word at a time, cheap (1 transistor & 1 capacitor), reading destroys content, needs special process for manufacturing (due to capacitor)
+  - **other technologies (flash memory, hard disk, tape):** much slower to access but non-volatile and very cheap (no transistors directly involved)
+
+[continue](https://youtu.be/rvBdJ1ZLo2M?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=903)

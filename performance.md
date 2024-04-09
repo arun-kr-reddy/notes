@@ -9,6 +9,7 @@
 - SIMD - NEON & Hexagon DSP
   - intrinsic or assembly instructions
 - [gpu programming (IITM 2022)](http://www.cse.iitm.ac.in/~rupesh/teaching/gpu/jan22/)
+- [programming massively parallel processors (UIUC 2018)](https://www.youtube.com/playlist?list=PLRRuQYjFhpmvu5ODQoY2l7D0ADgWEcYAX)
 - [compiler explorer](https://godbolt.org/)
 - [an even easier introduction to CUDA](https://developer.nvidia.com/blog/even-easier-introduction-cuda/)
 - [Amdahl's law paper](https://inst.eecs.berkeley.edu//~n252/paper/Amdahl.pdf)
