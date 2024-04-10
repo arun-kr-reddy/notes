@@ -15,6 +15,7 @@
 - dynamic programming
 - [why is lisp different](https://www.paulgraham.com/diff.html)
 - [first BillG review](https://www.joelonsoftware.com/2006/06/16/my-first-billg-review/)
+- [SOLID principles](https://www.youtube.com/watch?v=zHiWqnTWsn4)
 
 ## introduction
 - ***The key to understanding complicated things is to know what not to look at and what not to compute and what not to think***

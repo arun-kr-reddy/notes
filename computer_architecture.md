@@ -1081,9 +1081,9 @@ allocate buffers -> read input file -> compress -> write output file --> dealloc
 - **decoupled access execute:** decouple operand access and execution via two separate instruction streams that communicate via ISA-visible queues  
 was proposed because Tomasulo's algorithm is too complex  
 ![](./media/computer_architecture/decoupled_access_execute.png)  
-compiler generates two instruction streams (A & E)  
-branch instruction requires synchronization between A & E
-execute stream can run ahead of the access stream and vice versa, example: if A is waiting for memory E can perform useful work, or if A hits in cache it supplies data to lagging E  
+compiler generates two instruction streams (`A` & `E`)  
+branch instruction requires synchronization between `A` & `E`
+execute stream can run ahead of the access stream and vice versa, example: if `A` is waiting for memory `E` can perform useful work, or if `A` hits in cache it supplies data to lagging `E`  
 limited out-of-order execution without tagging, renaming, etc complexity
 - **example: DAE code:** compile Livermore loops (parallel computers benchmark) into CRAY-1 and DAE  
 ![](./media/computer_architecture/decoupled_access_execute_example.png)
@@ -1099,7 +1099,30 @@ life is easier for the programmer, but more complex system software and hardware
 - **memory storage types:**
   - **latches (flip flops):** very fast & parallel access, very expensive (one bit costs tens of transistors)
   - **static RAM:** relatively fast but one data word access at a time, expensive (6 transistors)
-  - **dynamic RAM:** slower and one data word at a time, cheap (1 transistor & 1 capacitor), reading destroys content, needs special process for manufacturing (due to capacitor)
+  - **dynamic RAM:** slower and one data word at a time, cheap (1 transistor & 1 capacitor), reading destroys content, needs special process for manufacturing (requires putting capacitor and logic together)
   - **other technologies (flash memory, hard disk, tape):** much slower to access but non-volatile and very cheap (no transistors directly involved)
-
-[continue](https://youtu.be/rvBdJ1ZLo2M?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=903)
+- **array organization of memories:** to efficiently store large amounts of data, an `M` bit value can be read or written at each unique `N` bit address and the array will have `2^N` rows and `M` columns, all values can be access but only `M` bits at a time  
+example: 2-bit address with 3-bit data  
+![](./media/computer_architecture/memory_array_organization.png)  
+storage nodes in one column connected to one bitline, address decoder activates only one wordline, content of one line of storage available at output  
+![](./media/computer_architecture/memory_array_organization_connection.png)  
+access transistors configured as switches connect the bit storage to the bitline, access controlled by the wordline  
+![](./media/computer_architecture/memory_array_organization_access_control.png)
+- a single monolithic large memory array takes long to access and does not enable multiple accesses in parallel  
+- **memory interleaving (banking):** divide the memory into smaller arrays that can be accessed independently (in same or in consecutive cycles)
+example: DRAM interleaving: channel -> rank -> bank -> subarrays -> mats
+- **dynamic random access memory (DRAM):** capacitor change state indicates stored value  
+but capacitor leaks through the RC path, so DRAM cell needs to be refreshed frequently  
+**refresh:** DRAM controller must periodically read each row within the allowed refresh time (tens of ms) such that the charge is restored  
+![](./media/computer_architecture/memory_dram_cell.png)
+- **static random access memory (SRAM):** two cross coupled inverters store a single bit  
+feedback path enables the stored value to persist in the cell, 4 transistors for storage and 2 for access  
+two bitlines will be complement of each other, if they are same then system will be assume there is a issue with that cell  
+![](./media/computer_architecture/memory_sram_cell.png)
+- **memory bank read access sequence:**  
+![](./media/computer_architecture/memory_bank_access.png)
+  - decode row address and drive single wordline
+  - most-significant bits drive bitlines (entire row read)
+  - amplify row data (capacitor charge)
+  - decode column address and select subset of row to send to output
+  - precharge bitlines for next access, like refresh in DRAM
