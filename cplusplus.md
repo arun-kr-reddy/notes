@@ -306,7 +306,7 @@
       someFunc() {}        // function overload (because const missing)
       static void someStaticFunc() {}  // static member function, call without object
       static int some_num;  // static member variable, common across all objects
-      static int getNumA() {};  // getter/accessor (setter/mutator)
+      static int getNumA() {};  // getter/accessor (setter/mutator, can set conditions on the value)
   protected:
 
   private:  // default access specifier

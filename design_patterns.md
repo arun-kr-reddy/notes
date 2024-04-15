@@ -69,8 +69,10 @@ fields and methods are already defined when you extend/inherit the superclass, y
 - `is a` principle to decide if a class should be extended/inherited, example: `dog` is a `animal`  
 here most/all of the superclass methods are needed by the subclass, any change to superclass code is instantly reflected in subclasses  
 `has a` principle to decide if something is a field, example: `dog` has a `height`
-
-[continue](https://www.youtube.com/watch?v=yRJ1rRoMnIM&list=PLF206E906175C7E07&index=2)
+- polymorphism allows you to write methods that don't need to change if new subclasses are created, example: `dog` can add a new method or override a method without affecting `animal`  
+objects of different subclasses can be put in one array of superclass types
+- use abstract classes (interface specifically) if you want the power of polymorphism without the work  
+interface is an abstract class with only abstract methods, interfaces provide the ultimate flexibility for classes from different inheritance trees to use a common interface
 
 ## creational
 

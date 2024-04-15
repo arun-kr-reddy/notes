@@ -7,8 +7,8 @@
 - [microarchitecture](#microarchitecture)
   - [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
-- [reorder buffer](#reorder-buffer)
-- [out-of-order execution](#out-of-order-execution)
+  - [reorder buffer](#reorder-buffer)
+  - [out-of-order execution](#out-of-order-execution)
 - [dataflow](#dataflow)
 - [superscalar execution](#superscalar-execution)
 - [branch prediction](#branch-prediction)
@@ -21,6 +21,8 @@
 - [systolic arrays](#systolic-arrays)
 - [decoupled access execute](#decoupled-access-execute)
 - [memory organization](#memory-organization)
+  - [memory hierarchy](#memory-hierarchy)
+  - [cache](#cache)
 
 ## links  <!-- omit from toc -->
 - [design of digital circuits (ETHZ 2018)](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
@@ -35,6 +37,7 @@
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
 - Intel itanium
 - [systolic arrays](https://safari.ethz.ch/digitaltechnik/spring2018/lib/exe/fetch.php?media=1982-kung-why-systolic-architecture.pdf)
+- [cache mapping](https://byjus.com/gate/cache-mapping-notes/)
 - [computer architecture (ETHZ 2019)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 
 ## introduction
@@ -417,7 +420,7 @@ but architectural states are not updated in a sequential manner (sequential sema
 - **example: ensuring precise exceptions in pipelining:** make each operation take the same amount of time, worst-case instruction latency determines all instructions' latency  
 ![](./media/computer_architecture/precise_exceptions_pipelining.png)
 
-## reorder buffer
+### reorder buffer
 - complete instruction execution out-of-order but reorder them before making results visible to architectural state, helpful for precise exceptions & rollback on mispredictions  
 ![](./media/computer_architecture/reorder_buffer.png)  
 - when instruction is decoded it reserved the next-sequential entry in the ROB
@@ -449,7 +452,7 @@ in-order dispatch eliminates stalls due to false dependencies, but a true depend
     - **completion (R):** write result to reorder buffer
     - **retirement (W):** check for exceptions
 
-## out-of-order execution
+### out-of-order execution
 - **out-of-order (OoO) execution:** move the dependent instructions out of the way of independent ones into resting areas, ensure that true data dependency does not stall the processor, also known as dynamic scheduling  
 monitor the source values of each instruction in resting area, dispatch/fire the instruction when all source values are available  
 instructions dispatched in dataflow (not control flow) order
@@ -1100,7 +1103,7 @@ life is easier for the programmer, but more complex system software and hardware
   - **latches (flip flops):** very fast & parallel access, very expensive (one bit costs tens of transistors)
   - **static RAM:** relatively fast but one data word access at a time, expensive (6 transistors)
   - **dynamic RAM:** slower and one data word at a time, cheap (1 transistor & 1 capacitor), reading destroys content, needs special process for manufacturing (requires putting capacitor and logic together)
-  - **other technologies (flash memory, hard disk, tape):** much slower to access but non-volatile and very cheap (no transistors directly involved)
+  - **other technologies:** like flash memory, hard disk & tape are much slower to access but non-volatile and very cheap (no transistors directly involved)
 - **array organization of memories:** to efficiently store large amounts of data, an `M` bit value can be read or written at each unique `N` bit address and the array will have `2^N` rows and `M` columns, all values can be access but only `M` bits at a time  
 example: 2-bit address with 3-bit data  
 ![](./media/computer_architecture/memory_array_organization.png)  
@@ -1112,11 +1115,11 @@ access transistors configured as switches connect the bit storage to the bitline
 - **memory interleaving (banking):** divide the memory into smaller arrays that can be accessed independently (in same or in consecutive cycles)
 example: DRAM interleaving: channel -> rank -> bank -> subarrays -> mats
 - **dynamic random access memory (DRAM):** capacitor change state indicates stored value  
-but capacitor leaks through the RC path, so DRAM cell needs to be refreshed frequently  
+but capacitor leaks through the RC path so DRAM cell needs to be refreshed frequently  
 **refresh:** DRAM controller must periodically read each row within the allowed refresh time (tens of ms) such that the charge is restored  
 ![](./media/computer_architecture/memory_dram_cell.png)
 - **static random access memory (SRAM):** two cross coupled inverters store a single bit  
-feedback path enables the stored value to persist in the cell, 4 transistors for storage and 2 for access  
+feedback path enables the stored value to persist in the cell, 4 transistors for storage and 2 for access, faster access since no capacitor present  
 two bitlines will be complement of each other, if they are same then system will be assume there is a issue with that cell  
 ![](./media/computer_architecture/memory_sram_cell.png)
 - **memory bank read access sequence:**  
@@ -1126,3 +1129,51 @@ two bitlines will be complement of each other, if they are same then system will
   - amplify row data (capacitor charge)
   - decode column address and select subset of row to send to output
   - precharge bitlines for next access, like refresh in DRAM
+
+### memory hierarchy
+- ![](./media/computer_architecture/memory_hierarchy_example.png)  
+![](./media/computer_architecture/memory_hierarchy_modern_example.png)
+- ideal memory would have zero access time (latency), infinite capacity, zero cost and infinite bandwidth to support multiple accesses in parallel  
+but practically these requirements oppose each other, bigger is slower (longer to determine the location), faster is more expensive (SRAM vs DRAM), higher bandwidth is more expensive (more banks, more ports, higher frequency)
+- **memory hierarchy:** multiple levels of memory which gets progressively bigger & slower as the levels get farther from the processor, ensure most of the data the processor needs is kept in the faster levels  
+basically large slow memory with small fast memory  
+![](./media/computer_architecture/memory_hierarchy.png)
+- **locality of reference:** is the tendency of a program to access the same set of memory locations repetitively over a short period of time (like in loops)
+  - **temporal:** reuse of specific data within a relatively small time duration, locality in time  
+  to exploit store recently accessed data in cache in anticipation that the data will be accessed again
+  - **spatial:** use of data elements within relatively close storage locations, locality in space (like instruction fetch or traversing an array)  
+  to exploit divide memory into equal size blocks and store the recently accessed block in its entirety in cache
+- cache needs to be tightly integrated into the pipeline (ideally 1-cycle access to prevent stall), but cannot have a large cache in a high frequency pipeline due to longer cycle time so cache hierarchy is used instead, it can be managed:
+  - **manual:** programmer manages data movement across cache levels, too painful for programmers on substantial programs  
+  example: on-chip scratchpad memory in embedded processors and shared memory in GPUs
+  - **automatic:** hardware manages data movement across levels, programmer's life is easier since average programmer doesn't need to know about it
+
+### cache
+- **cache:** any structure that memorizes frequently used results to avoid repeating the long-latency operations required to reproduce the results from scratch  
+in processor context it is an automatically managed memory structure based on SRAM, memorizes the most frequently accessed DRAM memory locations to avoid repeatedly paying for DRAM access latency  
+divided into
+- **block/line:** unit of storage in the cache, memory is logically divided into cache blocks that map to locations in the cache
+- on a reference:
+  - **hit:** if data in cache, then use cached data instead of accessing memory
+  - **miss:** if data not in cache, bring block into cache (may have to kick something else out)
+- **cache design decisions:**
+  - **placement:** where and how to place/find a block
+  - **replacement:** what data to remove to make room
+  - **granularity of management:** large or small blocks, maybe sub-blocks
+  - **write policy:** what do we do about writes
+  - **instruction/data:** do we treat them separately
+- **average memory access time:** `(hit_rate x hit_latency) + (miss_rate x miss_latency)`  
+**cache hit rate:** `(num_hits) / (num_hits + num_misses)`
+- when address arrives to cache for read, in parallel address sent to:  
+**tag store:** check if the address is present in the cache, has some bookkeeping information for replacement/eviction, returns cache hit/miss  
+**data store:** stores memory blocks, returns memory, discard data if tag store returns miss
+- **cache addressing:** memory is logically divided into fixed-size blocks, each block maps to a location in the cache determined by the index bits in the address, these are used to index into the tag & data stores  
+![](./media/computer_architecture/cache_index_bits.png)  
+- for a cache access:  
+  - index into the tag and data stores with index bits in address
+  - check valid bit in tag store
+  - compare tag bits in address with stored tag in tag store
+- **cache mapping:** how a certain block that is present in the main memory gets mapped to the memory of a cache in the case of any cache miss
+  - **direct mapped:** a memory block can go to only one location, if the location is previously taken up then when a new block needs to be loaded the old block is trashed, addresses with same index contend for the same location and can cause conflict misses
+
+[continue](https://youtu.be/sweCA3836C0?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3699)
