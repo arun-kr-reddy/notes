@@ -37,6 +37,7 @@
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
 - Intel itanium
 - [systolic arrays](https://safari.ethz.ch/digitaltechnik/spring2018/lib/exe/fetch.php?media=1982-kung-why-systolic-architecture.pdf)
+- [cache coherency protocols](https://redis.io/glossary/cache-coherence/)
 - [computer architecture (ETHZ 2019)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 
 ## introduction
@@ -1187,6 +1188,7 @@ divided into
   - **insertion:** what happens to priorities when a block is inserted into the set (cache fill)
   - **promotion:** what happens to priorities on a cache hit
   - **eviction/replacement:** what happens to priorities on a cache miss
+- **working set:** whole set of data the executing application references within a time interval
 - **eviction/replacement policy:** on a cache miss replace any invalid block first, else if all blocks are valid then consult replacement policy
   - **first-in first-out (FIFO):** evict blocks in the order they were added
   - **least-recently used (LRU):** evict the least recently accessed block, so need to keep track of access ordering of blocks  
@@ -1221,5 +1223,55 @@ but increased complexity and may not exploit spatial locality fully
 - instruction vs data caches:
   - **unified:** dynamic sharing of cache space (no static partitioning), but instructions & data can kick each other out (no guaranteed space for either)
   - **separate:** instruction and data are accessed in different places in the pipeline so first level caches are almost always split and higher level caches are almost always unified
+- **multi-level caching in a pipelined design:**
+  - **first level caches:** separate instruction and data caches, decisions very much affected by cycle time, small & lower associativity cache (latency is critical), tag store and data store accessed in parallel
+  - **second level caches:** decisions need to balance hit rate and access latency, usually large and highly associative (latency not as important), tag store and data store accessed serially (to save energy since miss rate is higher)
+- **serial access of levels:** second level cache accessed only if first level misses  
+second level doesn't see the same accesses as the first, first level acts as a filter (filters some temporal and spatial locality)
+- **cache performance:** depends on:
+  - **cache size:** total data (not including tag) capacity  
+  bigger can exploit temporal locality better  
+  too large of a cache can adversely affect latency (bigger is slower)  
+  ![](./media/computer_architecture/cache_performance_cache_size.png)
+  - **block size:** data that is associated with an address tag  
+  too small blocks don't exploit spatial locality well and have larger tag overhead  
+  too large blocks will lead to less total number of blocks so less temporal locality exploitation and waste of cache space & bandwidth/energy if spatial locality is not high  
+  ![](./media/computer_architecture/cache_performance_block_size.png)
+    - **critical word:** large cache blocks can take a long time to fill into the cache, so fetch critical word first into the cache line and supply it to the processor then fill the cache line
+    - sub-blocks to help with higher bandwidth wastage for large cache blocks
+  - **associativity:** larger associativity lower miss rate (reduced conflicts) but higher hit latency & area cost, also has diminishing returns  
+  smaller associativity lowers cost & hit latency (important for L1 caches)  
+  ![](./media/computer_architecture/cache_performance_associativity.png)
+- **cache miss classification:**
+  - **compulsory:** first reference to an address (block) always results in a miss  
+  prefetching can reduce misses by anticipating which blocks will be needed soon
+  - **capacity:** cache is too small to hold everything needed, these would occur even in a fully-associative cache (with optimal replacement) of the same capacity  
+  utilizing cache space better (like better replacement policy) can help reduce these
+  - **conflict:** any miss that is neither a compulsory nor a capacity miss  
+  increasing associativity can help reduce these misses
+- software approaches for higher hit rate by restructuring data layout or data access patterns:
+  - **loop interchange:** exchanging the order of two iteration variables used by a nested loop, it is done to ensure that the data is accessed in the order in which they are present in memory  
+  example: for a row major layout accessing consecutive elements help with spatial locality
+    ```cpp
+    // poor code
+    for (int x = 0, x < width; x++)
+        for (int y = 0, y < height; y++)
+            sum += input[x * width + y];
 
-[continue](https://youtu.be/kMUZKjaPNWo?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=1675)
+    // better code
+    for (int y = 0, y < height; y++)
+        for (int x = 0, x < width; x++)
+            sum += input[x * width + y];
+    ```
+  - **blocking/tiling:** divide the working set so that each piece fits in the cache, avoids cache conflicts between different chunks of computation  
+  example: divide loops operating on arrays into computation chunks so that each chunk can hold its data in the cache
+- **private cache:** cache belongs to one core, shared data blocks needs to be brought into respective caches (redundant transfer)  
+**shared cache:** cache is shared by multiple cores  
+improves utilization/efficiency (throughput), when a resource is left idle by one thread then another thread can use it (no fragmentation, dynamic partitioning)  
+reduces communication latency by storing shared data in same cache  
+easier to maintain coherence between cores  
+can lead to contention for resources between threads, leads to performance degradation and inconsistent performance across runs (depends on co-executing threads)  
+![](./media/computer_architecture/cache_shared_vs_private.png)
+- **cache coherence:** refers to the consistency and synchronization of data stored in different caches within a multi-core system
+
+[continue](https://www.youtube.com/watch?v=na-JL1nVTSU&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=27)
