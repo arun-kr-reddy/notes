@@ -37,7 +37,6 @@
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
 - Intel itanium
 - [systolic arrays](https://safari.ethz.ch/digitaltechnik/spring2018/lib/exe/fetch.php?media=1982-kung-why-systolic-architecture.pdf)
-- [cache mapping](https://byjus.com/gate/cache-mapping-notes/)
 - [computer architecture (ETHZ 2019)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 
 ## introduction
@@ -1173,7 +1172,54 @@ divided into
   - index into the tag and data stores with index bits in address
   - check valid bit in tag store
   - compare tag bits in address with stored tag in tag store
-- **cache mapping:** how a certain block that is present in the main memory gets mapped to the memory of a cache in the case of any cache miss
-  - **direct mapped:** a memory block can go to only one location, if the location is previously taken up then when a new block needs to be loaded the old block is trashed, addresses with same index contend for the same location and can cause conflict misses
+- **cache mapping:** how a certain block that is present in the main memory gets mapped to the memory of a cache in the case of any cache miss  
+**associativity:** how many blocks can map to the same index, blocks that map to the same index are called set
+  - **direct mapped:** a memory block can go to only one location, if the location is previously taken up then when a new block needs to be loaded the old block is trashed  
+  two blocks that map to the same index cannot be present in the cache at the same time so can cause conflict misses, can lead to 0% hit rate if same block accessed in interleaved manner  
+  ![](./media/computer_architecture/cache_mapping_direct.png)
+  - **fully associative:** a block can be placed in any cache location, don't have conflict misses instead has capacity misses  
+  ![](./media/computer_architecture/cache_mapping_fully_associative.png)
+  - **k-way set associative:** k-way associative memory within the set, trade-off between direct-mapped cache (less complex) and fully associative cache (fewer misses)  
+  direct mapped is an extreme case with `k==1`  
+  diminishing returns from higher associativity as it will lead to higher hit rate but also slower cache access time (longer tag search) and more expensive hardware (more comparators)  
+  ![](./media/computer_architecture/cache_mapping_set_associative.png)
+- each block in set has a priority indicating how important it to keep the block in the cache, there are three key decisions within a set to determine/adjust block priorities:
+  - **insertion:** what happens to priorities when a block is inserted into the set (cache fill)
+  - **promotion:** what happens to priorities on a cache hit
+  - **eviction/replacement:** what happens to priorities on a cache miss
+- **eviction/replacement policy:** on a cache miss replace any invalid block first, else if all blocks are valid then consult replacement policy
+  - **first-in first-out (FIFO):** evict blocks in the order they were added
+  - **least-recently used (LRU):** evict the least recently accessed block, so need to keep track of access ordering of blocks  
+  example: there are `4! == 24` possible orderings in a 4-way cache (need 5 bits per set)  
+  so most modern processors don't implement true/perfect LRU in highly associative caches, so they implement:
+    - **not most-recently used (nMRU):** keep track of only MRU, for replacement randomly choose one of the not-MRU blocks
+    - **hierarchical LRU:** divide the k-way set into `m` groups and keep track of only the MRU group and MRU block within each group  
+    on replacement select victim randomly from one of the not-MRU block in one of the not-MRU groups
+    - **victim next-victim replacement:** only keep track of victim (MRU) and the next-victim (next MRU)
+  - **random:** is better when set thrashing (program working set in a set is larger than set associativity) occurs, example: 0% hit-rate with LRU for cyclic reference to A, B, C, D, E in a 4-way cache
+  - **least-frequently used (LFU):** algorithm counts how often a block is needed, those used less often are discarded first
+  - **least costly to re-fetch:** different memory accesses have different cost (latency) associated with it (L2 cache vs DRAM), those with lowest latencies are evicted first
+  - **hybrid replacement policies:** in practice LRU vs random depends on the workload, so use a hybrid of LRU and random for best of both worlds
+  - **Belady's optimal replacement policy:** replace the block that is going to be referenced furthest in the future by the program, cannot be implemented
+- when do we write the modified data in a cache to the next level:
+  - **write-back:** when the block is evicted  
+  can combine multiple writes to the same block before eviction, saves bandwidth and energy, most modern caches use this  
+  - **write-through:** at the time the write happens  
+  simpler and makes sure all levels are up to date (cache-coherent), useful when multiple processors share memory  
+  but bandwidth intensive (multiple writes)
+- **dirty/modified bit:** is part of tag-store entry to indicate that data has been written (to cache) but memory has not been updated, happens with write-back caches
+- do we allocate a cache block on a write miss:
+  - **allocate on write miss:** can combine writes instead of writing each of them individually to next level  
+  simpler because write misses can be treated the same way as read misses  
+  but requires transfer of the whole cache block
+  - **no-allocate:** conserves cache space if locality of writes is low (potentially improves cache read hit rate)
+- **streaming writes:** processor writes to an entire block over a small amount of time (like `memset()`), allocating on streaming writes is not preferable here since it can pollute the cache with unnecessary data
+- **sub-blocked (sectored) caches:** divide a block into sub-blocks (sectors) each having a separate valid & dirty bits, only a sub-block (or a subset of sub-blocks) on a request  
+a write simply validates & updates a sub-block and a cache block need not be in the cache fully  
+but increased complexity and may not exploit spatial locality fully  
+![](./media/computer_architecture/cache_sub_blocks.png)
+- instruction vs data caches:
+  - **unified:** dynamic sharing of cache space (no static partitioning), but instructions & data can kick each other out (no guaranteed space for either)
+  - **separate:** instruction and data are accessed in different places in the pipeline so first level caches are almost always split and higher level caches are almost always unified
 
-[continue](https://youtu.be/sweCA3836C0?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=3699)
+[continue](https://youtu.be/kMUZKjaPNWo?list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&t=1675)

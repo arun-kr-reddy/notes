@@ -258,7 +258,7 @@ for address translation first few bits of VA to identify outer page table entry,
 - **page replacement policies:** when servicing page fault if OS finds no free page then OS must swap out an existing page and then swap in faulting page, to prevent this much work OS proactively swap out pages to keep list of free pages handy
   - **optimal:** replace page not needed for longest time in future, just theoretical, cannot calculate when page is needed (look into future)
   - **first in first out (FIFO):** replace page that was brought into memory earliest, but that may be a popular page
-    - **Belady's anomaly:** increasing number of page frames results in increase in number of page faults
+    - **Belady's anomaly:** increasing number of page frames results in an increase in number of page faults for FIFO page replacement algorithm
   - **least recently/frequently used (LRU/LFU):** replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active/inactive
 - **cold (compulsory) miss:** miss when the first access to a page happens
 - **locality of references:** tendency of computer program to access instructions whose address are near one another
