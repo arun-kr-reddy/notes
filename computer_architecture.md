@@ -23,6 +23,7 @@
 - [memory organization](#memory-organization)
   - [memory hierarchy](#memory-hierarchy)
   - [cache](#cache)
+  - [virtual memory](#virtual-memory)
 
 ## links  <!-- omit from toc -->
 - [design of digital circuits (ETHZ 2018)](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
@@ -1274,4 +1275,27 @@ can lead to contention for resources between threads, leads to performance degra
 ![](./media/computer_architecture/cache_shared_vs_private.png)
 - **cache coherence:** refers to the consistency and synchronization of data stored in different caches within a multi-core system
 
-[continue](https://www.youtube.com/watch?v=na-JL1nVTSU&list=PL5Q2soXY2Zi_QedyPWtRmFUJ2F8DdYP7l&index=27)
+### virtual memory
+- programmer sees virtual memory (illusion of infinite memory) but physical memory is much smaller than what the programmer assumes  
+system software & hardware cooperatively and automatically manage the physical memory space to provide the illusion (for each independent process)  
+programmer doesn't need to know the physical size of memory nor manage it making programmer's life easier, a small physical memory can appear as a huge one to the programmer
+- **benefits of automatic management of memory:**
+  - programmer does not deal with physical addresses
+  - each process has its own mapping from virtual to physical addresses
+  - enables code & data to be located anywhere in physical memory (relocation)
+  - enables isolation/separation of code & data of different processes in physical memory (protection & isolation)
+  - enables code & data sharing between multiple processes (sharing)
+- **problems with direct physical addressing:**
+  - programmer needs to manage physical memory space, harder when you have multiple processes
+  - difficult to support code & data relocation since addresses are directly specified in the program
+  - difficult to support multiple processes since isolation/protection cannot be guaranteed
+  - difficult to support data/code sharing across processes
+- **virtual memory:** gives the programmer the illusion of a large address space while having a small physical memory
+- **address translation:** hardware converts virtual addresses into physical addresses via an OS-managed lookup table (page table)  
+some virtual addresses can be in disk (swap space) as well leading to page fault, leads to system bringing that page into physical memory  
+virtual address space divided into pages, physical into frames  
+![](./media/computer_architecture/virtual_memory_address_translation.png)
+- physical memory is like a cache for pages stored on disk  
+it is a fully associative cache since a virtual page can potentially be mapped to any physical frame  
+similar considerations exist: placement, replacement, granularity, write policy  
+![](./media/computer_architecture/virtual_memory_cache_analogues.png)
