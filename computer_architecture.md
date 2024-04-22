@@ -39,7 +39,7 @@
 - Intel itanium
 - [systolic arrays](https://safari.ethz.ch/digitaltechnik/spring2018/lib/exe/fetch.php?media=1982-kung-why-systolic-architecture.pdf)
 - [cache coherency protocols](https://redis.io/glossary/cache-coherence/)
-- [computer architecture (ETHZ 2019)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
+- [computer architecture (ETHZ 2019) (cover 19b onwards)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms  
@@ -866,7 +866,7 @@ warps can be interleaved on the same pipeline (FGMT of warps)
 - **SIMT advantages:**
   - **can treat each thread separately:** can execute each thread independently on any type of scalar pipeline (MIMD processing)
   - **can group threads into warps flexibly:** can group threads that are supposed to truly execute the same instruction, dynamically obtain & maximize benefits of SIMD processing
-- **GPU high level view:** each scalar pipeline corresponds to one vector lane of an array processor  
+- **GPU high-level view:** each scalar pipeline corresponds to one vector lane of an array processor  
 ![](./media/computer_architecture/gpu_high_level.png)
 - **latency hiding via warp-level FGMT:** one instruction per thread in pipeline at a time (no interlocking)  
 interleave warp execution to hide latencies, FGMT enables long latency tolerance (like cache miss data load)  
@@ -1138,6 +1138,7 @@ two bitlines will be complement of each other, if they are same then system will
 but practically these requirements oppose each other, bigger is slower (longer to determine the location), faster is more expensive (SRAM vs DRAM), higher bandwidth is more expensive (more banks, more ports, higher frequency)
 - **memory hierarchy:** multiple levels of memory which gets progressively bigger & slower as the levels get farther from the processor, ensure most of the data the processor needs is kept in the faster levels  
 basically large slow memory with small fast memory  
+last level cache (LLC): farthest away cache  
 ![](./media/computer_architecture/memory_hierarchy.png)
 - **locality of reference:** is the tendency of a program to access the same set of memory locations repetitively over a short period of time (like in loops)
   - **temporal:** reuse of specific data within a relatively small time duration, locality in time  
