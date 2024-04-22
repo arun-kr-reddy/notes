@@ -662,7 +662,7 @@ recompilation required when execution width (`N`) or instruction latencies or fu
 in a truly VLIW machine, the compiler handles all dependency-related stalls and hardware does not perform dependency checking  
 so no instruction can progress until the longest-latency instruction in the bundle completes
 - **reduced instruction set computer (RISC):** compiler does the hardwork to translate high-level language code to simpler instructions, hardware does little translation/decoding  
-VLIW philosophy similar to RISC (simple instructions and hardware), compiler does the hardwork to find instruction level parallelism, hardware stays as simple & streamlined as possible
+VLIW philosophy similar to RISC (simple instructions and hardware), compiler does the hardwork to find instruction level parallelism (ILP), hardware stays as simple & streamlined as possible
 - **example: Intel IA-64:** explicitly parallel instruction computing (EPIC) was not fully VLIW but based on VLIW principles  
 instruction bundles can have dependent instructions, a few bits in the instruction format specify explicitly which instructions in the bundle are dependent on which other ones  
 useful because it is not easy to find independent instructions

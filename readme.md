@@ -25,6 +25,7 @@
 
 ```sh
 ⟵ ⟶ ⟷ ↑ ↓            # arrows
+≈                       # approximately
 ±                       # plus minus
 :                       # such that
 ∀                       # for all
@@ -38,7 +39,6 @@
 ≈                       # approximately equal
 ≡                       # equivalent
 ∝                       # proportional
-∞                       # infinity
 ∞                       # infinity
 ∠                       # angle
 °                       # degree

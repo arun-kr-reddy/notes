@@ -74,7 +74,7 @@ objects of different subclasses can be put in one array of superclass types
 - use abstract classes (interface specifically) if you want the power of polymorphism without the work  
 interface is an abstract class with only abstract methods, interfaces provide the ultimate flexibility for classes from different inheritance trees to use a common interface
 
-[continue](https://www.youtube.com/watch?v=-NCgRD9-C6o&list=PLF206E906175C7E07&index=3&pp=iAQB)
+[continue](https://www.youtube.com/watch?v=-NCgRD9-C6o&list=PLF206E906175C7E07&index=4)
 
 ## creational
 
@@ -104,13 +104,11 @@ interface is an abstract class with only abstract methods, interfaces provide th
 
 ### proxy
 
-
 ## behavioral
 
 ### chain of responsibility
 
 ### command
-- **command pattern:** turns a request into a stand-alone object that contains all information about the request, this transformation lets you pass requests as a method arguments, delay or queue a request’s execution, and support undoable operations
 
 ### iterator
 
