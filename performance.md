@@ -3,6 +3,9 @@
   - [example: matrix multiplication performance optimization](#example-matrix-multiplication-performance-optimization)
 - [Bentley optimization rules](#bentley-optimization-rules)
   - [data structures](#data-structures)
+  - [logic](#logic)
+  - [loops](#loops)
+  - [functions](#functions)
 
 ## links  <!-- omit from toc -->
 
@@ -89,7 +92,7 @@ example: tiled matrix multiplication, tuning parameter `s` needs to be figured o
 example: so 8 multiplications of n/2 x n/2 and 1 addition of n x n matrix  
 ![](./media/performance/recursive_matrix_multiplication.png)  
 ![](./media/performance/recursive_matrix_multiplication_cilk.png)  
-but performance is degraded because we have a very small base case (`n == 1`) leading to higher function call overhead, so we must coarsen the recursion by introducing a threshold  
+but performance is degraded because we have a very small base case (`n == 1`) leading to higher function-call overhead, so we must coarsen the recursion by introducing a threshold  
 ![](./media/performance/recursive_matrix_multiplication_cilk_coarsen.png)
 - **vector hardware:** modern processors incorporate vector hardware to process data in single-instruction stream multiple-data stream fashion  
 compilers use vector instructions automatically when compiling at optimization level `-O2` or higher, but many machines don't support the newest set of vector instructions so the compiler uses vector instructions conservatively by default  
@@ -197,4 +200,379 @@ to get a row's size just take the difference of current & next row offsets, we h
   }
   ```
 
-[continue](https://youtu.be/H-1-X9bkop8?list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf&t=2337)
+### logic
+- **constant folding & propagation:** evaluate constant expressions and substitute the result into further expressions all during compilation, with a sufficiently high optimization level all expressions are evaluated at compile-time  
+example: building a orrery (model of a solar system) assuming earth's constant radius
+  ```cpp
+  void orrery()
+  {
+      const double radius = 6371000.0;
+      const double diameter = radius * 2;
+      const double circumference = M_PI * diameter;
+      const double cross_area = M_PI * radius * radius;
+      const double surface area = circumference * diameter
+  }
+  ```
+- **common-subexpression elimination:** avoid computing the same expression multiple times buy evaluating the expression once and storing the result for later use  
+example: same calculation repeated
+  ```cpp
+  // normal
+  a = b + c;
+  b = a - d;
+  c = b + c;
+  d = a - d;
+
+  // improved
+  a = b + c;
+  b = a - d;
+  c = b + c;  // cannot be eliminated as b has changed
+  d = b;      // common-subexpression elimination
+  ```
+- **algebraic identities:** replace expensive algebraic expressions with algebraic equivalents that require less work  
+example: calculating if two balls collide
+  ```cpp
+  typedef struct
+  {
+      double x;
+      double y;
+      double x;
+      double r;
+  } ball_t;
+
+  double square(double x) { return x * x; }
+
+  // normal
+  bool collides(bal_t* b1, ball_t* b2)
+  {
+      double d = sqrt(square(b1->x - b2->x) + square(b1->y - b2->y) +
+                      square(b1->z - b2->z));
+      return (d <= b1->r + b2->r);
+  }
+
+  // improved
+  // sqrt(u) <= v  is equivalent to  u <= v^2
+  // square requires much less work compared to sqrt
+  bool collides(bal_t* b1, ball_t* b2)
+  {
+      double dsquared = square(b1->x - b2->x) + square(b1->y - b2->y) +
+                      square(b1->z - b2->z);
+      return (dsquared <= square(b1->r + b2->r));
+  }
+  ```
+- **short-circuiting:** when performing a series of tests stop evaluating as soon as you know the answer, `&&` & `||` are short circuiting logical operators  
+example: check if sum of a array of non-negative numbers is larger than limit, improve it by checking partial sum, this will be slower if most of the times we add entire/most of the array
+  ```cpp
+  // normal
+  bool sumExceeds(int* A, int size, int limit)
+  {
+      int sum = 0;
+      for (int i = 0; i < size; i++)
+      {
+          sum += A[i];
+      }
+
+      return (sum > limit);
+  }
+
+  // improved
+  bool sumExceeds(int* A, int size, int limit)
+  {
+      int sum = 0;
+      for (int i = 0; i < size; i++)
+      {
+          sum += A[i];
+          if (sum > limit)
+          {
+              return true;
+          }
+      }
+
+      return false;
+  }
+  ```
+- **ordering tests:** if a code executes a sequence of logical tests then perform those tests that pass most often first, similarly inexpensive tests should precede expensive ones  
+example: check if character is whitespace, space and newline occur more than other two so check for them first, carriage-return is always never used so last
+  ```cpp
+  bool isWhitespace(char c)
+  {
+      if (c == ' ' || c == '\n' || c == '\t' || c == '\r')
+      {
+          return true
+      }
+
+      return false;
+  }
+  ```
+- **creating a fast path:** create an alternate route that would help us reach the result quicker  
+example: in the balls colliding example, add a extra check if bounding boxes overlap  
+![](./media/performance/balls_colliding_bb.png)
+  ```cpp
+  bool collides(bal_t* b1, ball_t* b2)
+  {
+      if ((abs(ba->x - b2->x) > (b1->r + b2->r)) ||
+          (abs(ba->y - b2->y) > (b1->r + b2->r)) ||
+          (abs(bz->x - b2->z) > (b1->r + b2->r)))
+      {
+          return false;
+      }
+
+      double dsquared = square(b1->x - b2->x) + square(b1->y - b2->y) +
+                      square(b1->z - b2->z);
+
+      return (dsquared <= square(b1->r + b2->r));
+  }
+  ```
+- **combining tests:** replace a sequence of tests with one test or switch  
+example: for a full adder truth table implementation, instead of a large if else table for each combination combine them into a switch case  
+![](./media/performance/full_adder.png)
+
+### loops
+- **hoisting (loop-invariant code motion):** avoid recomputing loop-invariant code each time through the body of a loop, usually compiler can take care of this  
+example: scaling a array
+  ```cpp
+  // normal
+  void scale(double* x, double* y, int n)
+  {
+      for (int i = 0; i < n; i++)
+      {
+          y[i] = x[i] * exp(sqrt(M_PI / 2));
+      }
+  }
+
+  // improved
+  void scale(double* x, double* y, int n)
+  {
+      double factor = exp(sqrt(M_PI / 2));
+      for (int i = 0; i < n; i++)
+      {
+          y[i] = x[i] * factor;
+      }
+  }
+  ```
+- **sentinels:** are special dummy values placed in a data structure to simplify logic of boundary conditions and in particular handling of loop-exit tests  
+example: check if sum of array of non-negative values has overflowed (will be negative due to wrap around), improve it by having only one check per iteration
+  ```cpp
+  // normal
+  bool overflow(int64_t* a, size_t n)
+  {
+      int64_t sum = 0;
+      for (size_t i = 0; i < n; i++)
+      {
+          sum += a[i];
+          if (sum < a[i]) return true;
+      }
+
+      return false;
+  }
+
+  // improved
+  // assume a[n] & a[n+1] exist
+  bool overflow(int64_t* a, size_t n)
+  {
+      a[n] = INT64_MAX;  // to force overflow
+      a[n + 1] = 1;      // or any positive number
+                         // to handle corner case of all elements 0
+
+      size_t i = 0;
+      int64_t sum = a[0];
+      while (sum >= a[i])
+      {
+          sum += a[++i];
+      }
+
+      if (i < n) return true;  // check early exit
+
+      return false;
+  }
+  ```
+- **loop unrolling:** save work by combining several consecutive iterations of a loop into a single iteration thereby reducing the total number of iterations and hence reducing execution of the loop control instructions
+example: for a array sum
+  ```cpp
+  int sum = 0;
+  for (int i = 0; i < 10; i++)
+  {
+      sum += a[i];
+  }
+  ```
+  - **full:** all iterations unrolled, usually for small loops, will pollute instruction cache for large loops
+    ```cpp
+    int sum = 0;
+    sum += a[0];
+    sum += a[1];
+    sum += a[2];
+    sum += a[3];
+    sum += a[4];
+    sum += a[5];
+    sum += a[6];
+    sum += a[7];
+    sum += a[8];
+    sum += a[9];
+    ```
+  - **partial:** several but not all iterations are unrolled, loop exit conditions need to be done only every 4 iterations  
+  much bigger benefit it allows more compiler optimizations since it increases the size of loop body that gives compiler more freedom to play around with code  
+  will pollute instruction cache if loop body is too large (too much unrolling)
+    ```cpp
+    int sum = 0;
+    int j;
+    for (j = 0; j < n - 3; j += 4)
+    {
+        sum += a[j];
+        sum += a[j + 1];
+        sum += a[j + 2];
+        sum += a[j + 3];
+    }
+
+    for (int i = j; i < n; ++i)  // deal with remaining elements
+    {
+        sum += a[i];
+    }
+    ```
+- **loop fusion (jamming):** combine multiple loops over the same index range into a single loop body thereby saving the overhead of loop control  
+example: computing lane-wise minimum & maximum among two arrays, improves cache locality as well
+  ```cpp
+  // normal
+  for (int i = 0; i < n; ++i)
+  {
+      c[i] = (a[i] <= b[i]) ? a[i] : b[i];  // minimum
+  }
+  for (int i = 0; i < n; ++i)
+  {
+      d[i] = (a[i] <= b[i]) ? b[i] : a[i];  // maximum
+  }
+
+  // improved
+  for (int i = 0; i < n; ++i)
+  {
+      c[i] = (a[i] <= b[i]) ? a[i] : b[i];  // minimum
+      d[i] = (a[i] <= b[i]) ? b[i] : a[i];  // maximum
+  }
+  ```
+- **eliminating wasted iterations:** modify loop bounds to execute iterations over essentially empty loop bodies  
+example: matrix transpose, half iterations will fail the check in normal code, improve it by changing loop condition to include the condition in loop control
+  ```cpp
+  // normal
+  for (int i = 0; i < n; ++i)
+  {
+      for (int j = 0; j < n; ++j)
+      {
+          if (i > j)
+          {
+              int temp = a[i][j];
+              a[i][j] = a[j][i];
+              a[j][i] = temp;
+          }
+      }
+  }
+
+  // improved
+  for (int i = 0; i < n; ++i)
+  {
+      for (int j = 0; j < i; ++j)
+      {
+          int temp = a[i][j];
+          a[i][j] = a[j][i];
+          a[j][i] = temp;
+      }
+  }
+  ```
+
+### functions
+- **inlining:** avoid the overhead of a function-call by replacing a call to the function with the body of the function itself  
+need not be done manually set function to `static inline`, inline functions can be just as efficient as macros and are better structured  
+example: sum of squares
+  ```cpp
+  // normal
+  double square(double x) { return x * x; }
+
+  double sumOfSquares(double* a, int n)
+  {
+      double sum = 0.0;
+      for (int i = 0; i < n; ++i)
+      {
+          sum += square(a[i]);
+      }
+  }
+
+  // improved 1
+  double sumOfSquares(double* a, int n)
+  {
+      double sum = 0.0;
+      for (int i = 0; i < n; ++i)
+      {
+          sum += a[i] * a[i];
+      }
+  }
+
+  // improved 2
+  static inline double square(double x) { return x * x; }
+  ```
+- **tail-recursion elimination:** replace a recursive call that occurs as the last step of a function with a branch saving a function-call overhead  
+example:
+  ```cpp
+  // normal
+  void quickSort(int* a, int n)
+  {
+      if (n > 1)
+      {
+          int r = partition(a, n);
+          quicksort(a, r);
+          quicksort(a + r + 1, n - r - 1);
+      }
+  }
+
+  // improved
+  void quickSort(int* a, int n)
+  {
+      while (n > 1)
+      {
+          int r = partition(a, n);
+          quicksort(a, r);
+          a += r + 1;
+          n -= r + 1;
+      }
+  }
+  ```
+- **coarsening recursion:** increase the size of the base case and handle it with more efficient code that avoids function-call overhead  
+example:
+  ```cpp
+  // normal
+  void quickSort(int* a, int n)
+  {
+      while (n > 1)
+      {
+          int r = partition(a, n);
+          quicksort(a, r);
+          a += r + 1;
+          n -= r + 1;
+      }
+  }
+
+  // improved
+  void quickSort(int* a, int n)
+  {
+      while (n > 1)
+      {
+          int r = partition(a, n);
+          quicksort(a, r);
+          a += r + 1;
+          n -= r + 1;
+      }
+
+      // insertion sort for small arrays
+      for (int j = 1; j < n; ++j)
+      {
+          int key = a[j];
+          int i = j - 1;
+          while (i >= 0 && a[i] > key)
+          {
+              a[i + 1] = a[i];
+              --i;
+          }
+          a[i + 1] = key;
+      }
+  }
+  ```
+
+[quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
+
+[continue](https://www.youtube.com/watch?v=ZusiKXcz_ac&list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf&index=3)
