@@ -6,6 +6,7 @@
   - [logic](#logic)
   - [loops](#loops)
   - [functions](#functions)
+- [bit hacks](#bit-hacks)
 
 ## links  <!-- omit from toc -->
 
@@ -572,4 +573,55 @@ example: quicksort will switch to a simple loop-based insertion sort algorithm o
   }
   ```
 
-[continue](https://www.youtube.com/watch?v=ZusiKXcz_ac&list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf&index=3)
+## bit hacks
+- hex gives a more compact format for binary representations  
+to translate from hex to binary translate each hex digit and concatenate the bits  
+example: `0xDEC1` is equivalent to `0b1101111011000001`
+- **common bit manipulations:**
+  ```cpp
+  // set kth bit
+  // shift then OR
+  y = x | (1 << k);
+
+  // clear kth bit
+  // shift, complement then AND
+  y = x & ~(1 << k);
+
+  // toggle kth bit
+  // shift then XOR
+  y = x ^ (1 << k);
+
+  // extract a bitfield from a bitfield x using a mask (like 0b11110000)
+  // mask then shift
+  y = (x & mask) >> shift;
+
+  // set a bitfield in  a word x to a value y
+  // invert mask to clear, then OR the shifted value
+  x = (x & ~mask) | (y << shift);
+  // more secure version, in case y has values outside mask
+  x = (x & ~mask) | ((y << shift) & mask);
+  ```
+- **no-temp swapping:** this works because XOR is its own inverse `(x ^ y) ^ y = x`, improved one will be slower because it is poor at exploiting ILP (due to sequential dependence)
+  ```cpp
+  // normal
+  t = x;
+  x = y;
+  y = t;
+
+  // improved
+  x = x ^ y;  // x == x ^ y
+  y = x ^ y;  // y == (x ^ y) ^ y ⟶ (y ^ y) ^ x ⟶ 0 ^ x ⟶ x
+  x = x ^ y;  // x == (x ^ y) ^ x ⟶ (x ^ x) ^ y ⟶ 0 ^ y ⟶ y
+  ```
+- **minimum of two integers:** a mispredicted branch empties the processor pipeline
+  ```
+  // normal
+  r = (x < y) ? x : y;
+
+  // improved
+  r = y ^ ((x ^ y) & -(x < y));
+  // if x < y, then -(x < y) == -1 (all 1s in 2s complement form), y ^ (x ^ y) == x
+  // if x < y, then -(x < y) == 0, y ^ 0 == y
+  ```
+
+[continue](https://youtu.be/ZusiKXcz_ac?list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf&t=1528)
