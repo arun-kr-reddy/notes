@@ -506,34 +506,33 @@ example: sum of squares
   // improved 2
   static inline double square(double x) { return x * x; }
   ```
-- **tail-recursion elimination:** replace a recursive call that occurs as the last step of a function with a branch saving a function-call overhead  
-example:
+- **tail-recursion elimination:** replace a recursive function call that occurs as the last step of the function with a branch saving function-call overhead (additional stack frame)  
+example: factorial of a number, replace regression with loop  
+![](./media/performance/tail_call_optimization.png)
   ```cpp
   // normal
-  void quickSort(int* a, int n)
+  // accum passed as 1
+  uint32_t factorial(uint32_t n, uint32_t accum)
   {
-      if (n > 1)
-      {
-          int r = partition(a, n);
-          quicksort(a, r);
-          quicksort(a + r + 1, n - r - 1);
-      }
+      if (n <= 1) return accum;
+
+      return factorial((n - 1), (accum * n));
   }
 
   // improved
-  void quickSort(int* a, int n)
+  uint32_t factorial(uint32_t n, uint32_t accum)
   {
-      while (n > 1)
+      while (1)
       {
-          int r = partition(a, n);
-          quicksort(a, r);
-          a += r + 1;
-          n -= r + 1;
+          if (n <= 1) return accum;
+          accum = accum * n;
+          n--;
       }
   }
   ```
-- **coarsening recursion:** increase the size of the base case and handle it with more efficient code that avoids function-call overhead  
-example:
+- **coarsening recursion:** increase the size of the base case (when the recursion stops) and handle it with more efficient code that avoids function-call overhead  
+idea is to avoid recursing all the way down to the base case, instead we can make the base case coarser  
+example: quicksort will switch to a simple loop-based insertion sort algorithm once the number of items to be sorted is sufficiently small  
   ```cpp
   // normal
   void quickSort(int* a, int n)
@@ -572,7 +571,5 @@ example:
       }
   }
   ```
-
-[quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
 
 [continue](https://www.youtube.com/watch?v=ZusiKXcz_ac&list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf&index=3)
