@@ -6,20 +6,20 @@
 
 ## completed
 - [C++](./cplusplus.md)
+- [computer architecture](./computer_architecture.md)
 - [operating systems](./operating_system.md)
 - [misc](./misc.md)
 
 ## in progress
-- [computer architecture](./computer_architecture.md)
+- [algorithms](./algorithms.md)
 - [design patterns](./design_patterns.md)
 - [maths](./maths.md)
 - [tools](./tools.md)
 
 ## todo
-- [programming](./programming.md)
-- [performance](./performance.md)
 - [computer vision](./computer_vision.md)
-- [algorithms](./algorithms.md)
+- [performance](./performance.md)
+- [programming](./programming.md)
 
 ## symbols
 

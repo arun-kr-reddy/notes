@@ -29,3 +29,5 @@ what people are forgetting is there are intricacies with visa, 99% won't even ge
 ## quotes
 - *if you crush a cockroach you're a hero, if you crush a beautiful butterfly you're a villain, morals have aesthetic criteria*  
 -Friedrich Nietzsche
+- *just because you can afford it doesn't mean you should buy it*  
+-Suze Orman
