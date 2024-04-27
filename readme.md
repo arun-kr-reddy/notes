@@ -1,30 +1,34 @@
-# readme
-- [completed](#completed)
-- [in progress](#in-progress)
-- [todo](#todo)
+# README
+- [teachyourselfcs](#teachyourselfcs)
+- [domain specific](#domain-specific)
+- [advanced](#advanced)
 - [symbols](#symbols)
 
-## completed
-- [C++](./cplusplus.md)
-- [computer architecture](./computer_architecture.md)
-- [operating systems](./operating_system.md)
-- [misc](./misc.md)
+## [teachyourselfcs](https://teachyourselfcs.com/)
+- [ ] [programming](./programming.md)
+- [ ] [computer architecture](./computer_architecture.md)
+- [ ] [algorithms and data structures](./algorithms.md)
+- [ ] [maths](./maths.md)
+- [ ] [operating systems](./operating_system.md)
+- [ ] [computer networking]()
+- [ ] [databases]()
+- [ ] [languages and compilers]()
+- [ ] [distributed systems]()
 
-## in progress
-- [algorithms](./algorithms.md)
-- [design patterns](./design_patterns.md)
-- [maths](./maths.md)
-- [tools](./tools.md)
+## domain specific
+- [ ] [C++](./cplusplus.md)
+- [ ] [computer vision](./computer_vision.md)
+- [ ] [performance](./performance.md)
 
-## todo
-- [computer vision](./computer_vision.md)
-- [performance](./performance.md)
-- [programming](./programming.md)
+## advanced
+- [ ] [design patterns](./design_patterns.md)
+- [ ] [life](./life.md)
+- [ ] [tools](./tools.md)
 
 ## symbols
 
 ```sh
-⟵ ⟶ ⟷ ↑ ↓            # arrows
+⟵  ⟶  ⟷ ↑ ↓            # arrows
 ≈                       # approximately
 ±                       # plus minus
 :                       # such that

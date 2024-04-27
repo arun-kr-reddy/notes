@@ -4,15 +4,11 @@
 ## links  <!-- omit from toc -->
 
 ## todo  <!-- omit from toc -->
-- [ancient secrets of computer vision (UWash 2018)](https://pjreddie.com/courses/computer-vision/)
-- [first principles of computer vision (Columbia 2020)](https://fpcv.cs.columbia.edu/)
-- [computer vision (UTubingen 2023)](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/computer-vision/)
-- [photogrammetry (UBonn 2021)](https://www.ipb.uni-bonn.de/photo12-2021/)
+- [[lectures] first principles of computer vision](https://fpcv.cs.columbia.edu/)
 - [feature detection & matching algos](https://medium.com/data-breach/introduction-to-feature-detection-and-matching-65e27179885d)
 - [stanford CV tutorial](https://ai.stanford.edu/~syyeung/cvweb/tutorials.html)
 - FastCV, OpenCV
 - edge & blur artifact detection
-- [underappreciated resources](https://www.reddit.com/r/MachineLearning/comments/i9kztq/d_hidden_gems_and_underappreciated_resources/)
 
 ## introduction
 - **computer vision:** convert light into meaning
@@ -146,13 +142,13 @@ f'(x) = [-1   0   1 ] x [ 2 ] = [-2   0   2 ]
                         [ 1 ]   [-1   0   1 ]
 ```
 
-**marr-hildreth filter:** smooth image using gaussian ⟶ apply laplacian ⟶ find zero-crossings, improved by combining first two steps by using LoG instead of laplacian of smoothened image, edges are given by zero-crossings, edge strength is slope of zero-crossing, example - `slope = | a + b |` for `{ a, -b }`, for seperable kernel `4n` multiplications instead of `n×n`
+**marr-hildreth filter:** smooth image using gaussian  ⟶  apply laplacian  ⟶  find zero-crossings, improved by combining first two steps by using LoG instead of laplacian of smoothened image, edges are given by zero-crossings, edge strength is slope of zero-crossing, example - `slope = | a + b |` for `{ a, -b }`, for seperable kernel `4n` multiplications instead of `n×n`
 
 ![](media/computer_vision/laplacian_gaussian_seperability.png)
 
 ![](media/computer_vision/laplacian_gaussian_seperability_diagram.png)
 
-**canny filter:** smooth image with gaussian ⟶ derivate ⟶ compute gradient magnitude & direction ⟶ non-maximum suppression ⟶ hysteresis threshold, improved by combine first two steps by using derivative of gaussian, pixels that are not maximum in the direction of the gradient supressed (non-maximum suppression (NMS)), classify edges into strong & weak edges using two thresholds (hysteresis threshold)
+**canny filter:** smooth image with gaussian  ⟶  derivate  ⟶  compute gradient magnitude & direction  ⟶  non-maximum suppression  ⟶  hysteresis threshold, improved by combine first two steps by using derivative of gaussian, pixels that are not maximum in the direction of the gradient supressed (non-maximum suppression (NMS)), classify edges into strong & weak edges using two thresholds (hysteresis threshold)
 1. **`magnitude > high`:** strong edge
 2. **`magnitude < low`:** weak edge
 3. **`high > magnitude > low`:** strong edge only if connected to another strong edge pixel directly or via pixel between two thresholds
@@ -163,7 +159,7 @@ f'(x) = [-1   0   1 ] x [ 2 ] = [-2   0   2 ]
 
 ## feature detection & matching
 
-**feature detection & matching:** feature point detection ⟶ extract feature descriptor ⟶ match two descriptors
+**feature detection & matching:** feature point detection  ⟶  extract feature descriptor  ⟶  match two descriptors
 
 ![](media/computer_vision/feature_regions.png)
 
@@ -182,7 +178,7 @@ f'(x) = [-1   0   1 ] x [ 2 ] = [-2   0   2 ]
 
 ### harris corner detector
 
-**harris corner detector (HCD):** calculate gradient `Ix` & `Iy` ⟶ compute terms in `M` ⟶ calculate `R` ⟶ threshold `R` ⟶ non-maximum suppression
+**harris corner detector (HCD):** calculate gradient `Ix` & `Iy`  ⟶  compute terms in `M`  ⟶  calculate `R`  ⟶  threshold `R`  ⟶  non-maximum suppression
 
 find difference in intensity for a displacement `(u, v)` in all directions
 
@@ -214,7 +210,7 @@ then find pixels with `R` that exceed certain threshold & are local maxima withi
 
 ### scale-invariant feature transform
 
-**scale-invariant feature transform (SIFT):** scale space peak selection ⟶ keypoint localization ⟶ orientation assignment ⟶ keypoint descriptor
+**scale-invariant feature transform (SIFT):** scale space peak selection  ⟶  keypoint localization  ⟶  orientation assignment  ⟶  keypoint descriptor
 
 **scale space peak selection:** local extrema (min/max of 27 pixels) in LoG scale space
 

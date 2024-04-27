@@ -1,4 +1,4 @@
-# misc
+# life
 - [why sell RSUs on vest](#why-sell-rsus-on-vest)
 - [why not track every rupee](#why-not-track-every-rupee)
 - [why stay back in India](#why-stay-back-in-india)

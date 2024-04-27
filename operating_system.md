@@ -25,7 +25,7 @@
   - [hard disk internals](#hard-disk-internals)
 
 ## links  <!-- omit from toc -->
-- [operating system (IITB 2018)](https://www.cse.iitb.ac.in/~mythili/os/)
+- [[lectures] operating systems and system programming](https://inst.eecs.berkeley.edu/~cs162/fa20/)
 
 ## todo  <!-- omit from toc -->
 - multi-threading programming using pthread & cpp threads
@@ -118,7 +118,7 @@
 - **example: shell working:**
   - `init` process created after initialization of hardware
   - `init` process spawns a shell (like `bash`)
-  - shell reads user command ⟶ forks a child ⟶ execs command executable ⟶ waits for it to finish ⟶ reads next command  
+  - shell reads user command  ⟶  forks a child  ⟶  execs command executable  ⟶  waits for it to finish  ⟶  reads next command  
   common commands like `ls` are all executables that are exec'ed by the shell, `ls > foo.txt` shell rewires stdout of child to file then calls exec on the child
 
 ### process execution mechanism
@@ -360,7 +360,7 @@ for address translation first few bits of VA to identify outer page table entry,
 
   void init(lock_t *mutex)
   {
-      // 0 -> lock is available, 1 -> held
+      // 0 ⟶ lock is available, 1 ⟶ held
       mutex->flag = 0;
   }
 
@@ -742,7 +742,7 @@ for address translation first few bits of VA to identify outer page table entry,
   drwxr-x--- 2 remzi remzi 29 May 3 19:10 ./
   drwxr-x--- 27 remzi remzi 4096 May 3 15:14 ../
   -rw-r----- 1 remzi remzi 6 May 3 19:10 file
-  lrwxrwxrwx 1 remzi remzi 4 May 3 19:10 file2 -> file  # soft linking,
+  lrwxrwxrwx 1 remzi remzi 4 May 3 19:10 file2 ⟶ file  # soft linking,
                                                         # note small size of soft link
 
   # same data
@@ -790,7 +790,7 @@ for address translation first few bits of VA to identify outer page table entry,
   - **free list:** super block stores pointer to first free block which inturn stores address of next free block
 - **opening a file:** to have the inode readily available (in memory) for future operations (read/write) on file
   - pathname of file is traversed starting from root, inode of root is known
-  - recursively do: fetch inode of parent directory ⟶ read its data blocks ⟶ get inode number of each child ⟶ fetch inode of child, repeat till end of path
+  - recursively do: fetch inode of parent directory  ⟶  read its data blocks  ⟶  get inode number of each child  ⟶  fetch inode of child, repeat till end of path
   - if new file: new inode & data blocks will have to be allocated using bitmap and directory entry updated
 - **open file table:** set of data structures to track open files
   - **global open file table:** one entry for every file opened (even sockets & pipes), entry points to in-memory copy of inode

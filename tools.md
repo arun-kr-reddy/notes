@@ -37,12 +37,12 @@
   - **head:** points to last commit made by you
 - **add & commit:**
   ```sh
-  git add   <filename>       # working -> index
-  git commit -m "<message>"  # index -> head
+  git add   <filename>       # working ⟶ index
+  git commit -m "<message>"  # index ⟶ head
   ```
 - **pushing changes:**
   ```sh
-  git push origin <branch>        # head -> remote
+  git push origin <branch>        # head ⟶ remote
   git remote add origin <server>  # connect local repo to a remote server
   ```
 - **branching:** used to develop features isolated from each other, `master` is the default branch, use other branches for development and merge them back to master upon completion

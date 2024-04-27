@@ -1,12 +1,12 @@
-# algorithms
+# algorithms & data structures
 - [introduction](#introduction)
   - [peak finding](#peak-finding)
 
 ## links  <!-- omit from toc -->
+- [[lectures] introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/)
 - [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
 
 ## todo  <!-- omit from toc -->
-- [introduction to algorithms (MIT 2011)](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/)
 - [leetcode 150](https://medium.com/@jjmayank98/list/dsa-c5baf3c57a8d)
 - [divide & conquer algorithm](https://en.wikipedia.org/wiki/Divide-and-conquer_algorithm)
 
@@ -32,7 +32,7 @@ worst case `O(n)` complexity (if last element peak)
   }
   ```
 - **1D divide & conquer:** look at `n/2` position and then look at its left & right position, if left side position is higher then look at left half, ditto for right half, if neither then `n/2` is the peak  
-worst case `O(log(n))` (base 2), if I can half something `t` (maximum time I can spend) times, I can go through only `2^t` array, them time for a `n` array is `2^t = n -> t = log(n)`
+worst case `O(log(n))` (base 2), if I can half something `t` (maximum time I can spend) times, I can go through only `2^t` array, them time for a `n` array is `2^t = n ⟶ t = log(n)`
   ```cpp
   uint32_t findPeak(std::vector<uint32_t> input)
   {
@@ -58,7 +58,7 @@ worst case `O(log(n))` (base 2), if I can half something `t` (maximum time I can
   }
   ```
 - **2D peak:** position whose value is greater-than or equal-to (`>=`) its neighboring matrix elements on all 4 sides
-- **greedy ascent:** start at the first element and similar to straightforward keep checking in a  default pattern (like left -> right -> up -> down) until you find a higher element to decide which direction to move until the peak is found  
+- **greedy ascent:** start at the first element and similar to straightforward keep checking in a  default pattern (like left ⟶ right ⟶ up ⟶ down) until you find a higher element to decide which direction to move until the peak is found  
 worst case is `O(n*m)`, in case of a square matrix `O(n^2)`  
 ![](./media/algorithms/greedy_ascent.png)
   ```cpp

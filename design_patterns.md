@@ -28,7 +28,7 @@
   - [visitor](#visitor)
 
 ## links  <!-- omit from toc -->
-- [derek banas](https://www.youtube.com/playlist?list=PLF206E906175C7E07)
+- [[lectures] design patterns in OOP](https://www.youtube.com/playlist?list=PLrhzvIcii6GNjpARdnO4ueTUAVR9eMBpc)
 - [refactoring guru](https://refactoring.guru/design-patterns/catalog)
 
 ## todo  <!-- omit from toc -->

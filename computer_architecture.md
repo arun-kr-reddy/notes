@@ -26,7 +26,7 @@
   - [virtual memory](#virtual-memory)
 
 ## links  <!-- omit from toc -->
-- [design of digital circuits (ETHZ 2018)](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
+- [[lectures] design of digital circuits](https://safari.ethz.ch/digitaltechnik/spring2022/doku.php?id=start)
 - [Hamming code](https://harryli0088.github.io/hamming-code/)
 
 ## todo  <!-- omit from toc -->
@@ -36,7 +36,7 @@
 - [Hamming speech](https://www.youtube.com/watch?v=a1zDuOPkMSw)
 - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
-- Intel itanium
+- Intel Itanium
 - [systolic arrays](https://safari.ethz.ch/digitaltechnik/spring2018/lib/exe/fetch.php?media=1982-kung-why-systolic-architecture.pdf)
 - [cache coherency protocols](https://redis.io/glossary/cache-coherence/)
 - [computer architecture (ETHZ 2019) (cover 19b onwards)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
@@ -144,7 +144,7 @@ at the beginning of the clock cycle, next state is latched into the state regist
 - **why not latch:** is we simply wire a clock to `WE` of a latch, when the clock is low `Q` will not take `D`'s value, when the clock is high the latch will propagate `D` to `Q`  
 ![](./media/computer_architecture/fsm_latch.png)
 - **D flip flop:** `D` is observable at `Q` only at the beginning of next clock cycle and `Q` is available for the full clock cycle  
-clock low ⟶ master sends `D` (`Q` unchanged) ⟶ clock high ⟶ slave latches `D` in `Q`  
+clock low  ⟶  master sends `D` (`Q` unchanged)  ⟶  clock high  ⟶  slave latches `D` in `Q`  
 so at rising/positive edge of clock `Q` get assigned `D`  
 ![](./media/computer_architecture/d_flip_flop.png)
 - **FSM types:**
@@ -231,7 +231,7 @@ pipelining, SIMD, OoO execution, separate data & instruction cache are not consi
   MVN regd, arg         ; // regd ⟵ ~argb, MOV_NOT
   B target_addr         ; // BRANCH
   LDR regd, [rega]      ; // regd ⟵ *rega, LDRB for 8bit
-  STR regd, [rega]      ; // regd ⟶ *rega, STRB for 8bit
+  STR regd, [rega]      ; // regd  ⟶  *rega, STRB for 8bit
   ```
 - **example: ARM condition flags:**
   ```
@@ -266,7 +266,7 @@ pipelining, SIMD, OoO execution, separate data & instruction cache are not consi
   ![](./media/computer_architecture/logical_vs_arithematic_shift.png)
 - **example: loop C to assembly:**
   ```cpp
-  // C ⟶ Assembly
+  // C  ⟶  Assembly
   // C
   int total;
   int i;
@@ -310,10 +310,10 @@ pipelining, SIMD, OoO execution, separate data & instruction cache are not consi
 ISA defines abstractly what `AS'` should be given an instruction and `AS`, from ISA point of view there are no intermediate states between `AS` & `AS'` during instruction execution  
 μArch implements how `AS` is transformed to `AS'`, but can have multiple programmer-invisible states to optimize the speed of instruction execution, so we have two choices
     - **single-cycle machines:** each instruction takes single clock cycle, no intermediate or programmer-invisible states, only combinational logic used to implement instruction execution, clock cycle time determined by slowest instruction  
-    `AS` ⟶ `AS'`  
+    `AS`  ⟶  `AS'`  
     ![](./media/computer_architecture/single_cycle_machines.png)
     - **multi-cycle machines:** each instruction takes as many clock cycles as it needs, multiple state updates during instruction's execution, architectural state updates only at the end of an instructions execution, needs extra registers to store intermediate results, clock cycle time determined by slowest stage  
-    `AS`⟶ `AS+MS1` ⟶ `AS+MS2` ⟶ `AS+MS3` ⟶ `AS'`  
+    `AS` ⟶  `AS+MS1`  ⟶  `AS+MS2`  ⟶  `AS+MS3`  ⟶  `AS'`  
     ![](./media/computer_architecture/multi_cycle_machines.png)
 - **instruction processing needs two components:**
   - **datapath:** hardware elements that deal with and transform data signals
@@ -355,7 +355,7 @@ the behavior of the entire processor is specified fully by a FSM
 - **pipelining:** with multi-cycle design some hardware resources are idle during different phases of instruction processing cycle so pipeline the execution ("assembly line processing") of multiple instructions for better hardware utilization and instruction throughput  
 throughput increases as number of stages increase  
 ![](./media/computer_architecture/pipelining.png)
-- **example: multi-stage vs pipelining:** fetch ⟶ decode ⟶ execute ⟶ writeback  
+- **example: multi-stage vs pipelining:** fetch  ⟶  decode  ⟶  execute  ⟶  writeback  
 ![](./media/computer_architecture/pipelining_example1.png)
 - **ideal pipeline:** increase throughput with little increase in cost
   - same operation is repeated on large number of different instructions
@@ -698,7 +698,7 @@ needs extra logic for keeping thread contexts and does not overlap latency if no
   - **vector data registers:** to load/store vectors, each register holds `N` number of `M`-bit values
   - **vector length register (`VLEN`):** to operate on vectors of different lengths, maximum can be `N`
   - **vector stride register (`VSTR`):** elements of a vector might be stored apart from each other in memory, can be used to access non-consecutive elements  
-example: set `VSTR = 8` to access `A` ⟶ `A+8` ⟶ `A+16` ⟶ `A+24`
+example: set `VSTR = 8` to access `A`  ⟶  `A+8`  ⟶  `A+16`  ⟶  `A+24`
   - **vector mask register (`VMASK`):** indicates which elements of vector to operate on, set by vector test instructions
 - **vector instructions allow deeper pipelines:**
   - no intra-vector dependencies
@@ -1053,7 +1053,7 @@ assume stride is equal to number of banks, here padding (unused cells) can help 
 **privatization:** per-block sub-histograms in shared memory to reduce atomic shared memory latency adding up  
 ![](./media/computer_architecture/histogram_calculation_privatization.png)
 - **stream (command queue):** sequence of operations that are performed in order  
-CPU-GPU data transfer ⟶ kernel execution ⟶ GPU-CPU data transfer
+CPU-GPU data transfer  ⟶  kernel execution  ⟶  GPU-CPU data transfer
 - **asynchronous data transfer:** between CPU & GPU, computation divided into `nStreams`  
 ![](./media/computer_architecture/asynchronous_data_transfer.png)  
 applications with independent computation of different data instances (like video processing) can benefit by overlapping communication & computation  
@@ -1076,7 +1076,7 @@ one needs to carefully orchestrate when data elements are input to the array (in
   - **specialized:** computation needs to fit PE functions and organization, not generic for arbitrary operations
 - **programmable systolic arrays:** each PE in systolic array can store multiple weights (selected on the fly), eases implementation of usecases like adaptive filtering
 - **pipelined programs:** loop iterations are divided into code segments which are executed on different cores, used in file compression nowadays:  
-allocate buffers -> read input file -> compress -> write output file --> deallocate  
+allocate buffers ⟶ read input file ⟶ compress ⟶ write output file --> deallocate  
 ![](./media/computer_architecture/pipelined_programs.png)  
 - **example: tensor processing unit:** systolic data flow of the matrix multiply unit, software has the illusion that each 256B input is read at once and they instantly update one location of each of 256 output accumulator RAMs, multiply-accumulate operation moves through the matrix as a diagonal wave  
 ![](./media/computer_architecture/tensor_processing_unit.png)
@@ -1114,7 +1114,7 @@ access transistors configured as switches connect the bit storage to the bitline
 ![](./media/computer_architecture/memory_array_organization_access_control.png)
 - a single monolithic large memory array takes long to access and does not enable multiple accesses in parallel  
 - **memory interleaving (banking):** divide the memory into smaller arrays that can be accessed independently (in same or in consecutive cycles)
-example: DRAM interleaving: channel -> rank -> bank -> subarrays -> mats
+example: DRAM interleaving: channel ⟶ rank ⟶ bank ⟶ subarrays ⟶ mats
 - **dynamic random access memory (DRAM):** capacitor change state indicates stored value  
 but capacitor leaks through the RC path so DRAM cell needs to be refreshed frequently  
 **refresh:** DRAM controller must periodically read each row within the allowed refresh time (tens of ms) such that the charge is restored  

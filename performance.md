@@ -12,11 +12,10 @@
 
 
 ## todo  <!-- omit from toc -->
-- [performance engineering (MIT 2018)](https://ocw.mit.edu/courses/6-172-performance-engineering-of-software-systems-fall-2018/)
+- [[lectures] performance engineering of software systems](https://ocw.mit.edu/courses/6-172-performance-engineering-of-software-systems-fall-2018/)
+- [[lectures] gpu programming](http://www.cse.iitm.ac.in/~rupesh/teaching/gpu/jan22/)
 - SIMD - NEON & Hexagon DSP
   - intrinsic or assembly instructions
-- [gpu programming (IITM 2022)](http://www.cse.iitm.ac.in/~rupesh/teaching/gpu/jan22/)
-- [programming massively parallel processors (UIUC 2018)](https://www.youtube.com/playlist?list=PLRRuQYjFhpmvu5ODQoY2l7D0ADgWEcYAX)
 - [compiler explorer](https://godbolt.org/)
 - [an even easier introduction to CUDA](https://developer.nvidia.com/blog/even-easier-introduction-cuda/)
 - [Amdahl's law paper](https://inst.eecs.berkeley.edu//~n252/paper/Amdahl.pdf)
@@ -98,7 +97,7 @@ but performance is degraded because we have a very small base case (`n == 1`) le
 - **vector hardware:** modern processors incorporate vector hardware to process data in single-instruction stream multiple-data stream fashion  
 compilers use vector instructions automatically when compiling at optimization level `-O2` or higher, but many machines don't support the newest set of vector instructions so the compiler uses vector instructions conservatively by default  
 **intrinsic instructions:** C-style functions that provide direct access to hardware vector operations
-- so performance engineering is the cycle of think -> code -> run to test & measure  
+- so performance engineering is the cycle of think ⟶ code ⟶ run to test & measure  
 with above discussed optimizations, we received a speedup of 53292x  
 ![](./media/performance/matrix_multiplication_performance_optimizations.png)
 
@@ -610,8 +609,8 @@ example: `0xDEC1` is equivalent to `0b1101111011000001`
 
   // improved
   x = x ^ y;  // x == x ^ y
-  y = x ^ y;  // y == (x ^ y) ^ y ⟶ (y ^ y) ^ x ⟶ 0 ^ x ⟶ x
-  x = x ^ y;  // x == (x ^ y) ^ x ⟶ (x ^ x) ^ y ⟶ 0 ^ y ⟶ y
+  y = x ^ y;  // y == (x ^ y) ^ y  ⟶  (y ^ y) ^ x  ⟶  0 ^ x  ⟶  x
+  x = x ^ y;  // x == (x ^ y) ^ x  ⟶  (x ^ x) ^ y  ⟶  0 ^ y  ⟶  y
   ```
 - **minimum of two integers:** a mispredicted branch empties the processor pipeline
   ```

@@ -18,7 +18,7 @@
   - [standard template library](#standard-template-library)
 
 ## links  <!-- omit from toc -->
-- [modern C++ (UBonn 2018)](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
+- [[lectures] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
 - [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
 
 ## todo  <!-- omit from toc -->

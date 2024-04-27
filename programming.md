@@ -8,9 +8,8 @@
 - [scheme (lisp dialect) interpreter](https://inst.eecs.berkeley.edu/~cs61a/fa14/assets/interpreter/scheme.html)
 
 ## todo  <!-- omit from toc -->
-- [structure and interpretation of computer programs (MIT 1985)
+- [[lectures] structure and interpretation of computer programs
 ](https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/)
-  - [notes](https://mk12.github.io/sicp/lecture/2a.html)
 - [iterative process for fibonacci & towers of hanoi](https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution)
 - dynamic programming
 - [why is lisp different](https://www.paulgraham.com/diff.html)
@@ -251,7 +250,7 @@ procedure `sum` is encapsulated in other procedures, improving this will benefit
   ```
   - why should this converge?  
     here for finding `(sqrt x)` (such that `y^2 = x` or its equivalent form `y = x/y`) we can search for the fixed point using `f(y) = x/y` (`(fixed_point (lambda (y) (/ x y)) 1)`)  
-    considering intial guess `y1`, this never converges, it keeps oscillating between `y1` & `y2` (`y2 = x/y1` -> `y3 = x/y2 = x/(x/y1) = y1`)  
+    considering intial guess `y1`, this never converges, it keeps oscillating between `y1` & `y2` (`y2 = x/y1` ⟶ `y3 = x/y2 = x/(x/y1) = y1`)  
     average is used to damp out these oscillations
     ```lisp
     (define (sqrt x)
