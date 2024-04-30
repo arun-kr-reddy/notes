@@ -1,5 +1,7 @@
 # tools
 - [git](#git)
+- [powershell](#powershell)
+- [ffmpeg](#ffmpeg)
 
 ## links  <!-- omit from toc -->
 - [git guide](http://rogerdudler.github.io/git-guide/)
@@ -81,4 +83,29 @@
   git checkout -- <filename>  # replace working directory file changes with one in HEAD
   git status                  # changes in working directory & index
   git fetch origin && git reset --hard origin/master  # drop all local changes & commits
+  ```
+
+## powershell
+- replace string in all files
+  ```sh
+  get-childitem *.mp4 | foreach { rename-item $_ $_.Name.Replace("Lecture ","") }
+  ```
+
+## ffmpeg
+- mkv to mp4
+  ```sh
+  ffmpeg -i input.mkv -codec copy output.mp4
+  ```
+- concatenate multiple files
+  ```sh
+  ffmpeg -f concat -i merge.txt -c copy 'merged.mp4'
+
+  # merge.txt
+  file '1.mp4'
+  file '2.mp4'
+  file '3.mp4'
+  ```
+- change resolution
+  ```sh
+  ffmpeg -i .\input_720p.mp4 -s 640x360 -c:a copy output.mp4 
   ```

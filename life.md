@@ -3,6 +3,7 @@
 - [why not track every rupee](#why-not-track-every-rupee)
 - [why stay back in India](#why-stay-back-in-india)
 - [quotes](#quotes)
+- [second brain](#second-brain)
 
 ## links  <!-- omit from toc -->
 
@@ -31,3 +32,7 @@ what people are forgetting is there are intricacies with visa, 99% won't even ge
 -Friedrich Nietzsche
 - *just because you can afford it doesn't mean you should buy it*  
 -Suze Orman
+- *AI can only replace you if your work is already done and readily accessible over the internet, AI cannot replace novelty*
+
+## second brain
+- **capture:** relevant information and centralize the captured information
