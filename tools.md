@@ -98,7 +98,7 @@
   ```
 - concatenate multiple files
   ```sh
-  ffmpeg -f concat -i merge.txt -c copy 'merged.mp4'
+  ffmpeg -f concat -i merge.txt -c copy merged.mp4
 
   # merge.txt
   file '1.mp4'
