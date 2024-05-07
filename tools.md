@@ -107,5 +107,6 @@
   ```
 - change resolution
   ```sh
-  ffmpeg -i .\input_720p.mp4 -s 640x360 -c:a copy output.mp4 
+  ffmpeg -i input_720p.mp4 -s 640x360 -c:a copy output.mp4
+  ffmpeg.exe -i input.mp4 -filter:v scale=-2:360 -c:a copy output.mp4
   ```
