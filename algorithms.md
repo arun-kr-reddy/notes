@@ -6,8 +6,8 @@
 - [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
 
 ## todo  <!-- omit from toc -->
-- [leetcode 150](https://medium.com/@jjmayank98/list/dsa-c5baf3c57a8d)
 - [divide & conquer algorithm](https://en.wikipedia.org/wiki/Divide-and-conquer_algorithm)
+- [leetcode 75](https://leetcode.com/studyplan/leetcode-75/)
 
 ## algorithmic thinking
 - efficient procedures for solving problems on large inputs (like human genome)

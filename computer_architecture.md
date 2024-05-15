@@ -30,6 +30,7 @@
 - [Hamming code](https://harryli0088.github.io/hamming-code/)
 
 ## todo  <!-- omit from toc -->
+- [rowhammer byzantine failures](https://en.wikipedia.org/wiki/Byzantine_fault)
 - [ARM assembly](http://www.cburch.com/books/arm/)
 - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
 - [future computing architectures](https://www.youtube.com/watch?v=kgiZlSOcGFM)
@@ -40,6 +41,7 @@
 - [systolic arrays](https://safari.ethz.ch/digitaltechnik/spring2018/lib/exe/fetch.php?media=1982-kung-why-systolic-architecture.pdf)
 - [cache coherency protocols](https://redis.io/glossary/cache-coherence/)
 - [computer architecture (ETHZ 2019) (cover 19b onwards)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
+- optane persistent memory (phase change memory)
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms  
@@ -50,8 +52,9 @@
 ![](./media/computer_architecture/levels_of_transformation.png)
 - **meltdown & spectre:** speculative execution is doing something before you know it is needed to improve performance, but it leaves traces of data that was not supposed to be accessed in processor's cache  
 a malicious program can inspect the contents of the cache to infer secret data
-- **rowhammer:** repeatedly opening & closing a DRAM row (aggressor row) enough times within a refresh interval induces disturbance errors due to charge getting drained out in adjacent rows (victim row), happens due to electrical interference, malicious program can flip protection bit in page table entries to access some privileged location  
+- **rowhammer:** repeatedly opening & closing a DRAM row (aggressor row) enough times within a refresh interval induces disturbance errors due to charge getting drained out in adjacent rows (victim row) due to electrical interference, this can be used to predictably induce bit flips, example: flip protection bit in page table entries to access a privileged location  
 *"it's like breaking into an apartment by repeatedly slamming a neighbor's door until vibrations open the door you were after"*  
+a simple hardware failure mechanism is creating a widespread system security vulnerability  
 ![](./media/computer_architecture/rowhammer.png)
 - **memory performance attacks:** in a multi-core system DRAM controller to increase throughput services row-hit memory access first (then service older accesses) so programs with more requests and good memory spatial locality are preferred, malicious streaming (sequential memory access) program used for denial of service attacks  
 ![](./media/computer_architecture/dram_controller.png)

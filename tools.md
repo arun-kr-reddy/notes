@@ -2,6 +2,7 @@
 - [git](#git)
 - [powershell](#powershell)
 - [ffmpeg](#ffmpeg)
+- [vlc](#vlc)
 
 ## links  <!-- omit from toc -->
 - [git guide](http://rogerdudler.github.io/git-guide/)
@@ -110,3 +111,7 @@
   ffmpeg -i input_720p.mp4 -s 640x360 -c:a copy output.mp4
   ffmpeg.exe -i input.mp4 -filter:v scale=-2:360 -c:a copy output.mp4
   ```
+
+## vlc
+- filename as title  
+  ![](./media/tools/vlc_filename_title.png)

@@ -32,7 +32,6 @@
 - template uses
 - STL
 - OOPs concepts
-- 23 design patterns (gang of 4)
 
 ## introduction
 - **standard I/O channels:** one input (`stdin` as `cin`) & two output (`stdout` as `cout` & `stderr` as `cerr`)
