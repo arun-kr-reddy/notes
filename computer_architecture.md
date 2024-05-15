@@ -26,7 +26,7 @@
   - [virtual memory](#virtual-memory)
 
 ## links  <!-- omit from toc -->
-- [[lectures] design of digital circuits](https://safari.ethz.ch/digitaltechnik/spring2022/doku.php?id=start)
+- [[lectures] design of digital circuits](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
 - [Hamming code](https://harryli0088.github.io/hamming-code/)
 
 ## todo  <!-- omit from toc -->
