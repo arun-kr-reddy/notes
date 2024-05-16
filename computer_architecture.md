@@ -92,7 +92,7 @@ example: NAND gate with CMOS, P1 & P2 are in parallel so only must be high to pu
 `(A . B . ~C), (~A . ~B . C)`  
 **maxterm:** sum that includes all input's literals  
 `(A + B + ~C), (~A + ~B + C)`
-- **Boolean algebra:**
+- **Boolean algebra:** enables us to methodically transform the boolean function (representing combinational logic block) into simpler functions
   - **identities:** `A + 0 = A`, `A . 1 = A`
   - **idempotent:** `A + A = A`, `A . A = A`
   - **complementary:** `A + ~A = 1`, `A . ~A = 0`
@@ -102,27 +102,34 @@ example: NAND gate with CMOS, P1 & P2 are in parallel so only must be high to pu
   - **distributive:** ` A + (B . C) = (A + B) . (A + C)`, `A . (B + C) = (A . B) + (A . C)`
   - **simplification theorems:** `A . B + A . ~B = A`, `A + A . B = A`, `(A + ~B) . B = A . B`
   - **duality:** replace `+` ⟷ `.` and `0` ⟷ `1`
-- **DeMorgan's law:**
-  ```cpp
-  ~(X + Y) == ~X . ~Y
-  ~(X . Y) == ~X + ~Y
-  ```
-- many alternative Boolean expressions (logic gate realization) may have the same truth table (function)  
+  - **DeMorgan's law:** `~(X + Y) = ~X . ~Y`, `~(X . Y) = ~X + ~Y`  
+  can prove useful is we don't have every type of gate or if some type of gate is more desirable (like due to lower latency)
+- **truth table:** is a unique signature of a boolean function that can have many alternative gate realizations  
 **canonical form:** standard form for a Boolean expression, example: sum of products form  
 **minimal form:** most simplified representation of a function, example: using Karnaugh maps  
 original boolean expression may not be optimal, so reduce it to a equivalent expression with fewer terms to reduce number of gates/inputs and hence the implementation cost
-- **sum of products (SOP) form:** sum of all input variable combinations (minterms) that result in a `1` output, leads to two-level logic (AND of minterm literals ORed)
-- **multiplexer:** route one of `2^n` inputs to a single output using `n` select/control lines  
-**demultiplexer:** route single input to one of `2^n` outputs using  `n` select lines
+- **sum of products (SOP) form:** sum of all input variable combinations (minterms) that result in a `1` output, leads to two-level logic (AND of minterm literals ORed), also called minterm expansion
+- **decoder:** one of the `2^n` outputs is set to 1 based on  `n` line input pattern that the logic circuit is expected to detect  
+![](/media/computer_architecture/decoder.png)
+- **multiplexer (selector):** route one of `2^n` inputs to a single output using `n` select/control lines  
+@[](./media/computer_architecture/multiplexer.png)
 - **programmable logic array (PLA):** an array of AND gates followed by OR gates, used to implement combinational logic circuits by connecting output of an AND gate to input of an OR gate if the corresponding minterm is included in SOP, used in FPGAs  
 ![](./media/computer_architecture/programmable_logic_array.png)
 - **example: 1-bit addition (full adder):**  
 ![](./media/computer_architecture/full_adder.png)
+- **arithmetic logic unit (ALU):** combines a variety of arithmetic & logical operations into a single unit that performs only one function at a time (using function select lines)  
+![](./media/computer_architecture/arithmetic_logic_unit.png)
+- **tri-state buffer:** enables gating of different signals onto a wire  
+**floating signal (X):** signal that is not driven by any circuit, like a open circuit floating wire  
+![](./media/computer_architecture/tri_state_buffer.png)  
+example: imagine a wire connecting the CPU & memory, at any time either CPU or memory can place a value on the wire but not both, we can have two tri-state one driven by CPU and other memory  
+![](./media/computer_architecture/tri_state_buffer_example.png)
 - **Gray code:** only one bit changes  
 `00` ⟷ `01` ⟷ `11` ⟷ `10` ⟷ `00`
 - **uniting theorem:** eliminate input in minterm that can change without changing the output
 - **Karnaugh maps:** method of representing the truth table that helps visualize adjacencies to minimize the Boolean expression, numbering scheme along the axis is Gray code, physical adjacency is logical adjacency  
 find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate varying inputs from the minterm, can also wrap around corners & edges (imagine K-map as a sphere), `X` (don't care) can be used as either `1`/`0` for simpler equation  
+![](./media/computer_architecture/k_map_edges.png)  
 ![](./media/computer_architecture/k_map.png)
 
 ## sequential logic
