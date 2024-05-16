@@ -30,7 +30,6 @@
 - [Hamming code](https://harryli0088.github.io/hamming-code/)
 
 ## todo  <!-- omit from toc -->
-- [rowhammer byzantine failures](https://en.wikipedia.org/wiki/Byzantine_fault)
 - [ARM assembly](http://www.cburch.com/books/arm/)
 - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
 - [future computing architectures](https://www.youtube.com/watch?v=kgiZlSOcGFM)
@@ -64,28 +63,25 @@ a simple hardware failure mechanism is creating a widespread system security vul
 - **Hamming code:** powers-of-2 bits are regular parity bits used to track the parity of the other bits whose position have a 1 in the same place, 0th message bit used as overall parity (including regular parity bits), can correct 1-bit errors (regular parity incorrect & overall parity incorrect) & detect 2-bit errors (regular parity incorrect & overall parity correct)  
 **Hamming distance:** number of locations at which two equal-length strings are different  
 ![](./media/computer_architecture/hamming_code.png)
-- **field programable gate array (FPGA):** is a reconfigurable substrate (functions, interconnections, I/O) that can be programmed for a specific use, faster than software & more flexible than hardware, programmed using hardware description language (HDL) like Verilog & VHDL  
+- **field programable gate array (FPGA):** is a software-reconfigurable hardware substrate (reconfigurable functions, interconnections & I/O), an algorithms can be implemented directly in hardware, faster than general purpose computer & more flexible than application specific integrated chips (ASICs), programmed using hardware description language (HDL) like Verilog & VHDL  
 ![](./media/computer_architecture/field_programmable_gate_array.png)
-- **Moore's law:** number of transistors on an integrated circuit will double every two years, is an observation and projection of historical trend
+- **Moore's law:** number of transistors on an integrated circuit will double every two years, possible by manufacturing smaller structures through precision manufacturing and creating new device technologies, is an observation and projection of historical trend
 
 ## combinational logic
+- **metal-oxide-semiconductor (MOS) transistor:** controls the flow of current by the application of a voltage to the insulated gate by altering the conductivity between the drain & source, works similar to a wall switch  
+![](./media/computer_architecture/mos_transistor.png)  
+![](./media/computer_architecture/mos_transistor_types.png)
+  - **n-type:** acts like a wire when high voltage applied
+  - **p-type:** acts like a wire when low voltage (zero) applied
+- **complementary MOS (CMOS):** use both n-type & p-type transistors to implement logic gates  
+example: NAND gate with CMOS, P1 & P2 are in parallel so only must be high to pull up the output and N1 & N2 are connected in series so both must be high to pull down the output  
+![](./media/computer_architecture/cmos_nand.png)
 - **combinational logic:** outputs are strictly dependent on combination of input values that are applied to circuit right now (memoryless)
 - **truth table:** what would be the logical output of the circuit for each possible input  
 ![](./media/computer_architecture/truth_table.png)
 - **simple equations:**
   - **OR:** (`+`)
   - **AND:** (`.`)
-- **Boolean algebra:**
-  - **commutative:** `A + B = B + A`, `A . B = B . A`
-  - **identities:** `A + 0 = A`, `A . 1 = A`
-  - **distributive:** ` A + (B . C) = (A + B) . (A + C)`, `A . (B + C) = (A . B) + (A . C)`
-  - **complement:** `A + ~A = 1`, `A . ~A = 0`
-  - **duality:** replace `+` with `.` and `0` with `1`
-- **DeMorgan's law:**
-  ```cpp
-  ~(X + Y) == ~X . ~Y
-  ~(X . Y) == ~X + ~Y
-  ```
 - **complement:** inverse of a variable  
 `~A, ~B, ~C`  
 **literal:** variable or its complement  
@@ -96,6 +92,21 @@ a simple hardware failure mechanism is creating a widespread system security vul
 `(A . B . ~C), (~A . ~B . C)`  
 **maxterm:** sum that includes all input's literals  
 `(A + B + ~C), (~A + ~B + C)`
+- **Boolean algebra:**
+  - **identities:** `A + 0 = A`, `A . 1 = A`
+  - **idempotent:** `A + A = A`, `A . A = A`
+  - **complementary:** `A + ~A = 1`, `A . ~A = 0`
+  - **involution:** `~(~A) = A`
+  - **commutative:** `A + B = B + A`, `A . B = B . A`
+  - **associative:** `(A + B) + C = A + (B + C)`, `(A . B) . C = A . (B . C)`
+  - **distributive:** ` A + (B . C) = (A + B) . (A + C)`, `A . (B + C) = (A . B) + (A . C)`
+  - **simplification theorems:** `A . B + A . ~B = A`, `A + A . B = A`, `(A + ~B) . B = A . B`
+  - **duality:** replace `+` ⟷ `.` and `0` ⟷ `1`
+- **DeMorgan's law:**
+  ```cpp
+  ~(X + Y) == ~X . ~Y
+  ~(X . Y) == ~X + ~Y
+  ```
 - many alternative Boolean expressions (logic gate realization) may have the same truth table (function)  
 **canonical form:** standard form for a Boolean expression, example: sum of products form  
 **minimal form:** most simplified representation of a function, example: using Karnaugh maps  

@@ -16,6 +16,7 @@
 - [[lectures] gpu programming](http://www.cse.iitm.ac.in/~rupesh/teaching/gpu/jan22/)
 - SIMD - NEON & Hexagon DSP
   - intrinsic or assembly instructions
+  - [halide library](https://halide-lang.org/)
 - [compiler explorer](https://godbolt.org/)
 - [an even easier introduction to CUDA](https://developer.nvidia.com/blog/even-easier-introduction-cuda/)
 - [Amdahl's law paper](https://inst.eecs.berkeley.edu//~n252/paper/Amdahl.pdf)
