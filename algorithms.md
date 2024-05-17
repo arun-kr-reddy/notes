@@ -13,9 +13,12 @@
 - efficient procedures for solving problems on large inputs (like human genome)
 - **asymptotic complexity:** is used for estimation of computational complexity of algorithms  
 example: for `f(n) = n^2 + 3n` as `n` grows `n^2` grows at a much faster rate than `3n` (rendering it insignificant for large `n`), so `f(n)` is said to be asymptotically equivalent to `n^2`
+- **divide & conquer algorithm:** is a algorithm design paradigm that recursively breaks down a problem into sub-problems of the same or related type until they become simple enough to be solved directly  
+![](./media/algorithms/divide_and_conquer.png)
 - **peak:** position whose value is greater-than or equal-to (`>=`) all its neighbors, example: in 1D check left & right
 - **1D peak finding:** find a peak in an array of size `n`  
-with `>=` a peak will always exist, with `>` only a peak might exist (if all elements same value then no peak)
+with `>=` a peak will always exist, but with `>` a peak might exist (like no peak if all elements have same value)  
+![](./media/algorithms/1d_peak.png)
   - **straightforward:** start from first element and walks across all elements  
   worst case `O(n)` complexity if last element is the peak
     ```cpp
@@ -69,10 +72,11 @@ with `>=` a peak will always exist, with `>` only a peak might exist (if all ele
         return (findPeak1D(arr + new_start, new_end - new_start));
     }
     ```
-- **2D peak finding:** find a peak/hill (higher than all 4 neighbors) in a matrix with `n` rows & `m` columns
+- **2D peak finding:** find a peak/hill (higher than all 4 neighbors) in a matrix with `n` rows & `m` columns  
+![](./media/algorithms/2d_peak.png)
   - **greedy ascent:** essentially picks the directions to follow, start at the middle position and similar to 1D divide & conquer keep checking in a  default pattern (like left ⟶ right ⟶ up ⟶ down) until you find a higher element to decide which direction to move until the peak is found  
   `O(n*m)` complexity, `O(n^2)` for a square matrix  
-  ![](./media/algorithms/greedy_ascent.png)
+  ![](./media/algorithms/2d_greedy_ascent.png)
     ```cpp
     //todo:aarunkum
     ```
