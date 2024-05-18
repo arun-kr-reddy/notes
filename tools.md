@@ -7,6 +7,7 @@
 ## links  <!-- omit from toc -->
 - [git guide](http://rogerdudler.github.io/git-guide/)
 - [git parable](httsps://www.youtube.com/watch?v=jm7QsI-nNjk)
+- [clang format](https://clang.llvm.org/docs/ClangFormatStyleOptions.html)
 
 ## todo  <!-- omit from toc -->
 - [undo (almost) anything with git](https://github.blog/2015-06-08-how-to-undo-almost-anything-with-git/)
