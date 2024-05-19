@@ -1,5 +1,6 @@
 # algorithms & data structures
 - [algorithmic thinking](#algorithmic-thinking)
+- [models of computation](#models-of-computation)
 
 ## links  <!-- omit from toc -->
 - [[lectures] introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/)
@@ -12,7 +13,7 @@
 ## algorithmic thinking
 - efficient procedures for solving problems on large inputs (like human genome)
 - **asymptotic complexity:** is used for estimation of computational complexity of algorithms  
-example: for `f(n) = n^2 + 3n` as `n` grows `n^2` grows at a much faster rate than `3n` (rendering it insignificant for large `n`), so `f(n)` is said to be asymptotically equivalent to `n^2`
+example: for `f(n) = n^2 + 3n` as `n` grows `n^2` grows at a much faster rate than `3n` rendering it insignificant for large values of `n`, so `f(n)` is said to be asymptotically equivalent to `n^2`
 - **divide & conquer algorithm:** is a algorithm design paradigm that recursively breaks down a problem into sub-problems of the same or related type until they become simple enough to be solved directly  
 ![](./media/algorithms/divide_and_conquer.png)
 - **peak:** position whose value is greater-than or equal-to (`>=`) all its neighbors, example: in 1D check left & right
@@ -21,7 +22,7 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
 ![](./media/algorithms/1d_peak.png)
   - **straightforward:** start from first element and walks across all elements  
   worst case `O(n)` complexity if last element is the peak
-    ```cpp
+    ```cpp 
     int32_t find1DPeakStraightforward(uint32_t *arr, size_t size)
     {
         // check first & last elements first
@@ -160,5 +161,58 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
     `O(n * log(m))` complexity, `log(m)` for 1D peak search and `n` for maximum value search  
     ![](./media/algorithms/2d_divide_conquer_2.png)
       ```cpp
-      //todo:aarunkum
+      int32_t find2DPeakDivideConquer(uint32_t *arr, point2d_t size, point2d_t position)
+      {
+          point2d_t new_position = {(position.x + size.x) / 2, (position.y + size.y) / 2};
+          int32_t peak           = INVALID;
+
+          if (size.x > 1 && size.y > 1)
+          {
+              new_position = findMatrixColumnMax(arr, size, new_position);
+              LOG("max in column %d is %d\n", new_position.y, arr[new_position.x * size.y + new_position.y]);
+
+              return find1DPeakDivideConquer(arr + new_position.x * size.y, size.y);
+          }
+          else
+          {
+              return NOT_FOUND;
+          }
+
+          return NOT_FOUND;
+      }
+
+      point2d_t findMatrixColumnMax(uint32_t *arr, point2d_t size, point2d_t position)
+      {
+          uint32_t *base         = arr + position.y;
+          point2d_t max_position = {0, position.y};
+          for (int32_t i = 1; i < size.x; i++)
+          {
+              if (base[i * size.y] > base[max_position.x * size.y])
+              {
+                  max_position.x = i;
+              }
+          }
+          return max_position;
+      }
       ```
+
+## models of computation
+- **algorithm:** is mathematical abstraction of a computer program (computational procedure to solve a problem)  
+**model of computation:** specifies what operations an algorithm is allowed and cost (time, space, etc) of each operation  
+total cost of an algorithm is sum of operation costs
+- **example: random access machine (RAM):** random access memory is modeled by a big array of `O(1)` registers (of 1 word each)  
+in `O(1)` time an algorithm can load `O(1)` words, do `O(1)` computations and store `O(1)` words  
+is similar to assembly programming and is realistic & powerful  
+![](./media/algorithms/random_access_machine.png)
+- **example: pointer machine:** dynamically allocated objects, each object has `O(1)` fields, fields are words or pointer
+is similar to object oriented programming, is weaker than RAM but is simpler  
+![](./media/algorithms/pointer_machine.png)  
+this can be implemented in RAM where pointer becomes index in array
+- **python model:** has either mode of thinking: array `*i = *(i + 1)` or objects `x = x.next`
+- **document distance:** shows the similarities between two text documents, think of document `D` as a vector of words `w`, where `D[w]` gives the frequency of the word  
+![](./media/algorithms/document_distance.png)  
+document distance can be defined as dot product of the two vectors, but this will not be scale-invariant (long documents with 99%
+same words will seem farther than short documents with 10% same words), this can be fixed through normalization  
+![](./media/algorithms/document_distance_equation_1.png)  
+recall dot product is `v . w = |v| |w| cosθ`, so applying arccosine (inverse function of cosine) to get geometric representation  
+![](./media/algorithms/document_distance_equation_2.png)
