@@ -25,9 +25,12 @@
   - [hard disk internals](#hard-disk-internals)
 
 ## links  <!-- omit from toc -->
-- [[lectures] operating systems and system programming](https://inst.eecs.berkeley.edu/~cs162/fa20/)
+- [[lectures] operating systems](https://www.cse.iitb.ac.in/~mythili/os/)
 
 ## todo  <!-- omit from toc -->
+- [IPC extra](https://www.cse.iitb.ac.in/~mythili/os/notes/notes-ipc.txt)
+- [semaphore extra](https://www.cse.iitb.ac.in/~mythili/os/references/LittleBookOfSemaphores.pdf)
+- [programming groundup extra](https://www.cse.iitb.ac.in/~mythili/os/references/ProgrammingGroundUp.pdf)
 - multi-threading programming using pthread & cpp threads
 - IPC using cpp
 
