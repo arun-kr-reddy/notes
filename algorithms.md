@@ -4,10 +4,9 @@
 
 ## links  <!-- omit from toc -->
 - [[lectures] introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/)
-- [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
 
 ## todo  <!-- omit from toc -->
-- [divide & conquer algorithm](https://en.wikipedia.org/wiki/Divide-and-conquer_algorithm)
+- [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
 - [leetcode 75](https://leetcode.com/studyplan/leetcode-75/)
 
 ## algorithmic thinking
@@ -23,24 +22,26 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
   - **straightforward:** start from first element and walks across all elements  
   worst case `O(n)` complexity if last element is the peak
     ```cpp 
-    int32_t find1DPeakStraightforward(uint32_t *arr, size_t size)
+    uint32_t find1DPeakStraightforward(array_t array)
     {
+        printArray(array);
+
         // check first & last elements first
-        if (arr[0] > arr[1])
+        if (array.addr[0] > array.addr[1])
         {
-            return arr[0];
+            return array.addr[0];
         }
-        else if (arr[size - 1] > arr[size - 2])
+        else if (array.addr[array.size - 1] > array.addr[array.size - 2])
         {
-            return arr[size - 1];
+            return array.addr[array.size - 1];
         }
 
         // check remaining ones
-        for (int i = 1; i < size - 2; ++i)
+        for (int i = 1; i < array.size - 2; ++i)
         {
-            uint32_t left_value   = arr[i - 1];
-            uint32_t centre_value = arr[i];
-            uint32_t right_value  = arr[i + 1];
+            uint32_t left_value   = array.addr[i - 1];
+            uint32_t centre_value = array.addr[i];
+            uint32_t right_value  = array.addr[i + 1];
 
             if ((centre_value >= left_value) && (centre_value >= right_value))
             {
@@ -55,31 +56,41 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
   `O(log(n))` (base 2) complexity, if I can half something `t` (maximum time I can spend) times, I can go through only `2^t` array, then time required for a `n` array is `2^t = n ⟶ t = log(n)`  
   comparison part takes constant time (`O(1)`) so ignored for worst case complexity  
     ```cpp
-    int32_t find1DPeakDivideConquer(uint32_t *arr, size_t size)
+    uint32_t find1DPeakDivideConquer(array_t array)
     {
-        size_t midpoint  = size / 2;
+        size_t midpoint  = array.size / 2;
         size_t new_start = 0;
-        size_t new_end   = size;
+        size_t new_end   = array.size;
 
-        // printArray(arr, size);
+        printArray(array);
 
-        if (size > 1)
+        // check first & last elements first
+        if (array.addr[0] > array.addr[1])
         {
-            uint32_t left_value   = arr[midpoint - 1];
-            uint32_t centre_value = arr[midpoint];
-            uint32_t right_value  = arr[midpoint + 1];
+            return array.addr[0];
+        }
+        else if (array.addr[array.size - 1] > array.addr[array.size - 2])
+        {
+            return array.addr[array.size - 1];
+        }
 
-            if (left_value > centre_value) // check left first
+        if (array.size > 2)
+        {
+            uint32_t left_value   = array.addr[midpoint - 1];
+            uint32_t centre_value = array.addr[midpoint];
+            uint32_t right_value  = array.addr[midpoint + 1];
+
+            if (left_value > centre_value)    // check left first
             {
                 new_end = midpoint;
             }
-            else if (right_value > centre_value) // then check right
+            else if (right_value > centre_value)    // then check right
             {
                 new_start = midpoint;
             }
-            else // midpoint is the peak
+            else    // midpoint is the peak
             {
-                return arr[midpoint];
+                return array.addr[midpoint];
             }
         }
         else
@@ -88,7 +99,18 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
         }
 
         // search peak in new subarray
-        return (find1DPeakDivideConquer(arr + new_start, new_end - new_start));
+        array_t new_array = {0, new_end - new_start + 1};
+        new_array.addr    = (uint8_t *)malloc(new_array.size);
+        for (size_t i = 0; i < new_array.size; i++)
+        {
+            new_array.addr[i] = array.addr[new_start + i];
+        }
+
+        uint32_t peak = find1DPeakDivideConquer(new_array);
+
+        free(new_array.addr);
+
+        return peak;
     }
     ```
 - **2D peak finding:** find a peak/hill (higher than all 4 neighbors) in a matrix with `n` rows & `m` columns  
@@ -97,50 +119,59 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
   `O(n*m)` complexity, `O(n^2)` for a square matrix  
   ![](./media/algorithms/2d_greedy_ascent.png)
     ```cpp
-    int32_t find2DPeakGreedyAscent(uint32_t *arr, point2d_t size)
+    uint32_t find2DPeakGreedyAscent(matrix_t matrix)
     {
-        point2d_t position = {size.x / 2, size.y / 2};
+        printMatrix(matrix);
+
+        point2d_t position = {matrix.height / 2, matrix.width / 2};
 
         while (1)
         {
-            int32_t centre_value = arr[position.x * size.x + position.y];
+            int32_t centre_value = matrix.addr[position.row * matrix.width + position.col];
             int32_t left_value, right_value, up_value, down_value;
+
+            printf("%4d ", centre_value);
 
             // init all neighbors
             left_value = right_value = up_value = down_value = INVALID;
 
             // check for edges
-            if (position.y > 0)
-                left_value = arr[position.x * size.x + (position.y - 1)];
-            else if (position.y < (size.y - 1))
-                right_value = arr[position.x * size.x + (position.y + 1)];
-            if (position.x > 0)
-                up_value = arr[(position.x - 1) * size.x + position.y];
-            else if (position.x < (size.x - 1))
-                down_value = arr[(position.x + 1) * size.x + position.y];
+            if (position.col > 0)
+                left_value = matrix.addr[position.row * matrix.width + (position.col - 1)];
+            if (position.col < (matrix.width - 1))
+                right_value = matrix.addr[position.row * matrix.width + (position.col + 1)];
+            if (position.row > 0)
+                up_value = matrix.addr[(position.row - 1) * matrix.width + position.col];
+            if (position.row < (matrix.height - 1))
+                down_value = matrix.addr[(position.row + 1) * matrix.width + position.col];
 
             // compare to neighbors
-            if (size.x > 1 && size.y > 1)
+            if (matrix.width > 1 && matrix.height > 1)
             {
-                if (left_value > centre_value) // check left first
+                if (left_value > centre_value)    // check left first
                 {
-                    position.y--;
+                    printf(" -> ");
+                    position.col--;
                 }
-                else if (right_value > centre_value) // then check right
+                else if (right_value > centre_value)    // then check right
                 {
-                    position.y++;
+                    printf(" -> ");
+                    position.col++;
                 }
-                else if (up_value > centre_value) // then check up
+                else if (up_value > centre_value)    // then check up
                 {
-                    position.x--;
+                    printf(" -> ");
+                    position.row--;
                 }
-                else if (down_value > centre_value) // then check down
+                else if (down_value > centre_value)    // then check down
                 {
-                    position.x++;
+                    printf(" -> ");
+                    position.row++;
                 }
-                else // midpoint is the peak
+                else    // midpoint is the peak
                 {
-                    return arr[position.x * size.x + position.y];
+                    printf("\n");
+                    return matrix.addr[position.row * matrix.width + position.col];
                 }
             }
             else
@@ -161,38 +192,70 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
     `O(n * log(m))` complexity, `log(m)` for 1D peak search and `n` for maximum value search  
     ![](./media/algorithms/2d_divide_conquer_2.png)
       ```cpp
-      int32_t find2DPeakDivideConquer(uint32_t *arr, point2d_t size, point2d_t position)
+      uint32_t find2DPeakDivideConquer(matrix_t matrix)
       {
-          point2d_t new_position = {(position.x + size.x) / 2, (position.y + size.y) / 2};
-          int32_t peak           = INVALID;
+          printMatrix(matrix);
 
-          if (size.x > 1 && size.y > 1)
+          uint32_t peak      = INVALID;
+          point2d_t position = {matrix.height / 2, matrix.width / 2};
+
+          position.row = findMatrixColumnMax(matrix, position.col);
+          printf("max in column %d is %d\n", position.row, matrix.addr[position.row * matrix.width + position.col]);
+
+          uint32_t centre_value = matrix.addr[position.row * matrix.width + position.col];
+          uint32_t left_value, right_value;
+
+          // check for edges
+          left_value = right_value = INVALID;
+          if (position.col > 0)
+              left_value = matrix.addr[position.row * matrix.width + (position.col - 1)];
+          if (position.col < (matrix.width - 1))
+              right_value = matrix.addr[position.row * matrix.width + (position.col + 1)];
+
+          // compare to neighbors
+          if (left_value > centre_value)    // check left first
           {
-              new_position = findMatrixColumnMax(arr, size, new_position);
-              LOG("max in column %d is %d\n", new_position.y, arr[new_position.x * size.y + new_position.y]);
-
-              return find1DPeakDivideConquer(arr + new_position.x * size.y, size.y);
+              position.col = 0;
+          }
+          else if (right_value > centre_value)    // then check right
+          {
+              position.col = (matrix.width / 2) - 1;
           }
           else
           {
-              return NOT_FOUND;
+              return centre_value;
           }
 
-          return NOT_FOUND;
-      }
-
-      point2d_t findMatrixColumnMax(uint32_t *arr, point2d_t size, point2d_t position)
-      {
-          uint32_t *base         = arr + position.y;
-          point2d_t max_position = {0, position.y};
-          for (int32_t i = 1; i < size.x; i++)
+          // search peak in new subarray
+          matrix_t new_matrix = {0, (matrix.width / 2) + 1, matrix.height};
+          new_matrix.addr     = (uint8_t *)malloc(new_matrix.width * new_matrix.height);
+          for (size_t row = 0; row < new_matrix.height; row++)
           {
-              if (base[i * size.y] > base[max_position.x * size.y])
+              for (size_t col = 0; col < new_matrix.height; col++)
               {
-                  max_position.x = i;
+                  new_matrix.addr[row * new_matrix.width + col] = matrix.addr[row * matrix.width + (col + position.col)];
               }
           }
-          return max_position;
+
+          peak = find2DPeakDivideConquer(new_matrix);
+
+          free(new_matrix.addr);
+
+          return peak;
+      }
+
+      uint32_t findMatrixColumnMax(matrix_t matrix, uint32_t col)
+      {
+          uint32_t column_max_row = 0;
+          for (int32_t i = 1; i < matrix.height; i++)
+          {
+              if (matrix.addr[i * matrix.width + col] > matrix.addr[column_max_row * matrix.width + col])
+              {
+                  column_max_row = i;
+              }
+          }
+
+          return column_max_row;
       }
       ```
 
@@ -209,10 +272,12 @@ is similar to object oriented programming, is weaker than RAM but is simpler
 ![](./media/algorithms/pointer_machine.png)  
 this can be implemented in RAM where pointer becomes index in array
 - **python model:** has either mode of thinking: array `*i = *(i + 1)` or objects `x = x.next`
-- **document distance:** shows the similarities between two text documents, think of document `D` as a vector of words `w`, where `D[w]` gives the frequency of the word  
+- **document distance:** shows the similarities between two text documents, think of document `D` as a vector of words `w` (whitespace & punctuations ignored), where `D[w]` gives the frequency of the word  
 ![](./media/algorithms/document_distance.png)  
-document distance can be defined as dot product of the two vectors, but this will not be scale-invariant (long documents with 99%
-same words will seem farther than short documents with 10% same words), this can be fixed through normalization  
+document distance can be defined as dot product of the two vectors  
 ![](./media/algorithms/document_distance_equation_1.png)  
-recall dot product is `v . w = |v| |w| cosθ`, so applying arccosine (inverse function of cosine) to get geometric representation  
-![](./media/algorithms/document_distance_equation_2.png)
+but this will not be scale-invariant (long documents with 99%, same words will seem farther than short documents with 10% same words), this can be fixed through normalization  
+![](./media/algorithms/document_distance_equation_2.png)  
+recall dot product is `x . y = |x| |y| cosθ`, so apply arccosine (inverse function of cosine) to above function to get geometric representation (in radians)  
+![](./media/algorithms/document_distance_equation_3.png)
+- **document distance algorithm:** split each document into words ⟶ count word frequencies in document vectors -> compute dot product and divide
