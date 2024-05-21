@@ -23,6 +23,7 @@
   - [files \& directories](#files--directories)
   - [file system implementation](#file-system-implementation)
   - [hard disk internals](#hard-disk-internals)
+- [xv6](#xv6)
 
 ## links  <!-- omit from toc -->
 - [[lectures] operating systems](https://www.cse.iitb.ac.in/~mythili/os/)
@@ -35,28 +36,30 @@
 - IPC using cpp
 
 ## introduction
-- **operating system:** is a middleware that sits between user programs & system hardware and manage hardware for the user programs
-  - **manage CPU:** provide process abstraction, each process has illusion of having complete CPU (CPU virtualization), timeshare CPU between processes, enables coordination between processes
-  - **manage memory:** of the process (code, data, stack, heap), each process thinks it has dedicated memory space (code, data, stack, heap) for itself, abstracts out details of actual location of memory, translates virtual addresses to actual physical addresses
-  - **manage devices:** device driver (OS code) talks the language of hardware devices, issues instruction to device (data fetch) and responds to device interrupts (key press), persistent data organized as a filesystem on disk
+- **operating system:** is a middleware that sits between user programs & system hardware and manages hardware for the user programs:
+  - **manage CPU:** provide process abstraction (create & manage), each process has illusion of having complete CPU (CPU virtualization), timeshares the CPU between processes, enables coordination between processes
+  - **manage memory:** of the process (code, data, stack, heap), each process thinks it has dedicated memory space (code, data, stack, heap) for itself  
+  abstracts out the details of the actual placement in memory, translates from virtual addresses to actual physical addresses
+  - **manage devices:** OS has code (device driver) to manage hardware devices (like disk, network card) which talks the language of the devices, it issues instructions to devices (like fetch data from disk) and responds to device interrupts (key press), OS also manages the persistent data organized as a filesystem on disk
 - **OS design goals:**
-  - convenience, abstraction of hardware resources
-  - efficient use of CPU, memory, etc
+  - convenience, abstraction of hardware resources for user programs
+  - efficient usage of CPU, memory, etc
   - isolation between multiple processes
-- **procedure call:** jumps to a process defined elsewhere in the program  
-**system call:** runs at higher privilege level of CPU, sensitive operations (external device access) allowed only at higher privilege level
+- OS started out as a library (procedure call) and evolved to system call  
+**procedure call:** jumps to a process defined elsewhere in the program  
+**system call:** runs at a higher privilege level of CPU, sensitive operations (like hardware access) only allowed at a higher privilege level
 
 ## processes
 
 ### process abstraction
-- **CPU scheduler:** pick one of the many active processes to execute on CPU
+- **CPU scheduler:** pick one of the many active processes to execute on a CPU
   - **policy:** which process to run next
   - **mechanism:** how to context-switch between processes
 - **process constituents:**
   - unique identifier (PID)
-  - memory: static (code, data) & dynamic (stack, heap)
+  - memory image: static (code & data) and dynamic (stack & heap)
   - CPU context: registers like program counter (PC), current operands, stack pointer (SP)
-  - file descriptors: pointers to open files & devices
+  - file descriptors: pointers to open files (including stdout & stdin) & devices
 - **process creation:**
   - allocate memory and create memory image (load code & data from executable, create runtime stack & heap)
   - opens basic files (stdin, stdout, stderr)
@@ -68,41 +71,45 @@
   - **blocked:** suspended, not ready to run, waiting for some event like read from disk (disk will issue an interrupt when data is ready)
   - **new:** being created, yet to run
   - **dead:** terminated
-- **process control block:** stores information about a process, OS maintains a data structure (made up of PCBs) of all active processes
+- example: process state with I/O:  
+![](./media/operating_systems/process_states_example.png)
+- **process control block:** OS maintains a data structure (linked list) of all active processes, information about each process is stored in a process control block (PCB)
   - process identifier
   - process state
   - pointer to related processes (parent, child)
-  - CPU context (saved when process is suspended)
+  - CPU context (saved when the process is suspended)
   - pointers to memory locations
   - pointers to open files
 
 ### process API
 - **application programming interface (API):** functions available to write user programs
-- **process API:** set of system calls provided by OS, some blocking system calls (disk read) can cause process to be blocked and descheduled
-- **portable operating system interface (POSIX) API:** standard set of system calls that compliant OS must implement, ensures program portability, programming language libraries hide details of invoking system calls (`printf` calls `write` system call to write to screen)
+- **process API:** set of system calls provided by OS, some blocking system calls (like disk read) can cause the process to be blocked and descheduled
+- **portable operating system interface (POSIX) API:** standard set of system calls that compliant OS must implement, ensures program portability  
+user programs need to worry about this since program language libraries will usually hide the details of invoking system calls, example: `printf` calls `write` system call to write to screen
+- **process related system calls:** many variants of below exist with different arguments
   - **`fork()`:** create new child process, all processes created by forking from a parent, `init` process is ancestor of all processes
   - **`exec()`:** make process execute a given executable
   - **`exit()`:** terminate a process
   - **`wait()`:** causes parent to block until child terminates
 - **fork working:**
-  - new process created by making a copy of parent's memory image
+  - new process is created by making a copy of parent's memory image
   - new process is added to OS process list and scheduled
   - parent & child resume execution from the same point just after fork (with different return values)
   - parent & child execute and modify the memory data independently
   ```cpp
   int main(int argc, char *argv[])
   {
-      int ret = fork();  // ret is child process PID
+      int ret = fork();    // ret is child process PID
 
-      if (ret < 0)  // fork failed
+      if (ret < 0)    // fork failed
       {
           printf("fork failed\n";)
       }
-      else if (ret == 0)  // child process
+      else if (ret == 0)    // child process
       {
           printf("child process %d\n", getpid());
       }
-      else  // parent process
+      else    // parent process
       {
           printf("parent process %d of child %d\n", getpid(), ret);
       }
@@ -110,19 +117,19 @@
   ```
 - **child process handling:**
   - process termination scenarios are:
-    - by calling `exit()` (automatically called at the end of main) or
+    - by calling `exit()` (automatically called when end of main reached)
     - OS terminates a misbehaving process
-  - terminated process exists as a zombie
-  - zombie child is cleaned up (reaped) when parent called `wait()`, wait blocks in parent until child terminates (non-blocking ways also exist)
-  - `init` process adopts orphans and reaps them if parent terminates before child
-- **exec working:**
-  - load another executable into child memory image, so child can run different program from parent
-  - variants of exec where arguments to new executable passed
+  - terminated process exist as a zombie
+  - when a parent calls `wait()` the zombie child will be cleaned up (reaped), wait blocks in parent until the child terminates (non-blocking ways also exist)
+  - if parent terminates before child then `init` process adopts orphans and reaps them
+- **exec working:** after fork parent & child will same code which is not very useful, so a (child) process can run `exec()` to load another executable into its memory image and run a different program from its parent, variants of exec exist where arguments to new executable are passed
 - **example: shell working:**
   - `init` process created after initialization of hardware
-  - `init` process spawns a shell (like `bash`)
+  - `init` process spawns a shell (like bash)
   - shell reads user command  ⟶  forks a child  ⟶  execs command executable  ⟶  waits for it to finish  ⟶  reads next command  
-  common commands like `ls` are all executables that are exec'ed by the shell, `ls > foo.txt` shell rewires stdout of child to file then calls exec on the child
+  common commands like `ls` are all executables that are exec'ed by the shell
+  - shell can also manipulate child process  
+  example: for `ls > log.txt` shell will: spawn a child ⟶ rewire stdout of child to file ⟶ call exec on the child
 
 ### process execution mechanism
 - **function call working:**
@@ -832,3 +839,17 @@ for address translation first few bits of VA to identify outer page table entry,
   ![](./media/operating_systems/shortest_positioning_time_first.png)
 - **error detection/correction:** bits stored on disk with some error detection/correction bits, correct random bit flips or detect corruption of data, disk controller or OS can handle some errors (blacklisting certain sectors), if errors cannot be masked user perceives hard disk failures
 - **redundant array of inexpensive disks (RAID):** provide high reliability & performance by replicating across multiple disks
+
+## xv6
+- **memory image of a process:** consists of:  
+![](./media/operating_systems/process_memory_image.png)
+  - compiled code (cpu instructions)
+  - global/static variables (memory allocated at compile time)
+  - heap (dynamic memory allocation) that grows on demand
+  - stack (temporary storage during function calls)
+  - other things like shared libraries
+- **x86 registers:** small space for data storage within CPU
+  - **general purpose registers:** to store data during computation (`eax`, `ebx`, `evx`, `edx`, `esi`, `edi`)
+  - **stack location pointers:** base of stack `ebp` and top of stack `esp`
+  - **instruction pointer:** next instruction to execute `eip`
+  - **control registers:** hold metadata of a process (like pointer to page table)
