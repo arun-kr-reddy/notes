@@ -21,7 +21,9 @@
 - [ ] [performance](./performance.md)
 
 ## advanced
-- [ ] [design patterns](./design_patterns.md)
+- [ ] [design patterns](./programming.md.md)
+- [ ] [system design](./programming.md.md)
+- [ ] [SOLID principles](./programming.md)
 - [ ] [life](./life.md)
 - [ ] [tools](./tools.md)
 
