@@ -3,8 +3,8 @@
 - [why not track every rupee](#why-not-track-every-rupee)
 - [why stay back in India](#why-stay-back-in-india)
 - [exercising for weight loss](#exercising-for-weight-loss)
-- [quotes](#quotes)
 - [second brain](#second-brain)
+- [quotes](#quotes)
 
 ## links  <!-- omit from toc -->
 
@@ -34,11 +34,6 @@ exercise does have a rightful role in physical ability/capacity, psychological b
 ![](./media/life/total_daily_energy_expenditure.png)
 - avoiding weights because you don't want to become "huge" is like avoiding going for a jog in the park because you're afraid of winning the Boston marathon
 
-## quotes
-- *if you crush a cockroach you're a hero, if you crush a beautiful butterfly you're a villain, morals have aesthetic criteria* (Friedrich Nietzsche)
-- *just because you can afford it doesn't mean you should buy it* (Suze Orman)
-- *AI can only replace you if your work is already done and readily accessible over the internet, AI cannot replace novelty*
-
 ## [second brain](https://fortelabs.com/blog/basboverview/)
 - *our brains are for having ideas, not storing them*
 - **second brain:** an external, centralized, digital repository for the things one learns and the resources from which they come
@@ -58,3 +53,8 @@ exercise does have a rightful role in physical ability/capacity, psychological b
 ![](./media/life/progressive_summarization.png)
 - **intermediate packets:** are smaller reusable units of work  
 ![](./media/life/intermediate_packets.png)
+
+## quotes
+- *if you crush a cockroach you're a hero, if you crush a beautiful butterfly you're a villain, morals have aesthetic criteria* (Friedrich Nietzsche)
+- *just because you can afford it doesn't mean you should buy it* (Suze Orman)
+- *AI can only replace you if your work is already done and readily accessible over the internet, AI cannot replace novelty*

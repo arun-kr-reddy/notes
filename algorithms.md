@@ -1,6 +1,7 @@
 # algorithms & data structures
 - [algorithmic thinking](#algorithmic-thinking)
 - [models of computation](#models-of-computation)
+- [sorting](#sorting)
 
 ## links  <!-- omit from toc -->
 - [[lectures] introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/)
@@ -8,10 +9,11 @@
 ## todo  <!-- omit from toc -->
 - [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
 - [leetcode 75](https://leetcode.com/studyplan/leetcode-75/)
+- [big O notation](https://adrianmejia.com/how-to-find-time-complexity-of-an-algorithm-code-big-o-notation/)
 
 ## algorithmic thinking
 - efficient procedures for solving problems on large inputs (like human genome)
-- **asymptotic complexity:** is used for estimation of computational complexity of algorithms  
+- **asymptotic complexity:** is used for (worst case) estimation of computational complexity of algorithms  
 example: for `f(n) = n^2 + 3n` as `n` grows `n^2` grows at a much faster rate than `3n` rendering it insignificant for large values of `n`, so `f(n)` is said to be asymptotically equivalent to `n^2`
 - **divide & conquer algorithm:** is a algorithm design paradigm that recursively breaks down a problem into sub-problems of the same or related type until they become simple enough to be solved directly  
 ![](./media/algorithms/divide_and_conquer.png)
@@ -20,7 +22,7 @@ example: for `f(n) = n^2 + 3n` as `n` grows `n^2` grows at a much faster rate th
 with `>=` a peak will always exist, but with `>` a peak might exist, example: no peak if all elements have same value  
 ![](./media/algorithms/1d_peak.png)
   - **straightforward:** start from first element and walks across all elements  
-  worst case `O(n)` complexity if last element is the peak
+  **`O(n)`** if last element is the peak
     ```cpp 
     uint32_t find1DPeakStraightforward(array_t array)
     {
@@ -53,8 +55,7 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
     }
     ```
   - **divide & conquer:** recursive algorithm where we look at `n/2` position and then look at its left to check if it is higher then look at left half for a peak, else check right position and go for right half, if neither then `n/2` is the peak  
-  `O(log(n))` (base 2) complexity, if I can half something `t` (maximum time I can spend) times, I can go through only `2^t` array, then time required for a `n` array is `2^t = n ⟶ t = log(n)`  
-  comparison part takes constant time (`O(1)`) so ignored for worst case complexity  
+  **`O(log(n))`** (always assume base 2 for CS) since the recursion part will run as many times as we can half the array calculate using `log`, example: for array size `n = 8`, we need `log(8) = 3` iterations  
     ```cpp
     uint32_t find1DPeakDivideConquer(array_t array)
     {
@@ -98,7 +99,7 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
             return NOT_FOUND;
         }
 
-        // search peak in new subarray
+        // search peak in new sub-array
         array_t new_array = {0, new_end - new_start + 1};
         new_array.addr    = (uint8_t *)malloc(new_array.size);
         for (size_t i = 0; i < new_array.size; i++)
@@ -116,7 +117,7 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
 - **2D peak finding:** find a peak/hill (higher than all 4 neighbors) in a matrix with `n` rows & `m` columns  
 ![](./media/algorithms/2d_peak.png)
   - **greedy ascent:** essentially picks the directions to follow, start at the middle position and similar to 1D divide & conquer keep checking in a  default pattern (like left ⟶ right ⟶ up ⟶ down) until you find a higher element to decide which direction to move until the peak is found  
-  `O(n*m)` complexity, `O(n^2)` for a square matrix  
+  **`O(n * m)`**, `O(n^2)` for a square matrix  
   ![](./media/algorithms/2d_greedy_ascent.png)
     ```cpp
     uint32_t find2DPeakGreedyAscent(matrix_t matrix)
@@ -185,11 +186,11 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
     ```
   - **2D divide & conquer:**
     - pick the middle column `j = m/2`, find the 1D peak at `(i, j)` then use `(i, j)` as a start to find a 1D peak in row `i`  
-    `O(log(m) * log(n))` complexity, but 2D a peak may not exist on row `i` so this algorithm is efficient but incorrect  
+    **`O(log(m) * log(n))`**, but a 2D peak may not exist on row `i` so this algorithm is efficient but incorrect  
     example: 12 is a column 1D peak and in that row 14 is the 1D peak but is not a 2D peak  
     ![](./media/algorithms/2d_divide_conquer_1.png)
     - pick the middle column `j = m/2`, find the global max in column `j` at `(i, j)`, then similar to 1D divide & conquer compare `(i, j)` to its left element, if higher then solve the new problem (maximum then comparison) with half the number of columns, else check right, if neither higher then `(i,j)` is the 2D peak (maximum so already compared vertically, and compared horizontally in previous step)  
-    `O(n * log(m))` complexity, `log(m)` for 1D peak search and `n` for maximum value search  
+    **`O(n * log(m))`**, `log(m)` for 1D peak search and `n` for maximum value search  
     ![](./media/algorithms/2d_divide_conquer_2.png)
       ```cpp
       uint32_t find2DPeakDivideConquer(matrix_t matrix)
@@ -226,7 +227,7 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
               return centre_value;
           }
 
-          // search peak in new subarray
+          // search peak in new sub-array
           matrix_t new_matrix = {0, (matrix.width / 2) + 1, matrix.height};
           new_matrix.addr     = (uint8_t *)malloc(new_matrix.width * new_matrix.height);
           for (size_t row = 0; row < new_matrix.height; row++)
@@ -350,3 +351,20 @@ recall dot product is `x . y = |x| |y| cosθ`, so apply arccosine (inverse funct
       return dot_product;
   }
   ```
+
+## sorting
+- **sorting:** refers to ordering data in an increasing/decreasing manner according to some linear relationship among the data items  
+useful for problems (like find the median or binary search) that become easier if items are already in sorted order and for not so obvious usecases like finding duplicates during data compression
+- **insertion sort:** insert key `A[j]` into the already sorted sub-array `A[1 .. j-1]` by pairwise key-swaps down to its right position  
+`O(n^2)` worst case, `O(n)` steps and for each step worst case `O(n)` pairwise compare-and-swap operations to move to correct position, so total `O(n^2)` compares & `O(n^2)` swaps  
+for complex data structures compare function call could be more complex (for numbers it is `O(1)`)  
+![](./media/algorithms/insertion_sort.png)  
+![](./media/algorithms/insertion_sort_example.png)
+  - **binary insertion sort:** insert key `A[j]` into the already sorted sub-array `A[1 .. j-1]` by using binary search to find the right position, now binary search will take `O(log(n))` but shifting still takes `O(n)` time (inserting one element will need shifting of all elements to its right, so worst case `n` shifts)  
+  so total `O(n * log(n))` compares & `O(n^2)` swaps, this will be useful when compare complexity is much higher than swap complexity  
+  worst case complexity for numbers is still `O(n^2)` due to the swaps
+- **merge sort:** works by recursively dividing the input array in half and sorting those sub-arrays then merging them back together to obtain the sorted array  
+![](./media/algorithms/merge_sort.png)  
+**two-finger algorithm:** for merging two sorted sub-arrays, initially one finger is pointing to the bottom (smallest element) in left sub-array & other finger right, compare two elements and copy smaller value to final merged array, keep going until sub-arrays are merged  
+![](./media/algorithms/two_finger_algorithm.png)
+worst case complexity will be `O(n * log(n))`, for every `n` size array we need 
