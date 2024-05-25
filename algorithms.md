@@ -13,7 +13,7 @@
 
 ## algorithmic thinking
 - efficient procedures for solving problems on large inputs (like human genome)
-- **asymptotic complexity:** is used for (worst case) estimation of computational complexity of algorithms  
+- **asymptotic complexity:** is used for (worst-case) estimation of computational complexity of algorithms  
 example: for `f(n) = n^2 + 3n` as `n` grows `n^2` grows at a much faster rate than `3n` rendering it insignificant for large values of `n`, so `f(n)` is said to be asymptotically equivalent to `n^2`
 - **divide & conquer algorithm:** is a algorithm design paradigm that recursively breaks down a problem into sub-problems of the same or related type until they become simple enough to be solved directly  
 ![](./media/algorithms/divide_and_conquer.png)
@@ -55,7 +55,9 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
     }
     ```
   - **divide & conquer:** recursive algorithm where we look at `n/2` position and then look at its left to check if it is higher then look at left half for a peak, else check right position and go for right half, if neither then `n/2` is the peak  
-  **`O(log(n))`** (always assume base 2 for CS) since the recursion part will run as many times as we can half the array calculate using `log`, example: for array size `n = 8`, we need `log(8) = 3` iterations  
+  since the recursion part will run as many times as we can half the input array, recursions can be calculated using `log`, example: for array size `n = 8`, we need `log(8) = 3` iterations  
+  **`O(log2(n))`** (always assume base 2 for CS), recurrence relation `T(n) = T(n/2) + O(1)`  
+  ![](./media/algorithms/1d_divide_conquer_complexity.png)
     ```cpp
     uint32_t find1DPeakDivideConquer(array_t array)
     {
@@ -190,8 +192,9 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
     example: 12 is a column 1D peak and in that row 14 is the 1D peak but is not a 2D peak  
     ![](./media/algorithms/2d_divide_conquer_1.png)
     - pick the middle column `j = m/2`, find the global max in column `j` at `(i, j)`, then similar to 1D divide & conquer compare `(i, j)` to its left element, if higher then solve the new problem (maximum then comparison) with half the number of columns, else check right, if neither higher then `(i,j)` is the 2D peak (maximum so already compared vertically, and compared horizontally in previous step)  
-    **`O(n * log(m))`**, `log(m)` for 1D peak search and `n` for maximum value search  
-    ![](./media/algorithms/2d_divide_conquer_2.png)
+    ![](./media/algorithms/2d_divide_conquer_2.png)  
+    **`O(n * log(m))`**, worst-case peak in one of the corners of matrix then `O(log(m))` recursions since row size halves every recursion and `O(n)` for (constant size) column maximum value search  
+    ![](./media/algorithms/2d_divide_conquer_complexity.png)
       ```cpp
       uint32_t find2DPeakDivideConquer(matrix_t matrix)
       {
@@ -356,15 +359,24 @@ recall dot product is `x . y = |x| |y| cosθ`, so apply arccosine (inverse funct
 - **sorting:** refers to ordering data in an increasing/decreasing manner according to some linear relationship among the data items  
 useful for problems (like find the median or binary search) that become easier if items are already in sorted order and for not so obvious usecases like finding duplicates during data compression
 - **insertion sort:** insert key `A[j]` into the already sorted sub-array `A[1 .. j-1]` by pairwise key-swaps down to its right position  
-`O(n^2)` worst case, `O(n)` steps and for each step worst case `O(n)` pairwise compare-and-swap operations to move to correct position, so total `O(n^2)` compares & `O(n^2)` swaps  
-for complex data structures compare function call could be more complex (for numbers it is `O(1)`)  
+**`O(n^2)`**, total `O(n)` steps and for each step worst-case `O(n)` pairwise compare-and-swap operations to move to correct position, so total `O(n^2) compares + O(n^2) swaps`  
+for numbers compare and swap take `O(1)` each, but comparing other data structure elements could be more complex  
 ![](./media/algorithms/insertion_sort.png)  
 ![](./media/algorithms/insertion_sort_example.png)
-  - **binary insertion sort:** insert key `A[j]` into the already sorted sub-array `A[1 .. j-1]` by using binary search to find the right position, now binary search will take `O(log(n))` but shifting still takes `O(n)` time (inserting one element will need shifting of all elements to its right, so worst case `n` shifts)  
-  so total `O(n * log(n))` compares & `O(n^2)` swaps, this will be useful when compare complexity is much higher than swap complexity  
-  worst case complexity for numbers is still `O(n^2)` due to the swaps
+  - **binary insertion sort:** insert key by using binary search to find the right position, this is useful when compare complexity is much higher than swap complexity  
+  swap to correct position still needs `O(n)` pairwise swaps  
+  example: if compare function is `O(n^2)` & swap is `O(n)`, then insert sort would be `O(n) * (O(n^2) + O(n)) = O(n^3)`, but with binary insertion sort it is still `O(n) * (O(log(n^2)) + O(n)) = O(n^2)`
 - **merge sort:** works by recursively dividing the input array in half and sorting those sub-arrays then merging them back together to obtain the sorted array  
 ![](./media/algorithms/merge_sort.png)  
 **two-finger algorithm:** for merging two sorted sub-arrays, initially one finger is pointing to the bottom (smallest element) in left sub-array & other finger right, compare two elements and copy smaller value to final merged array, keep going until sub-arrays are merged  
-![](./media/algorithms/two_finger_algorithm.png)
-worst case complexity will be `O(n * log(n))`, for every `n` size array we need 
+![](./media/algorithms/two_finger_algorithm.png)  
+**recursion tree:** is useful for visualizing what happens when a recurrence is iterated  
+**complexity from recursion tree:** add up the cost of each level to get the total cost  
+`n` elements are being merged on each level and we have `1 + log(n)` levels (size halves per level + root level), so `O(n) * O(1+log(n)) = O(n * log(n))`  
+**`O(n * log(n))`**, recurrence relation `T(n) = 2T(n/2) + cn`  
+![](./media/algorithms/merge_sort_tree.png)  
+merge sort needs `O(n)` auxiliary space, but insertion sort only needs `O(1)` (for temp variable for swapping)
+- **example: complexity from recursion tree:** for `T(n) = 2T(n/2) + c * n^2`  
+complexity for levels are `n^2 , (n^2)/2, (n^2)/4 . . .`, `O(log(n) * (n^2 + (n^2)/2 + (n^2)/4 + . . .)) = O(n^2 * log(n))`
+![](./media/algorithms/recursion_tree_example.png)  
+similarly for `T(n) = 2T(n/2) + c`, all the work is done in the leaves `O(log(n) + (c + 2c + 4c + . . .)) = O(log(n))`
