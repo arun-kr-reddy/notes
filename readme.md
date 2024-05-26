@@ -2,6 +2,7 @@
 - [teachyourselfcs](#teachyourselfcs)
 - [domain specific](#domain-specific)
 - [advanced](#advanced)
+- [misc](#misc)
 - [symbols](#symbols)
 
 ## [teachyourselfcs](https://teachyourselfcs.com/)
@@ -26,6 +27,9 @@
 - [ ] [SOLID principles](./programming.md)
 - [ ] [life](./life.md)
 - [ ] [tools](./tools.md)
+
+## misc
+- [ ] [indian economy](https://web.archive.org/web/20190816184602/http://www.iitd.ac.in/CEAIITD/index.html)
 
 ## symbols
 

@@ -417,4 +417,4 @@ merge sort needs `O(n)` auxiliary space, but insertion sort only needs `O(1)` (f
 - **example: complexity from recursion tree:** for `T(n) = 2T(n/2) + c * n^2`  
 complexity for levels are `n^2 , (n^2)/2, (n^2)/4 . . .`, `O(log(n) * (n^2 + (n^2)/2 + (n^2)/4 + . . .)) = O(n^2 * log(n))`
 ![](./media/algorithms/recursion_tree_example.png)  
-similarly for `T(n) = 2T(n/2) + c`, all the work is done in the leaves `O(log(n) + (c + 2c + 4c + . . .)) = O(log(n))`
+similarly, for `T(n) = 2T(n/2) + c`, all the work is done in the leaves `O(log(n) + (c + 2c + 4c + . . .)) = O(log(n))`
