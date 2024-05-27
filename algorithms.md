@@ -403,7 +403,7 @@ for numbers compare and swap take `O(1)` each, but comparing other data structur
 ![](./media/algorithms/insertion_sort_example.png)
   - **binary insertion sort:** insert key by using binary search to find the right position, this is useful when compare complexity is much higher than swap complexity  
   swap to correct position still needs `O(n)` pairwise swaps  
-  example: if compare function is `O(n^2)` & swap is `O(n)`, then insert sort would be `O(n) * (O(n^2) + O(n)) = O(n^3)`, but with binary insertion sort it is still `O(n) * (O(log(n^2)) + O(n)) = O(n^2)`
+  example: for sorting strings each compare would be `O(n)` (& swap `O(1)`), for each step it will be compare `O(n^2)` & swap `O(n)`, then insert sort would be `O(n) * (O(n^2) + O(n)) = O(n^3)`, but with binary insertion sort it is still `O(n) * (O(log(n^2)) + O(n)) = O(n^2)`
 - **merge sort:** works by recursively dividing the input array in half and sorting those sub-arrays then merging them back together to obtain the sorted array  
 ![](./media/algorithms/merge_sort.png)  
 **two-finger algorithm:** for merging two sorted sub-arrays, initially one finger is pointing to the bottom (smallest element) in left sub-array & other finger right, compare two elements and copy smaller value to final merged array, keep going until sub-arrays are merged  

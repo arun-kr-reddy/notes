@@ -74,12 +74,17 @@ a simple hardware failure mechanism is creating a widespread system security vul
 ![](./media/computer_architecture/mos_transistor_working.gif)  
 ![](./media/computer_architecture/mos_transistor_types.png)
   - **n-type:** acts like a wire when high voltage applied
-  - **p-type:** acts like a wire when low voltage (zero) applied
+  - **p-type:** acts like a wire when low/zero voltage applied
 - **complementary MOS (CMOS):** use both n-type & p-type transistors to implement logic gates  
+p-type transistors are good at pulling up the voltage and n-type pulling down  
 example: NAND gate with CMOS, P1 & P2 are in parallel so only must be high to pull up the output and N1 & N2 are connected in series so both must be high to pull down the output  
-![](./media/computer_architecture/cmos_nand.png)
+![](./media/computer_architecture/cmos_nand.png)  
+generally CMOS gate structure is made up of pull-up & pull-down network, exactly one network should be ON at any given time  
+short circuit if both are ON and floating/undefined output if both OFF  
+![](./media/computer_architecture/cmos_networks.png)
 - **combinational logic:** outputs are strictly dependent on combination of input values that are applied to circuit right now (memoryless)
 - **truth table:** what would be the logical output of the circuit for each possible input  
+`NAND` & `NOR` are both universal gates (functionally complete) since any other gate can be made simply using either only `NAND` or only `NOR` gates  
 ![](./media/computer_architecture/truth_table.png)
 - **simple equations:**
   - **OR:** (`+`)
@@ -111,10 +116,14 @@ example: NAND gate with CMOS, P1 & P2 are in parallel so only must be high to pu
 **minimal form:** most simplified representation of a function, example: using Karnaugh maps  
 original boolean expression may not be optimal, so reduce it to a equivalent expression with fewer terms to reduce number of gates/inputs and hence the implementation cost
 - **sum of products (SOP) form:** sum of all input variable combinations (minterms) that result in a `1` output, leads to two-level logic (AND of minterm literals ORed), also called minterm expansion
-- **decoder:** one of the `2^n` outputs is set to 1 based on  `n` line input pattern that the logic circuit is expected to detect  
-![](./media/computer_architecture/decoder.png)
+- **decoder:** one of the `2^n` outputs is set to 1 based on  `n` line input pattern that the logic circuit is expected to detect, used for decoding address of a location in memory  
+![](./media/computer_architecture/decoder.png)  
+decoders can be combined with OR gates to build logic functions  
+![](./media/computer_architecture/decoder_usecase.png)
 - **multiplexer (selector):** route one of `2^n` inputs to a single output using `n` select/control lines  
-![](./media/computer_architecture/multiplexer.png)
+![](./media/computer_architecture/multiplexer.png)  
+multiplexer can be used as lookup table to perform logic functions  
+![](./media/computer_architecture/multiplexer_usecase.png)
 - **programmable logic array (PLA):** an array of AND gates followed by OR gates, used to implement combinational logic circuits by connecting output of an AND gate to input of an OR gate if the corresponding minterm is included in SOP, used in FPGAs  
 ![](./media/computer_architecture/programmable_logic_array.png)
 - **example: 1-bit addition (full adder):**  
@@ -122,7 +131,7 @@ original boolean expression may not be optimal, so reduce it to a equivalent exp
 - **arithmetic logic unit (ALU):** combines a variety of arithmetic & logical operations into a single unit that performs only one function at a time (using function select lines)  
 ![](./media/computer_architecture/arithmetic_logic_unit.png)
 - **tri-state buffer:** enables gating of different signals onto a wire  
-**floating signal (X):** signal that is not driven by any circuit, like a open circuit floating wire  
+**floating signal (`X`):** signal that is not driven by any circuit, like a open circuit floating wire  
 ![](./media/computer_architecture/tri_state_buffer.png)  
 example: imagine a wire connecting the CPU & memory, at any time either CPU or memory can place a value on the wire but not both, we can have two tri-state one driven by CPU and other memory  
 ![](./media/computer_architecture/tri_state_buffer_example.png)
@@ -183,7 +192,7 @@ so at rising/positive edge of clock `Q` get assigned `D`
 
 ## timing & verification
 - **functional specification:** describes relationship between inputs & outputs  
-**timing specification:** describes delay between inputs changing and  outputs responding
+**timing specification:** describes delay between inputs changing and outputs responding
 - **combinational circuit delay:** circuit outputs change some time after the inputs change due to capacitance & resistance in a circuit and finite speed of light  
 ![](./media/computer_architecture/combinational_circuit_delay.png)
 - **contamination delay:** minimum delay  
