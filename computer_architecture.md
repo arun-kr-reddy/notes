@@ -43,13 +43,13 @@
 - optane persistent memory (phase change memory)
 
 ## introduction
-- **computer architecture:** is the science & art of designing computing platforms  
+- **computer architecture:** is the science & art of designing computing platforms (hardware, interface, system SW & programming model)  
 **why art?:** we don't know the future applications/users/market
 - **abstraction:** higher level only needs to know about the interface to the lower level, not how the lower level is implemented  
 **levels of transformation:** improves productivity by creates abstractions, no need to worry about decisions made in underlying levels  
-***breaking the abstraction layers and knowing what is underneath enables you to understand & solve problems***  
+but breaking the abstraction layers and knowing what is underneath enables you to understand & solve problems  
 ![](./media/computer_architecture/levels_of_transformation.png)
-- **meltdown & spectre:** speculative execution is doing something before you know it is needed to improve performance, but it leaves traces of data that was not supposed to be accessed in processor's cache  
+- **meltdown & spectre:** speculative execution is doing something before you know it is needed to improve performance, but it leaves traces of data in processor's cache that was not supposed to be brought/accessed if there was no speculative execution  
 a malicious program can inspect the contents of the cache to infer secret data
 - **rowhammer:** repeatedly opening & closing a DRAM row (aggressor row) enough times within a refresh interval induces disturbance errors due to charge getting drained out in adjacent rows (victim row) due to electrical interference, this can be used to predictably induce bit flips, example: flip protection bit in page table entries to access a privileged location  
 *"it's like breaking into an apartment by repeatedly slamming a neighbor's door until vibrations open the door you were after"*  
@@ -78,7 +78,8 @@ a simple hardware failure mechanism is creating a widespread system security vul
 - **complementary MOS (CMOS):** use both n-type & p-type transistors to implement logic gates  
 p-type transistors are good at pulling up the voltage and n-type pulling down  
 example: NAND gate with CMOS, P1 & P2 are in parallel so only must be high to pull up the output and N1 & N2 are connected in series so both must be high to pull down the output  
-![](./media/computer_architecture/cmos_nand.png)  
+![](./media/computer_architecture/cmos_nand_1.png)
+![](./media/computer_architecture/cmos_nand_2.png)  
 generally CMOS gate structure is made up of pull-up & pull-down network, exactly one network should be ON at any given time  
 short circuit if both are ON and floating/undefined output if both OFF  
 ![](./media/computer_architecture/cmos_networks.png)
@@ -108,14 +109,21 @@ short circuit if both are ON and floating/undefined output if both OFF
   - **associative:** `(A + B) + C = A + (B + C)`, `(A . B) . C = A . (B . C)`
   - **distributive:** ` A + (B . C) = (A + B) . (A + C)`, `A . (B + C) = (A . B) + (A . C)`
   - **simplification theorems:** `A . B + A . ~B = A`, `A + A . B = A`, `(A + ~B) . B = A . B`
-  - **duality:** replace `+` ⟷ `.` and `0` ⟷ `1`
+  - **duality:** replace `+` ⟷ `.` and `0` ⟷ `1`a
   - **DeMorgan's law:** `~(X + Y) = ~X . ~Y`, `~(X . Y) = ~X + ~Y`  
   can prove useful is we don't have every type of gate or if some type of gate is more desirable (like due to lower latency)
-- **truth table:** is a unique signature of a boolean function that can have many alternative gate realizations  
+- truth table is a unique signature of a boolean function that can have many alternative gate realizations  
 **canonical form:** standard form for a Boolean expression, example: sum of products form  
 **minimal form:** most simplified representation of a function, example: using Karnaugh maps  
 original boolean expression may not be optimal, so reduce it to a equivalent expression with fewer terms to reduce number of gates/inputs and hence the implementation cost
 - **sum of products (SOP) form:** sum of all input variable combinations (minterms) that result in a `1` output, leads to two-level logic (AND of minterm literals ORed), also called minterm expansion
+- **uniting theorem:** eliminate input in minterm that can change without changing the output, if an input can change without changing the output then that input value is not needed  
+**Gray code:** binary numbering system in which two successive values only differ by one bit, `00` ⟷ `01` ⟷ `11` ⟷ `10` ⟷ `00`  
+**Karnaugh maps:** is a pictorial way of minimizing circuits by visualizing opportunities for simplification, numbering scheme along the axis is Gray code, physical adjacency is logical adjacency  
+find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate varying inputs from the minterm, adjacencies also wraps around corners & edges (imagine K-map as a sphere)  
+`X` (don't care what input value is) can be used as either `1`/`0` for simpler equation  
+![](./media/computer_architecture/k_map_adjacency.png)  
+![](./media/computer_architecture/k_map.png)
 - **decoder:** one of the `2^n` outputs is set to 1 based on  `n` line input pattern that the logic circuit is expected to detect, used for decoding address of a location in memory  
 ![](./media/computer_architecture/decoder.png)  
 decoders can be combined with OR gates to build logic functions  
@@ -135,32 +143,36 @@ multiplexer can be used as lookup table to perform logic functions
 ![](./media/computer_architecture/tri_state_buffer.png)  
 example: imagine a wire connecting the CPU & memory, at any time either CPU or memory can place a value on the wire but not both, we can have two tri-state one driven by CPU and other memory  
 ![](./media/computer_architecture/tri_state_buffer_example.png)
-- **Gray code:** only one bit changes  
-`00` ⟷ `01` ⟷ `11` ⟷ `10` ⟷ `00`
-- **uniting theorem:** eliminate input in minterm that can change without changing the output
-- **Karnaugh maps:** method of representing the truth table that helps visualize adjacencies to minimize the Boolean expression, numbering scheme along the axis is Gray code, physical adjacency is logical adjacency  
-find rectangular groups of power-of-2 number of adjacent `1`s and then eliminate varying inputs from the minterm, adjacencies also wraps around corners & edges (imagine K-map as a sphere), `X` (don't care) can be used as either `1`/`0` for simpler equation  
-![](./media/computer_architecture/k_map_adjacency.png)  
-![](./media/computer_architecture/k_map.png)
 
 ## sequential logic
-- outputs are determined by previous & current values of inputs (has memory)  
+- **sequential logic:** outputs are determined by previous & current values of inputs (has memory)  
 ![](./media/computer_architecture/sequential_circuit.png)
-- **R-S latch:** two NAND gates with outputs feeding into each other's input (cross-coupled), data is stored at `Q`
-  - **idle:** `S` & `R`set to `1` so output determined by data stored (`Q` or `~Q`)
-  - **set:** drive `S` to `0` (keeping `R==1`) to change `Q` to `1`
-  - **reset:** drive `R` to `0` (keeping `S==1`) to change `~Q` to `1`
-  - **invalid:** if both `R` & `S` are `0` then both `Q` & `~Q` are `1`, this is not possible  
+- **cross-coupled inverters:** basic sequential logic element with two stable states `Q = 0` & `Q = 1`, not useful without a control mechanism for setting Q  
+![](./media/computer_architecture/cross_coupled_inverters.png)
+- **R-S latch:** two NAND gates with outputs feeding into each other's input (cross-coupled), data is stored at `Q`, `S` & `R` are control inputs
+  - **idle:** `S` & `R`held at `1` so output determined by stored data (previous `Q`)
+  - **set:** drive `S` to `0` (keeping `R` at `1`) to change `Q` to `1`
+  - **reset:** drive `R` to `0` (keeping `S` at `1`) to change `~Q` to `1`
+  - **forbidden:** `S` & `R` should never both be `0` at the same time, then `Q` & `~Q` will be `1` which is not possible  
+  **metastability:** if `S` & `R` transition back to `1` at the same time then `Q` & `~Q` will oscillate between `1` & `0` because their final values depend on each other, this eventually settles depending on variation in circuits  
 ![](./media/computer_architecture/r_s_latch.png)
-- **gated D latch:** to guarantee correct operation of R-S latch add two more NAND gates  
-`Q` takes the value of `D` when `write_enable` set to `1`  
+- **gated D latch:** to guarantee correct operation of R-S latch (`S` & `R` never `0` at the same time) add two more NAND gates  
+`Q` takes the value of `D` when `WE` set to `1`  
 ![](./media/computer_architecture/gated_d_latch.png)
-- **register:** structure that holds more than one bit and can be read from & written to  
+- **register:** structure that holds more than one bit and can be read from & written to, use multiple D-latches with a single `WE` signal for simultaneous writes  
+![](./media/computer_architecture/register.png)  
 **memory:** is comprised of locations that can be written to or read from  
 **address:** unique value to index each location in memory  
 **addressability:** the number of bits of information stored in each location  
-**address space:** full set of unique locations in memory
+**address space:** full set of unique locations in memory  
+example: memory with 4 locations with 3bits each  
+for reading data: address decoder selects one wordline row and output shows up in `D[bit]`  
+for writing data: address decoder selects one wordline row and `WE` is `1` input `Di[bit]` written to latches  
+![](./media/computer_architecture/memory.png)  
+to read location (row) 3  
+![](./media/computer_architecture/memory_example.png)
 - **state:** of a system is a snapshot of all relevant elements of the system at the moment of the snapshot  
+state transitions occur when they occur in an asynchronous machine, state transitions take place after fixed units of time in synchronous machines, most modern machines are synchronous  
 **clock:** is a general mechanism that triggers transition from one state to another in a sequential circuit, synchronizes state changes across sequential circuit elements  
 combinational logic evaluates for the length of the clock cycle, so clock cycle should be chosen to accommodate maximum combinational circuit delay
 - **finite state machines (FSM):** discrete-time model of a stateful system, each state represents a snapshot of the system at a given time, pictorially shows all possible states and how system transitions from one state to another  
@@ -175,10 +187,11 @@ at the beginning of the clock cycle, next state is latched into the state regist
 ![](./media/computer_architecture/fsm_sequential.png)
 - **why not latch:** is we simply wire a clock to `WE` of a latch, when the clock is low `Q` will not take `D`'s value, when the clock is high the latch will propagate `D` to `Q`  
 ![](./media/computer_architecture/fsm_latch.png)
-- **D flip flop:** `D` is observable at `Q` only at the beginning of next clock cycle and `Q` is available for the full clock cycle  
-clock low  ⟶  master sends `D` (`Q` unchanged)  ⟶  clock high  ⟶  slave latches `D` in `Q`  
+- **D flip-flop:** is used for implementing state registers, `D` is observable at `Q` only at the beginning of next clock cycle and `Q` is available for the full clock cycle  
+clock low ⟶ master sends `D` (`Q` unchanged) ⟶ clock high ⟶ slave latches `D` in `Q`  
 so at rising/positive edge of clock `Q` get assigned `D`  
 ![](./media/computer_architecture/d_flip_flop.png)
+- flip-flop is an edge-triggered state element, latch is a level-triggered state element
 - **FSM types:**
   - **Moore:** output depends only on current state
   - **Mealy:** output depends on the current state and the inputs  
@@ -186,7 +199,7 @@ so at rising/positive edge of clock `Q` get assigned `D`
 - **example: snail looking for `1101` pattern:**  
 ![](./media/computer_architecture/fsm_example.png)
 - **FSM state encoding:**
-  - **fully encoded:** minimize number of flip flops but not necessarily output & next state logic, example: `00`, `01`, `10`, `11`
+  - **fully encoded:** minimize number of flip-flops (by using `log2(num_states)` bits) but not necessarily output & next state logic, example: `00`, `01`, `10`, `11`
   - **1-hot encoded:** maximize flipflops and minimize next state logic, use `num_states` bits to represent states, example: `0001`, `0010`, `0100`, `1000`
   - **output encoded:** minimize output logic, output can be deduced from state encoding, only works for Moore machines, example: `001` (red), `010` (yellow), `100` (green), `110`(red & yellow)
 
@@ -203,10 +216,10 @@ so at rising/positive edge of clock `Q` get assigned `D`
 - **glitch:** one input transition causes multiple output transitions, visible on K-maps since it shows results of a change in a single input  
 resolve the glitch by adding the consensus term (`~A . C`) to ensure no transition  
 ![](./media/computer_architecture/timing_glitch.png)
-- **sequential circuit timing:** `D` & `Q` in a D flip flop have their own timing requirement
+- **sequential circuit timing:** `D` & `Q` in a D flip-flop have their own timing requirement
   - **input:** `D` must be stable when sampled at rising clock edge  
   ![](./media/computer_architecture/sequential_timing_input.png)  
-  **metastability:** flip flop output is stuck somewhere between `1` & `0` if `D` is changing, output eventually settles non-deterministically  
+  **metastability:** flip-flop output is stuck somewhere between `1` & `0` if `D` is changing, output eventually settles non-deterministically  
   ![](./media/computer_architecture/metastability.png)
   - **output:** Q changes between the contamination & propagation delay clock-to-q  
   ![](./media/computer_architecture/sequential_timing_output.png)
@@ -1133,7 +1146,7 @@ limited out-of-order execution without tagging, renaming, etc complexity
 life is easier for the programmer, but more complex system software and hardware architecture (programmer-architect tradeoff)
 - a larger level of storage is needed to manage a small amount of physical memory (RAM) automatically, so physical memory has a backing store as disk
 - **memory storage types:**
-  - **latches (flip flops):** very fast & parallel access, very expensive (one bit costs tens of transistors)
+  - **latches (flip-flops):** very fast & parallel access, very expensive (one bit costs tens of transistors)
   - **static RAM:** relatively fast but one data word access at a time, expensive (6 transistors)
   - **dynamic RAM:** slower and one data word at a time, cheap (1 transistor & 1 capacitor), reading destroys content, needs special process for manufacturing (requires putting capacitor and logic together)
   - **other technologies:** like flash memory, hard disk & tape are much slower to access but non-volatile and very cheap (no transistors directly involved)
