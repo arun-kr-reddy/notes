@@ -206,27 +206,31 @@ so at rising/positive edge of clock `Q` get assigned `D`
 ## timing & verification
 - **functional specification:** describes relationship between inputs & outputs  
 **timing specification:** describes delay between inputs changing and outputs responding
-- **combinational circuit delay:** circuit outputs change some time after the inputs change due to capacitance & resistance in a circuit and finite speed of light  
+- **combinational circuit delay:** circuit outputs change some time after the inputs change due to capacitance & resistance in a circuit and finite speed of light (which is not so fast in nanosecond level)  
 ![](./media/computer_architecture/combinational_circuit_delay.png)
 - **contamination delay:** minimum delay  
 **propagation delay:** maximum delay  
 **cross hatching:** output could be changing (centre part)  
 **critical path:** path with longest propagation delay  
-![](./media/computer_architecture/delay_types.png)
-- **glitch:** one input transition causes multiple output transitions, visible on K-maps since it shows results of a change in a single input  
-resolve the glitch by adding the consensus term (`~A . C`) to ensure no transition  
+![](./media/computer_architecture/delay_types.png)  
+**critical path:** longest delay path  
+![](./media/computer_architecture/critical_path.png)
+- **glitch:** one input transition causes multiple output transitions due to difference in delays in two paths `n1` & `n2`  
 ![](./media/computer_architecture/timing_glitch.png)
 - **sequential circuit timing:** `D` & `Q` in a D flip-flop have their own timing requirement
   - **input:** `D` must be stable when sampled at rising clock edge  
+  aperture time is the time around clock edge that data must be stable  
   ![](./media/computer_architecture/sequential_timing_input.png)  
-  **metastability:** flip-flop output is stuck somewhere between `1` & `0` if `D` is changing, output eventually settles non-deterministically  
+  **metastability:**is `D` is changing when sampled (aperture time) flip-flop output is stuck somewhere between `1` & `0`, output eventually settles non-deterministically  
   ![](./media/computer_architecture/metastability.png)
-  - **output:** Q changes between the contamination & propagation delay clock-to-q  
+  - **output:** output `Q` starts changing at contamination delay clock-to-q and ends changing at propagation delay clock-to-q  
   ![](./media/computer_architecture/sequential_timing_output.png)
 - **clock skew:** time difference between two clock edges, because clock does not reach all parts of the chip at the same time  
 ![](./media/computer_architecture/clock_skew.png)  
-requires intelligent clock network across a chip, so clock arrives at all locations at roughly the same time  
-![](./media/computer_architecture/clock_network.png)  
+example: clock skew spatial distribution for Alpha 21264  
+![](./media/computer_architecture/clock_skew_example.png)  
+to keep skew to minimum intelligent clock network are required across a chip to make sure clock arrives at all locations at roughly the same time  
+![](./media/computer_architecture/clock_network.png)
 
 ## instruction set architecture
 - **instruction:** most basic unit of computer processing
