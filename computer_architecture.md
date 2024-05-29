@@ -163,8 +163,8 @@ example: imagine a wire connecting the CPU & memory, at any time either CPU or m
 ![](./media/computer_architecture/register.png)  
 **memory:** is comprised of locations that can be written to or read from  
 **address:** unique value to index each location in memory  
-**addressability:** the number of bits of information stored in each location  
-**address space:** full set of unique locations in memory  
+**addressability:** the number of bits of information stored in each location, example: byte-addressable & word-addressable  
+**address space:** total number of uniquely identifiable locations in memory  
 example: memory with 4 locations with 3bits each  
 for reading data: address decoder selects one wordline row and output shows up in `D[bit]`  
 for writing data: address decoder selects one wordline row and `WE` is `1` input `Di[bit]` written to latches  
@@ -233,31 +233,31 @@ to keep skew to minimum intelligent clock network are required across a chip to 
 ![](./media/computer_architecture/clock_network.png)
 
 ## instruction set architecture
-- **instruction:** most basic unit of computer processing
-- **instruction set architecture (ISA):** is the interface between what software commands and what the hardware carries out, specifies memory organization, register set & instruction set (opcodes, data types & addressing modes)  
-*"if instructions are the words in the language of a computer, ISA is the vocabulary"*
 - **von Neumann model:** program stored in memory (unified instruction & data memory), processor fetches then processes instruction sequentially one at a time, easier to debug since you know which instruction will execute  
 pipelining, SIMD, OoO execution, separate data & instruction cache are not consistent with von Neumann model  
+**Harvard model:** was developed to overcome the bottlenecks of von Neumann model by having separate instruction & data memory & bus  
 **data flow model:** instruction fetched and executed only when its operands are ready, inherently more parallel, no instruction pointer required
-- **example: factorial with data flow model:**  
-![](./media/ca_old/data_flow_factorial.png)
-- **register:** memory is big but slow, so registers ensure fast access to operands, typically one register contains one word
+- **register:** memory is large but slow, so registers ensure fast access to values to be processed in the ALU, typically one register contains one word  
+**register file/set:** set of registers that can be manipulated by instructions, example: ARMv9 has `32 x 32bit` registers
 - **special purpose registers:**
   - **stack pointer (`SP`):** address of top of the stack
   - **link register (`LR`):** return address
   - **instruction register (`IR`):** current instruction
-  - **program counter (`PC`):** address of next instruction to execute, also known as instruction pointer, incremented by `1` in word addressable memory and by word length in byte addressable memory
+  - **program counter (`PC`) / instruction pointer (`IP`):** address of next instruction to execute, incremented by `1` in word-addressable memory and by word-length in byte-addressable memory
   - **program status register (`PSR`):** zero (`Z`), negative (`N`), carry (`C`), overflow (`V`)
   - **memory address register (`MAR`):** address to read/write  
   **memory data/buffer register (`MDR`/`MBR`):** data from read or to write  
-  **read data:** load `MAR` with the address, then data will be placed in `MDR`  
-  **write data:** load `MAR` with the address and `MDR` with data, then activate write enable signal
+  to read data: load `MAR` with the address, then data gets placed in `MDR`  
+  to write data: load `MAR` with the address and `MDR` with the data, then activate write enable signal
+- **instruction set architecture (ISA):** is the interface between what software commands and what the hardware carries out, specifies memory organization, register set & instruction set (opcodes, data types & addressing modes)  
+**instruction:** most basic unit of computer processing, made up of opcode & operands  
+if instructions are the words in the language of a computer, then ISA is the vocabulary
 - **opcode:** what instruction does, three types:
   - **operate:** execute instructions in the ALU
   - **data movement:** read from or write to memory
   - **control flow:** change the sequence of execution
 - **opcode encoding:** defines how instructions are encoded as binary values in the machine code  
-![](./media/ca_old/opcode_encoding.png)
+![](./media/computer_architecture/opcode_encoding.png)
 - **example: ARM opcodes:**
   ```cpp
   ; // mnemonic dest, src1, src2
@@ -296,17 +296,9 @@ pipelining, SIMD, OoO execution, separate data & instruction cache are not consi
   LE          signed greater than or equal  Z || (N != V)
   AL/omitted  always                        true
   ```
-- **addressing modes:** way in which the operand of an instruction is specified
-  - **immediate offset:** `[Rn, #±imm]`, offset to address in `Rn`
-  - **register:** `[Rn]`, address in `Rn`, same as `[Rn, #0]`
-  - **scaled register offset:** `[Rn, ±Rm, shift]`, address is sum of `Rn` value & shifted `Rm` value
-  - **register offset:** `[Rn, ±Rm]`, address is sum of `Rn` & `Rm` values, same as `[Rn, ±Rm, LSL #0]`
-  - **immediate pre-indexed:** `[Rn, #±imm]!`, same as immediate offset but `Rn` set to address
-  - **scaled register pre-indexed:** `[Rn, ±Rm, shift]!`, same as scaled register offset mode but `Rn` set to address
-  - **register pre-indexed:** `[Rn, ±Rm]!`, same as register offset mode but `Rn`set to address
-  - **immediate post-indexed:** `[Rn], #±imm`, same as register then offset added to `Rn`
-  - **scaled register post-indexed:** `[Rn], ±Rm, shift`, same as register then shifted `±Rm` value added to `Rn`
-  - **register post-indexed:** `[Rn], ±Rm`, same as register then `±Rm` added to `Rn`, same as `[Rn], ±Rm, LSL #0`
+- **addressing modes:** different ways of determining the address of the operands  
+![](./media/computer_architecture/addressing_modes.png)
+  - un value :The register or a value is delivered unchanged, example: `MOV R0, #1234` & `ADD R0, R1, #16`
 - **shift flags:** used with addressing modes
   - **logical shift left (`LSL`):** `a << b`
   - **logical shift right (`LSR`):** `a >> b`
@@ -344,7 +336,7 @@ pipelining, SIMD, OoO execution, separate data & instruction cache are not consi
           BNE strcpy
           END
   ```
-- **instruction cycle:** sequence of steps that an instruction goes through to be executed
+- **instruction cycle:** sequence of steps/phases that an instruction goes through to be executed, not all instructions requires all six phases (`ADD R1, R1, R2` doesn't need to evaluate the address)
   - **fetch:** obtain instruction from memory and load it into the `IR`
   - **decode:** identifies the instruction to be processed
   - **evaluate address:** computes the address of memory location of operands
@@ -355,7 +347,7 @@ pipelining, SIMD, OoO execution, separate data & instruction cache are not consi
 ## microarchitecture
 - **microarchitecture (μArch):** underlying implementation of ISA, μArch keeps changing with constant ISA interface to ensure backwards compatibility, example: `add` instruction vs adder implementation
 - control driven (von Neumann) vs data driven (data flow) execution tradeoff can be made at μArch level, μArch can execute instructions in any order as long as it obeys the semantics specified by the ISA when making instruction results visible to software
-- **instruction processing:** assuming von Neumann model, processing an instruction (all 6 stages) should transform architectural state (memory, registers & program counter) according to ISA specification  
+- **instruction processing:** assuming von Neumann model, processing an instruction (all 6 stages) should transform architectural (or programmer visible) state (memory, registers & program counter) according to ISA specification  
 ISA defines abstractly what `AS'` should be given an instruction and `AS`, from ISA point of view there are no intermediate states between `AS` & `AS'` during instruction execution  
 μArch implements how `AS` is transformed to `AS'`, but can have multiple programmer-invisible states to optimize the speed of instruction execution, so we have two choices
     - **single-cycle machines:** each instruction takes single clock cycle, no intermediate or programmer-invisible states, only combinational logic used to implement instruction execution, clock cycle time determined by slowest instruction  
