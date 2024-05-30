@@ -4,7 +4,7 @@
 - [sequential logic](#sequential-logic)
 - [timing \& verification](#timing--verification)
 - [instruction set architecture](#instruction-set-architecture)
-- [microarchitecture](#microarchitecture)
+- [micro-architecture](#micro-architecture)
   - [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
   - [reorder buffer](#reorder-buffer)
@@ -143,6 +143,8 @@ multiplexer can be used as lookup table to perform logic functions
 ![](./media/computer_architecture/tri_state_buffer.png)  
 example: imagine a wire connecting the CPU & memory, at any time either CPU or memory can place a value on the wire but not both, we can have two tri-state one driven by CPU and other memory  
 ![](./media/computer_architecture/tri_state_buffer_example.png)
+- **binary coded decimal:** each decimal is encoded with a fixed number of bits, example: normal vs BCD clock  
+![](./media/computer_architecture/binary_coded_decimal.png)
 
 ## sequential logic
 - **sequential logic:** outputs are determined by previous & current values of inputs (has memory)  
@@ -234,7 +236,7 @@ to keep skew to minimum intelligent clock network are required across a chip to 
 
 ## instruction set architecture
 - **von Neumann model:** program stored in memory (unified instruction & data memory), processor fetches then processes instruction sequentially one at a time, easier to debug since you know which instruction will execute  
-pipelining, SIMD, OoO execution, separate data & instruction cache are not consistent with von Neumann model  
+but pipelining, SIMD, OoO execution, separate data & instruction cache in modern processors are not consistent with von Neumann model  
 **Harvard model:** was developed to overcome the bottlenecks of von Neumann model by having separate instruction & data memory & bus  
 **data flow model:** instruction fetched and executed only when its operands are ready, inherently more parallel, no instruction pointer required
 - **register:** memory is large but slow, so registers ensure fast access to values to be processed in the ALU, typically one register contains one word  
@@ -252,6 +254,10 @@ pipelining, SIMD, OoO execution, separate data & instruction cache are not consi
 - **instruction set architecture (ISA):** is the interface between what software commands and what the hardware carries out, specifies memory organization, register set & instruction set (opcodes, data types & addressing modes)  
 **instruction:** most basic unit of computer processing, made up of opcode & operands  
 if instructions are the words in the language of a computer, then ISA is the vocabulary
+- instruction set can have large or small set of opcodes, tradeoffs like hardware complexity vs software complexity and latency of simple vs complex operations are involved  
+**complex instruction:** an instruction does a lot of work, example: string copy, vector add  
+**simple instruction:** an instruction does little work, it is a primitive using which complex instructions can be built, example: add, XOR, multiply  
+complex instructions will have denser encoding (so smaller code size and better memory utilization) and simpler compiler but will have larger chunks of work (limited compiler optimizations) and more complex hardware
 - **opcode:** what instruction does, three types:
   - **operate:** execute instructions in the ALU
   - **data movement:** read from or write to memory
@@ -296,9 +302,14 @@ if instructions are the words in the language of a computer, then ISA is the voc
   LE          signed greater than or equal  Z || (N != V)
   AL/omitted  always                        true
   ```
-- **addressing modes:** different ways of determining the address of the operands  
+- **addressing mode:** is the mechanism for specifying where an operand is located, more addressing modes enables better mapping of high-level programming constructs (like pointer arithmetic) to hardware but more work for the micro-architect and more options for the compiler to choose  
 ![](./media/computer_architecture/addressing_modes.png)
-  - un value :The register or a value is delivered unchanged, example: `MOV R0, #1234` & `ADD R0, R1, #16`
+  - **unmodified value:** the register or a value is delivered unchanged, example: `MOV R0, #1234` & `ADD R0, R1, #16`
+  - **modified value:** provided value or register is shifted or rotated, example: `MOV R0, R1, LSL #2`
+  - **register indirect:** register value is used to provide the address of the memory region to be accessed, example: `LDR R0, [R1]`
+  - **relative register:** offset applied to a register value generates the memory address, example: `LDR R0, [R1, #4]`
+  - **base indexed:** memory address is produced by adding the values of two registers, example: `LDR R0, [R1, R2]`
+  - **base with scaled register:** memory address is produced by adding a register value to another register that is modified, example: `LDR R0, [R1, R2, LSL #2]`
 - **shift flags:** used with addressing modes
   - **logical shift left (`LSL`):** `a << b`
   - **logical shift right (`LSR`):** `a >> b`
@@ -336,16 +347,17 @@ if instructions are the words in the language of a computer, then ISA is the voc
           BNE strcpy
           END
   ```
-- **instruction cycle:** sequence of steps/phases that an instruction goes through to be executed, not all instructions requires all six phases (`ADD R1, R1, R2` doesn't need to evaluate the address)
+- **instruction cycle:** sequence of steps/phases that an instruction goes through to be executed, not all instructions requires all six phases (`ADD R0, R1, R2` doesn't need to evaluate the address)
   - **fetch:** obtain instruction from memory and load it into the `IR`
   - **decode:** identifies the instruction to be processed
   - **evaluate address:** computes the address of memory location of operands
   - **fetch operands:** obtains the source operands, in latest processors fetch is done in parallel to decode
   - **execute:** executes the instruction
   - **store result:** write to the designated destination, once done cycle starts again for a new instruction
+- **semantic gap:** how close instructions & data types are to high-level language, complex instructions & data types (like matrix) lead to smaller semantic gap hence better mapping of high programming constructs to hardware but lead to more work for the micro-architect
 
-## microarchitecture
-- **microarchitecture (μArch):** underlying implementation of ISA, μArch keeps changing with constant ISA interface to ensure backwards compatibility, example: `add` instruction vs adder implementation
+## micro-architecture
+- **micro-architecture (μArch):** underlying implementation of ISA, μArch keeps changing with constant ISA interface to ensure backwards compatibility, example: `add` instruction vs adder implementation
 - control driven (von Neumann) vs data driven (data flow) execution tradeoff can be made at μArch level, μArch can execute instructions in any order as long as it obeys the semantics specified by the ISA when making instruction results visible to software
 - **instruction processing:** assuming von Neumann model, processing an instruction (all 6 stages) should transform architectural (or programmer visible) state (memory, registers & program counter) according to ISA specification  
 ISA defines abstractly what `AS'` should be given an instruction and `AS`, from ISA point of view there are no intermediate states between `AS` & `AS'` during instruction execution  
@@ -530,7 +542,7 @@ two humps are reservation station (scheduling window) and reordering (instructio
 ![](./media/ca_old/dataflow_graph_example_1.png)  
 ![](./media/ca_old/dataflow_graph_example_2.png)
 - **centralized physical register file:** data values stored at a common place (physical registers) that reservation station, frontend & backend RAT will use indirection to, eliminates the need to maintain multiple copies of data values, no need for data broadcast now but tag broadcast still needed
-- **example: Pentium 4 microarchitecture:** OoO execution with centralized physical register file  
+- **example: Pentium 4 micro-architecture:** OoO execution with centralized physical register file  
 ![](./media/ca_old/out_of_order_tables_example.png)
 - **latency tolerance:** OoO execution tolerates the latency of multi-cycle operations by executing independent operations concurrently
 - **register vs memory:**
