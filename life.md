@@ -1,4 +1,4 @@
-# misc
+# life
 - [why sell RSUs on vest](#why-sell-rsus-on-vest)
 - [why not track every rupee](#why-not-track-every-rupee)
 - [why stay back in India](#why-stay-back-in-india)
@@ -26,33 +26,34 @@ robust startup revolution here has made QOL truly luxurious, you can do everythi
 ## [exercising for weight loss](https://www.reddit.com/r/loseit/wiki/index/?rdt=42852#wiki_exercising_for_weight_loss)
 - exercise is not equal to diet because we can control most of our energy intake but only about 10%-20% of our energy expenditure through exercise, studies repeatedly show that exercise has little effect on weight, but diet does  
 exercise does have a rightful role in physical ability/capacity, psychological benefits & general health and deserves its high place in anyone's health plan, but if the goal is weight loss focus should be on the diet  
-![](./media/misc/total_daily_energy_expenditure.png)
+![](./media/life/total_daily_energy_expenditure.png)
 - avoiding weights because you don't want to become "huge" is like avoiding going for a jog in the park because you're afraid of winning the Boston marathon
 
 ## [second brain](https://fortelabs.com/blog/basboverview/)
 - *our brains are for having ideas, not storing them*
-- **second brain:** an external, centralized, digital repository for the things one learns and the resources from which they come
+- **second brain:** an external, integrated digital repository for the things you learn and the resources from which they come
 - **CODE:** process of creating a second brain
-![](./media/misc/code_method.png)
+![](./media/life/code_method.png)
   - **capture:** the ideas & insights that are worth saving and keep them in a single centralized place
   - **organize:** notes into a simpler and flexible organization method, example: PARA method
   - **distill:** add value to a note every time you touch it by making it just a little easier to make use of next time, example: progressive summarization
   - **express:** by creating tangible results in the real world, shift as much of our effort as possible from consuming information to creating new things, example: intermediate packets
 - **PARA:** all the information in your life can be categorized into only four categories:
-![](./media/misc/para_method.png)
+![](./media/life/para_method.png)
   - **projects:** short term efforts with a certain goal in mind
   - **areas:** long term responsibilities you want to manage over time
   - **resources:** topics or interests that may be useful in future
   - **archive:** inactive items from the other three categories
 - **progressive summarization:** is a technique that relies on summarizing a note in multiple stages over time  
-![](./media/misc/progressive_summarization.png)
+to communicate anything you have to compress it, but in doing so you lose a lot of the context that made it valuable in the first place  
+![](./media/life/progressive_summarization.png)
 - **intermediate packets:** are smaller reusable units of work  
-![](./media/misc/intermediate_packets.png)
+![](./media/life/intermediate_packets.png)
 
 ## [Maslow’s hierarchy](https://www.simplypsychology.org/maslow.html)
 - **Maslow’s hierarchy of needs:** is a classification system intended to reflect the universal needs of society as its base then proceeding to more acquired emotions  
 key idea is that lower-level needs must be satisfied before higher-level needs can become motivators  
-![](./media/misc/maslows_hierarchy.png)
+![](./media/life/maslows_hierarchy.png)
   - **physiological needs:** biological requirements for human survival (like air, food, drink, shelter, clothing, warmth, sex, sleep, etc)
   - **safety & security:**  people want to experience order, predictability & control in their lives
   - **love & belonging:** refers to a human emotional need for interpersonal relationships, affiliating, connectedness & being part of a group

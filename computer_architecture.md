@@ -4,6 +4,7 @@
 - [sequential logic](#sequential-logic)
 - [timing \& verification](#timing--verification)
 - [instruction set architecture](#instruction-set-architecture)
+  - [assembly programming](#assembly-programming)
 - [micro-architecture](#micro-architecture)
   - [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
@@ -28,9 +29,9 @@
 ## links  <!-- omit from toc -->
 - [[lectures] design of digital circuits](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
 - [Hamming code](https://harryli0088.github.io/hamming-code/)
+- [ARM assembly](http://www.cburch.com/books/arm/) ([addressing modes](https://roboticelectronics.in/addressing-modes-in-arm/))
 
 ## todo  <!-- omit from toc -->
-- [ARM assembly](http://www.cburch.com/books/arm/)
 - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
 - [future computing architectures](https://www.youtube.com/watch?v=kgiZlSOcGFM)
 - [Hamming speech](https://www.youtube.com/watch?v=a1zDuOPkMSw)
@@ -240,7 +241,7 @@ but pipelining, SIMD, OoO execution, separate data & instruction cache in modern
 **Harvard model:** was developed to overcome the bottlenecks of von Neumann model by having separate instruction & data memory & bus  
 **data flow model:** instruction fetched and executed only when its operands are ready, inherently more parallel, no instruction pointer required
 - **register:** memory is large but slow, so registers ensure fast access to values to be processed in the ALU, typically one register contains one word  
-**register file/set:** set of registers that can be manipulated by instructions, example: ARMv9 has `32 x 32bit` registers
+**register file/set:** set of registers that can be manipulated by instructions, example: ARMv7-A has `32 x 32bit` registers
 - **special purpose registers:**
   - **stack pointer (`SP`):** address of top of the stack
   - **link register (`LR`):** return address
@@ -264,61 +265,94 @@ complex instructions will have denser encoding (so smaller code size and better 
   - **control flow:** change the sequence of execution
 - **opcode encoding:** defines how instructions are encoded as binary values in the machine code  
 ![](./media/computer_architecture/opcode_encoding.png)
-- **example: ARM opcodes:**
+- **instruction cycle:** sequence of steps/phases that an instruction goes through to be executed, not all instructions requires all six phases (`ADD R0, R1, R2` doesn't need to evaluate the address)
+  - **fetch:** obtain instruction from memory and load it into the `IR`
+  - **decode:** identifies the instruction to be processed
+  - **evaluate address:** computes the address of memory location of operands
+  - **fetch operands:** obtains the source operands, in latest processors fetch is done in parallel to decode
+  - **execute:** executes the instruction
+  - **store result:** write to the designated destination, once done cycle starts again for a new instruction
+- **semantic gap:** how close instructions & data types are to high-level language, complex instructions & data types (like matrix) lead to smaller semantic gap hence better mapping of high programming constructs to hardware but lead to more work for the micro-architect
+
+### assembly programming
+- a machine language encodes instructions as sequences of `0`s and `1`s but this encoding is unwieldy for human programmers, so we use an assembly language when we want to dictate the precise instructions that the computer is to perform, an assembler will translate a file containing assembly language code into the corresponding machine language  
+for each ISA there must be a different assembly language since the assembly language must correspond to an entirely different set of machine instructions
+- **why ARM ISA over IA32 (x86):**
+  - assembly language programming is rarely used for more powerful computing systems, but for small devices due to power & price constraints developers still use assembly language to use the resources as efficiently as possible
+  - multiple extensions to IA32 lead it to be far more complicated
+  - IA32 dates from the 1970s, ARM is more representative of more modern ISA designs
+- **immediate:** a constant placed directly in an instruction, it is immediately available to the processor when reading the instruction
+- **opcodes:**  
+older ARM chips lacks any instructions related to division because designers felt division is rarely necessary to merit wasting transistors on the complex circuit that it requires, but division by powers-of-2 can be done using right shifts  
+except `TST`, `TEQ`, `CMP` & `CMN` all arithmetic instructions may modify PSR flags by postfixing `S` to opcode
   ```cpp
-  ; // mnemonic dest, src1, src2
-  ; // most can modify PSR flags by postfixing S
-  AND regd, rega, argb  ; // regd ⟵ rega & argb
-  EOR regd, rega, argb  ; // regd ⟵ rega ^ argb
-  SUB regd, rega, argb  ; // regd ⟵ rega - argb
-  RSB regd, rega, argb  ; // regd ⟵ argb - rega, REVERSE SUB
-  ADD regd, rega, argb  ; // regd ⟵ rega + argb
-  ADC regd, rega, argb  ; // regd ⟵ rega + argb + C (carry in PSR)
-  SBC regd, rega, argb  ; // regd ⟵ rega - argb - !C
-  RSC regd, rega, argb  ; // regd ⟵ argb - rega - !C
-  TST rega, argb        ; // set flags for rega & argb, result discarded, TEST
-  TEQ rega, argb        ; // set flags for rega ^ argb, result discarded, TEST_EQUIVALENCE
-  CMP rega, argb        ; // set flags for rega - argb, COMPARE
-  CMN rega, argb        ; // set flags for rega + argb, COMPARE_NEGATIVE
-  ORR regd, rega, argb  ; // regd ⟵ rega | argb
-  MOV regd, arg         ; // regd ⟵ arg
-  BIC regd, rega, argb  ; // regd ⟵ rega & ~argb, BIT_CLEAR
-  MVN regd, arg         ; // regd ⟵ ~argb, MOV_NOT
-  B target_addr         ; // BRANCH
-  LDR regd, [rega]      ; // regd ⟵ *rega, LDRB for 8bit
-  STR regd, [rega]      ; // regd  ⟶  *rega, STRB for 8bit
+  // arithematic
+  //; mnemonic dest, src1, src2
+  AND regd, rega, argb  //; regd ⟵ rega & argb
+  EOR regd, rega, argb  //; regd ⟵ rega ^ argb
+  SUB regd, rega, argb  //; regd ⟵ rega - argb
+  RSB regd, rega, argb  //; regd ⟵ argb - rega, REVERSE SUB
+  ADD regd, rega, argb  //; regd ⟵ rega + argb
+  ADC regd, rega, argb  //; regd ⟵ rega + argb + C (carry from PSR)
+  SBC regd, rega, argb  //; regd ⟵ rega - argb - !C
+  RSC regd, rega, argb  //; regd ⟵ argb - rega - !C
+  TST rega, argb        //; set flags for rega & argb, result discarded, TEST
+  TEQ rega, argb        //; set flags for rega ^ argb, result discarded, TEST_EQUIVALENCE
+  CMP rega, argb        //; set flags for rega - argb, COMPARE
+  CMN rega, argb        //; set flags for rega + argb, COMPARE_NEGATIVE
+  ORR regd, rega, argb  //; regd ⟵ rega | argb
+  BIC regd, rega, argb  //; regd ⟵ rega & ~argb, BIT_CLEAR
+  MVN regd, arg         //; regd ⟵ ~argb, MOV_NOT
+
+  // branching
+  B   label  //; unconditional branch
+  BNE label  //; branch if not equal
+
+  // memory
+  MOV rega, arg        //; rega ⟵ arg, used to load from another register or immediate (upto 12bits)
+  LDR regd, [rega]      //; regd ⟵ *rega, LOAD_REGISTER, to load from RAM or for large immediate values
+  STR regd, [rega]      //; regd  ⟶  *rega, STORE_REGISTER
+  // LDRB & STRB are 8bit variants
   ```
-- **example: ARM condition flags:**
+- **condition codes:** each instruction may incorporate a condition code specifying that the operation should take place only when certain combinations of the flags hold, condition code usually comes at the end of the opcode (precedes the optional `S` on arithmetic instructions)
+  ```cpp
+  EQ          //; Z               equal
+  NE          //; !Z              not equal
+  CS/HS       //; C               carry set / unsigned higher or same
+  CC/LO       //; !C              carry clear / unsigned lower
+  MI          //; N               minus/negative
+  PL          //; !N              plus/positive or zero
+  VS          //; V               overflow set
+  VC          //; !V              overflow clear
+  HI          //; C && !Z         unsigned higher
+  LS          //; !C || Z         unsigned lower or same
+  GE          //; N == V          signed greater than or equal
+  LT          //; N != V          signed less than
+  GT          //; !Z && (N == V)  signed greater than
+  LE          //; Z || (N != V)   signed greater than or equal
+  AL/omitted  //; true            always
   ```
-  EQ          equal                         Z
-  NE          not equal                     !Z
-  MI          minus/negative                N
-  PL          plus/positive or zero         !N
-  VS          overflow set                  V
-  VC          overflow clear                !V
-  GE          signed greater than or equal  N == V
-  LT          signed less than              N != V
-  GT          signed greater than           !Z && (N == V)
-  LE          signed greater than or equal  Z || (N != V)
-  AL/omitted  always                        true
-  ```
+- **shift flags:** used with addressing modes  
+![](./media/computer_architecture/shift_types.png)
+  - **logical shift left (`LSL`):** `a << b`
+  - **logical shift right (`LSR`):** `a >> b`
+  - **arithmetic shift right (`ASR`):** `a >> b` with sign extension  
+  arithmetic shift left is same as logical shift left
+  - **rotate right (`ROR`):** circular `a >> b` with wrap around
 - **addressing mode:** is the mechanism for specifying where an operand is located, more addressing modes enables better mapping of high-level programming constructs (like pointer arithmetic) to hardware but more work for the micro-architect and more options for the compiler to choose  
 ![](./media/computer_architecture/addressing_modes.png)
   - **unmodified value:** the register or a value is delivered unchanged, example: `MOV R0, #1234` & `ADD R0, R1, #16`
   - **modified value:** provided value or register is shifted or rotated, example: `MOV R0, R1, LSL #2`
   - **register indirect:** register value is used to provide the address of the memory region to be accessed, example: `LDR R0, [R1]`
   - **relative register:** offset applied to a register value generates the memory address, example: `LDR R0, [R1, #4]`
-  - **base indexed:** memory address is produced by adding the values of two registers, example: `LDR R0, [R1, R2]`
-  - **base with scaled register:** memory address is produced by adding a register value to another register that is modified, example: `LDR R0, [R1, R2, LSL #2]`
-- **shift flags:** used with addressing modes
-  - **logical shift left (`LSL`):** `a << b`
-  - **logical shift right (`LSR`):** `a >> b`
-  - **arithmetic shift right (`ASR`):** `a >> b` with sign extension, `ASL == LSL`
-  - **rotate right (`ROR`):** `a >> b` with wrap around
-  ![](./media/ca_old/logical_vs_arithematic_shift.png)
-- **example: loop C to assembly:**
+  - **base indexed:** memory address is produced by adding the values of two registers, example: `LDR R0, [R1, R2]`  
+  also supports:
+    -  **pre-indexing:** apply the offset before accessing the memory, example: `LDR R0, [R1, #8]!`, first `R1 ⟵ R1 + #8` then load from new `R1`
+    -  **post-indexing:** apply the offset after accessing the memory, example: `LDR R0, [R1], #8`, first load from unmodified `R1` then update `R1 ⟵ R1 + #8`
+  - **base with scaled register:** memory address is produced by adding a register value to another register that is modified, example: `LDR R0, [R1, R2, LSL #2]`  
+  also supports pre & post indexing
+- **example: loop in C vs assembly:**
   ```cpp
-  // C  ⟶  Assembly
   // C
   int total;
   int i;
@@ -329,32 +363,22 @@ complex instructions will have denser encoding (so smaller code size and better 
       total += i;
   }
 
-  // ARM Assembly
-          MOV  R0, #0
-          MOV  R1, #10
-  again   ADD  R0, R0, R1
-          SUBS R1, R1, #1  ;
-          BNE  again       ; // check Z flag
-  halt    B    halt        ; // infinite loop
-          END
+  // assembly
+        MOV  R0, #0      //; R0 accumulates total
+        MOV  R1, #10     //; R1 counts from 10 down to 1
+  again ADD  R0, R0, R1
+        SUBS R1, R1, #1
+        BNE  again
+  halt  B    halt        //; infinite loop to stop computation
   ```
 - **example: strcpy in assembly:**
   ```cpp
-  // ARM Assembly strcpy()
-  strcpy  LDRB R2, [R1], #1  ; // R1 is source
-          STRB R2, [R0], #1  ; // R0 is destination
-          TST R2, R2         ; // repeat if R2 is nonzero
+  strcpy  LDRB R2, [R1], #1  //; R1 is source
+          STRB R2, [R0], #1  //; R0 is destination
+          TST R2, R2         //; repeat if R2 is nonzero
           BNE strcpy
           END
   ```
-- **instruction cycle:** sequence of steps/phases that an instruction goes through to be executed, not all instructions requires all six phases (`ADD R0, R1, R2` doesn't need to evaluate the address)
-  - **fetch:** obtain instruction from memory and load it into the `IR`
-  - **decode:** identifies the instruction to be processed
-  - **evaluate address:** computes the address of memory location of operands
-  - **fetch operands:** obtains the source operands, in latest processors fetch is done in parallel to decode
-  - **execute:** executes the instruction
-  - **store result:** write to the designated destination, once done cycle starts again for a new instruction
-- **semantic gap:** how close instructions & data types are to high-level language, complex instructions & data types (like matrix) lead to smaller semantic gap hence better mapping of high programming constructs to hardware but lead to more work for the micro-architect
 
 ## micro-architecture
 - **micro-architecture (μArch):** underlying implementation of ISA, μArch keeps changing with constant ISA interface to ensure backwards compatibility, example: `add` instruction vs adder implementation

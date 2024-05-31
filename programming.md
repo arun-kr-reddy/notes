@@ -293,8 +293,8 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
 
 
 ## misc
-- **programming constructs:** programming requires dividing a task (unit of work) into smaller tasks
-  - **sequential:** if task can be broken down into two subtasks one following the other
-  - **conditional:** if task can be broken down into two subtasks but not both executed
-  - **iterative:** if task consists of doing a subtask a number of times but only as long as some condition is true
+- programming requires dividing a unit of work into smaller units of work with the goal to replace units of work with one of the programming constructs:
+  - **sequential:** used if task can be broken down into two subtasks one following the other
+  - **conditional:** used if the task consists of doing one of two subtasks but not both
+  - **iterative:** used if the task consists of doing a subtask a number of times but only as long as some condition is true
   ![](./media/programming/programming_constructs.png)
