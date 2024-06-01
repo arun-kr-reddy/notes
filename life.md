@@ -32,7 +32,7 @@ exercise does have a rightful role in physical ability/capacity, psychological b
 ## [second brain](https://fortelabs.com/blog/basboverview/)
 - *our brains are for having ideas, not storing them*
 - **second brain:** an external, integrated digital repository for the things you learn and the resources from which they come
-- **CODE:** process of creating a second brain
+- **CODE:** process of creating a second brain  
 ![](./media/life/code_method.png)
   - **capture:** the ideas & insights that are worth saving and keep them in a single centralized place
   - **organize:** notes into a simpler and flexible organization method, example: PARA method

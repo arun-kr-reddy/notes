@@ -239,7 +239,8 @@ to keep skew to minimum intelligent clock network are required across a chip to 
 - **von Neumann model:** program stored in memory (unified instruction & data memory), processor fetches then processes instruction sequentially one at a time, easier to debug since you know which instruction will execute  
 but pipelining, SIMD, OoO execution, separate data & instruction cache in modern processors are not consistent with von Neumann model  
 **Harvard model:** was developed to overcome the bottlenecks of von Neumann model by having separate instruction & data memory & bus  
-**data flow model:** instruction fetched and executed only when its operands are ready, inherently more parallel, no instruction pointer required
+**data flow model:** instruction fetched and executed only when its operands are ready, no need for a instruction pointer, inherently more parallel  
+![](./media/computer_architecture/control_vs_dataflow_example.png)
 - **register:** memory is large but slow, so registers ensure fast access to values to be processed in the ALU, typically one register contains one word  
 **register file/set:** set of registers that can be manipulated by instructions, example: ARMv7-A has `32 x 32bit` registers
 - **special purpose registers:**
@@ -265,14 +266,18 @@ complex instructions will have denser encoding (so smaller code size and better 
   - **control flow:** change the sequence of execution
 - **opcode encoding:** defines how instructions are encoded as binary values in the machine code  
 ![](./media/computer_architecture/opcode_encoding.png)
-- **instruction cycle:** sequence of steps/phases that an instruction goes through to be executed, not all instructions requires all six phases (`ADD R0, R1, R2` doesn't need to evaluate the address)
+- **instruction cycle:** sequence of steps/phases that an instruction goes through to be executed, not all instructions requires all six phases (`ADD R0, R1, R2` doesn't need to evaluate the address)  
+in a von Neumann machine fetch & fetch operands stage interpret memory as instruction & data respectively, so memory interpretation depends on when that value is fetched in the processing cycle
   - **fetch:** obtain instruction from memory and load it into the `IR`
   - **decode:** identifies the instruction to be processed
   - **evaluate address:** computes the address of memory location of operands
   - **fetch operands:** obtains the source operands, in latest processors fetch is done in parallel to decode
   - **execute:** executes the instruction
   - **store result:** write to the designated destination, once done cycle starts again for a new instruction
-- **semantic gap:** how close instructions & data types are to high-level language, complex instructions & data types (like matrix) lead to smaller semantic gap hence better mapping of high programming constructs to hardware but lead to more work for the micro-architect
+- **semantic gap:** how close instructions & data types are to high-level language, complex instructions & data types (like matrix) lead to smaller semantic gap hence better mapping of high programming constructs to hardware but lead to more work for the micro-architect  
+![](./media/computer_architecture/semantic_gap.png)  
+this tradeoff can be changed by translating from one ISA into a different one, example: Apple Rosetta hardware translator  
+![](./media/computer_architecture/semantic_gap_hardware_translator.png)
 
 ### assembly programming
 - a machine language encodes instructions as sequences of `0`s and `1`s but this encoding is unwieldy for human programmers, so we use an assembly language when we want to dictate the precise instructions that the computer is to perform, an assembler will translate a file containing assembly language code into the corresponding machine language  
@@ -311,7 +316,7 @@ except `TST`, `TEQ`, `CMP` & `CMN` all arithmetic instructions may modify PSR fl
   // memory
   MOV rega, arg        //; rega ⟵ arg, used to load from another register or immediate (upto 12bits)
   LDR regd, [rega]      //; regd ⟵ *rega, LOAD_REGISTER, to load from RAM or for large immediate values
-  STR regd, [rega]      //; regd  ⟶  *rega, STORE_REGISTER
+  STR regd, [rega]      //; regd ⟶ *rega, STORE_REGISTER
   // LDRB & STRB are 8bit variants
   ```
 - **condition codes:** each instruction may incorporate a condition code specifying that the operation should take place only when certain combinations of the flags hold, condition code usually comes at the end of the opcode (precedes the optional `S` on arithmetic instructions)
@@ -381,45 +386,45 @@ except `TST`, `TEQ`, `CMP` & `CMN` all arithmetic instructions may modify PSR fl
   ```
 
 ## micro-architecture
-- **micro-architecture (μArch):** underlying implementation of ISA, μArch keeps changing with constant ISA interface to ensure backwards compatibility, example: `add` instruction vs adder implementation
-- control driven (von Neumann) vs data driven (data flow) execution tradeoff can be made at μArch level, μArch can execute instructions in any order as long as it obeys the semantics specified by the ISA when making instruction results visible to software
-- **instruction processing:** assuming von Neumann model, processing an instruction (all 6 stages) should transform architectural (or programmer visible) state (memory, registers & program counter) according to ISA specification  
-ISA defines abstractly what `AS'` should be given an instruction and `AS`, from ISA point of view there are no intermediate states between `AS` & `AS'` during instruction execution  
-μArch implements how `AS` is transformed to `AS'`, but can have multiple programmer-invisible states to optimize the speed of instruction execution, so we have two choices
-    - **single-cycle machines:** each instruction takes single clock cycle, no intermediate or programmer-invisible states, only combinational logic used to implement instruction execution, clock cycle time determined by slowest instruction  
-    `AS`  ⟶  `AS'`  
-    ![](./media/ca_old/single_cycle_machines.png)
-    - **multi-cycle machines:** each instruction takes as many clock cycles as it needs, multiple state updates during instruction's execution, architectural state updates only at the end of an instructions execution, needs extra registers to store intermediate results, clock cycle time determined by slowest stage  
-    `AS` ⟶  `AS+MS1`  ⟶  `AS+MS2`  ⟶  `AS+MS3`  ⟶  `AS'`  
-    ![](./media/ca_old/multi_cycle_machines.png)
-- **instruction processing needs two components:**
-  - **datapath:** hardware elements that deal with and transform data signals
-    - functional unit operating on data
-    - storage units (like registers)
-    - hardware structures (like wires & muxes) that enable flow of data into functional units & registers
-  - **control logic:** hardware elements that determine the signals that specify what datapath elements should do to the data  
-in multi cycle machines, control signals needed in the next cycle can be generated in
-the current cycle
+- **micro-architecture (μArch):** is an implementation of the ISA, to ensure backwards compatibility μArch keeps changing with constant ISA interface, example: `add` instruction vs underlying adder implementation
+- ISA specifies how the programmer sees the instructions to be executed but μArch can execute instructions in any order as long as it obeys the semantics specified by the ISA when making instruction results visible to software  
+so anything like pipelining, speculative execution, out-of-order execution can be done in HW without exposure to SW  
+- processing an instruction (all 6 stages) should transform architectural (or programmer visible) state (memory, registers & program counter) according to ISA specification  
+ISA defines abstractly what `AS'` should be given an instruction & `AS` and there are no intermediate states between `AS` & `AS'` during instruction execution  
+μArch implements how `AS` is transformed to `AS'`, but can have multiple programmer-invisible states to optimize the speed of instruction execution  
+so we have two choices
+    - **single-cycle machines:** each instruction takes single clock cycle, all state updates made at the end of an instruction's execution, but clock cycle time is determined by the slowest instruction (usually memory access) even though many instructions don't need that long  
+    everything related to an instruction happens in one clock cycle  
+    inefficient design because multiple functional unit copies required, example: same ALU cannot be used for performing arithmetic opcode operation & `PC += 4`  
+    ![](./media/computer_architecture/single_cycle_machines.png)
+    - **multi-cycle machines:** let instruction processing take as much time it needs, internal state updates can be made during instruction's execution, but architectural state updates only at the end of an instructions execution, will need extra registers to store intermediate results  
+    any of the instruction cycle stage can also take multiple cycles  
+    latency of one part of instruction processing can be overlapped with another  
+    ![](./media/computer_architecture/multi_cycle_machines.png)
 - **performance basics:** execution time of
-  - **instruction:** `cycles-per-instruction x clock-cycle-time`
-  - **program:** `num-instructions x average-cycles-per-instruction x clock-cycle-time`, also known as iron law of performance
-- for a single cycle machine, how long each instruction takes is determined by how long slowest instruction takes to execute, even though many instructions don't need that long to execute (average-CPI always 1)
+  - **instruction:** `cycles_per_instruction x clock_cycle_time`
+  - **program:** `num_instructions x average_CPI x clock_cycle_time`, also known as iron law of performance
+- **instruction processing needs two components:**
+  - **datapath:** hardware elements that deal with & transform data signals, made up of functional unit operating on data, storage units (like registers) and hardware structures (like wires & muxes) that enable flow of data into functional units & registers
+  - **control logic:** hardware elements that determine the control signals that specify what datapath elements should do to the data  
+in multi cycle machines, control signals needed in the next cycle can be generated in the current cycle
 - **μArch design principles:**
-  - **critical design path:** find & decrease the maximum combinational logic delay, break a path in to multiple cycles if it takes too long
+  - **critical design path:** decrease the maximum combinational logic delay, break a path in to multiple cycles if it takes too long
   - **common case design:** spend time & resources on where it matters most, similar to Amdahl's law
   - **balanced design:** balance instruction/data flow through hardware components to eliminate bottlenecks
 
 ### microprogramming
-- **microprogramming:** for a multi cycle μArch, instruction processing cycle is divided into states  
-sequences from state to state to process an instruction  
-the behavior of the entire processor is specified fully by a FSM
+- **microprogramming:** for a multi cycle μArch instruction processing cycle is divided into states, it sequences from state to state to process an instruction, the behavior of the entire processor can be specified fully by a FSM
 - **microinstruction:** control signal associated with the current state  
 **microsequencing:** determining the next state and the microinstruction for the next state  
 **control store:** stores control signals (microinstructions) for every possible sate (entire FSM)  
-**microsequencer:** determines which set of control signals will be used in the next clock cycle (next state)
+**microsequencer:** determines which set of control signals will be used in the next clock cycle (next state)  
+the designer can translate any desired operation into a sequence of microinstructions
 - **example: MIPS LC-3b control & datapath:** 26 bits passed to data path, 9 bits go back to microsequencer to fetch microinstruction (control signals) for next cycle in parallel  
-![](./media/ca_old/microprogramming_1.png)  
-![](./media/ca_old/microprogramming_2.png)
+control signals (microinstruction) for the current state control two things: processing in the data path and generation of control signals for the next cycle  
+datapath & microsequencer operate concurrently  
+![](./media/computer_architecture/microprogramming_1.png)  
+![](./media/computer_architecture/microprogramming_2.png)
 - **advantages of microprogrammed control:**
   - allows a simple design to do powerful computation by controlling the datapath (using a sequencer)
   - enables easy extensibility of the ISA  
@@ -432,7 +437,7 @@ the behavior of the entire processor is specified fully by a FSM
 - **pipelining:** with multi-cycle design some hardware resources are idle during different phases of instruction processing cycle so pipeline the execution ("assembly line processing") of multiple instructions for better hardware utilization and instruction throughput  
 throughput increases as number of stages increase  
 ![](./media/ca_old/pipelining.png)
-- **example: multi-stage vs pipelining:** fetch  ⟶  decode  ⟶  execute  ⟶  writeback  
+- **example: multi-stage vs pipelining:** fetch ⟶ decode ⟶ execute ⟶ writeback  
 ![](./media/ca_old/pipelining_example1.png)
 - **ideal pipeline:** increase throughput with little increase in cost
   - same operation is repeated on large number of different instructions
@@ -775,7 +780,7 @@ needs extra logic for keeping thread contexts and does not overlap latency if no
   - **vector data registers:** to load/store vectors, each register holds `N` number of `M`-bit values
   - **vector length register (`VLEN`):** to operate on vectors of different lengths, maximum can be `N`
   - **vector stride register (`VSTR`):** elements of a vector might be stored apart from each other in memory, can be used to access non-consecutive elements  
-example: set `VSTR = 8` to access `A`  ⟶  `A+8`  ⟶  `A+16`  ⟶  `A+24`
+example: set `VSTR = 8` to access `A` ⟶ `A+8` ⟶ `A+16` ⟶ `A+24`
   - **vector mask register (`VMASK`):** indicates which elements of vector to operate on, set by vector test instructions
 - **vector instructions allow deeper pipelines:**
   - no intra-vector dependencies
@@ -1130,7 +1135,7 @@ assume stride is equal to number of banks, here padding (unused cells) can help 
 **privatization:** per-block sub-histograms in shared memory to reduce atomic shared memory latency adding up  
 ![](./media/ca_old/histogram_calculation_privatization.png)
 - **stream (command queue):** sequence of operations that are performed in order  
-CPU-GPU data transfer  ⟶  kernel execution  ⟶  GPU-CPU data transfer
+CPU-GPU data transfer ⟶ kernel execution ⟶ GPU-CPU data transfer
 - **asynchronous data transfer:** between CPU & GPU, computation divided into `nStreams`  
 ![](./media/ca_old/asynchronous_data_transfer.png)  
 applications with independent computation of different data instances (like video processing) can benefit by overlapping communication & computation  
