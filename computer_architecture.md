@@ -42,6 +42,7 @@
 - [cache coherency protocols](https://redis.io/glossary/cache-coherence/)
 - [computer architecture (ETHZ 2019) (cover 19b onwards)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 - optane persistent memory (phase change memory)
+- nvidia denver
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms (hardware, interface, system SW & programming model)  
@@ -421,10 +422,8 @@ in multi cycle machines, control signals needed in the next cycle can be generat
 **microsequencer:** determines which set of control signals will be used in the next clock cycle (next state)  
 the designer can translate any desired operation into a sequence of microinstructions
 - **example: MIPS LC-3b control & datapath:** 26 bits passed to data path, 9 bits go back to microsequencer to fetch microinstruction (control signals) for next cycle in parallel  
-control signals (microinstruction) for the current state control two things: processing in the data path and generation of control signals for the next cycle  
-datapath & microsequencer operate concurrently  
-![](./media/computer_architecture/microprogramming_1.png)  
-![](./media/computer_architecture/microprogramming_2.png)
+control signals (microinstruction) for the current state control two things: processing in the data path and generation of control signals for the next cycle, so datapath & microsequencer operate concurrently  
+![](./media/computer_architecture/microprogramming.png)
 - **advantages of microprogrammed control:**
   - allows a simple design to do powerful computation by controlling the datapath (using a sequencer)
   - enables easy extensibility of the ISA  
@@ -434,57 +433,61 @@ datapath & microsequencer operate concurrently
   a buggy implementation of an instruction can be fixed by changing the microcode in the field
 
 ## pipelining
-- **pipelining:** with multi-cycle design some hardware resources are idle during different phases of instruction processing cycle so pipeline the execution ("assembly line processing") of multiple instructions for better hardware utilization and instruction throughput  
-throughput increases as number of stages increase  
-![](./media/ca_old/pipelining.png)
+- **pipelining:** with multi-cycle design some hardware resources are idle during different phases of instruction processing cycle so pipeline the execution ("assembly line processing") of multiple instructions for better hardware utilization & instruction throughput (which increases as number of stages increase)  
+![](./media/computer_architecture/pipelining.png)
 - **example: multi-stage vs pipelining:** fetch ⟶ decode ⟶ execute ⟶ writeback  
-![](./media/ca_old/pipelining_example1.png)
+![](./media/computer_architecture/multicycle_vs_pipelining_1.png)  
+![](./media/computer_architecture/multicycle_vs_pipelining_2.png)
+- **steady state:** when the pipeline is full, throughput will be 1 instruction every cycle
 - **ideal pipeline:** increase throughput with little increase in cost
   - same operation is repeated on large number of different instructions
   - no dependencies between instructions
   - processing can be evenly divided into uniform-latency sub-operations (that do not share resources)
 - **practical pipeline:**
-  - different instructions don't all need the same stages, example: adder during load/store operation
-  - need to detect and resolve inter-instruction dependencies to ensure the pipeline provides correct results, can lead to stalls (pipeline stops moving)
-  - some pipe stages are too fast but are forced to take the same clock cycle time
+  - different instructions don't all need the same stages, example: `MOV` during execute stage  
+  - need to detect and resolve inter-instruction dependencies to ensure the pipeline provides correct results, can lead to stalls (pipeline stops moving)  
+  - some pipe stages are too fast but are forced to take the same clock cycle time (as slowest stage)
 - **issues in pipeline design:**
   - balancing work in pipeline stages
-  - keeping the pipeline correct, moving & full in the presence of events that disrupt pipeline flow like dependencies, resource contention & long latency operations
+  - keeping the pipeline correct, moving & full in the presence of events that disrupt pipeline flow like dependencies, resource contention & long latency (multi-cycle) operations
   - handling exceptions & interrupts
-- **dependencies:** dictate ordering requirements between instructions
+- **dependencies:** dictate ordering requirements between instructions, three types: structural, data & control
 - **structural dependency:** happens when instructions in two pipeline stages need the same resource, solutions are:
-  - eliminated the cause of contention, duplicate resources (separate instruction & data caches) or increase its throughput (multiple ports for memory structures)
+  - eliminated the cause of contention by duplicating resources (like separate instruction & data caches) or increase its throughput (like multiple ports for memory structures)
   - detect resource contention and stall one of the contending stages
 - **data dependency:** current instruction needs previous output  
-![](./media/ca_old/data_dependency.png)
+![](./media/computer_architecture/data_dependency.png)
   - **flow (read after write):** always needs to be obeyed because they constitute true dependency on previous output value
-  - **output (write after write):** exists due to limited number of architectural registers, dependency on a name only (not on value)
-  - **anti (write after read):** cause same as output dependency
-- **stall:** make the dependent instruction wait until its source data value is available  
-**bubble:** `NOP`s inserted in the stage after the stalled once
-- **handling anti & output data dependencies:** always write to destination in one stage and in program order only
+  - **anti (write after read):** exists due to limited number of architectural registers, dependency on a (register) name only not on value
+  - **output (write after write):** cause same as anti dependency
 - **detecting data dependencies:** between instructions in a pipelined processor to guarantee correct execution
-  - **scoreboarding:** each register in register file has a associated valid bit, instruction writing to register resets the bit, instruction in decode stage will check if all source & destination register are valid
-  - **combinational dependency check logic:** special logic that checks if any instruction in later stages is supposed to write to any source register of the instruction that is being decoded
-- **resolving data dependencies:**
-  - **stall:** till dependent value is updated in register file (hardware based interlocking)
-  - **compile-time detection & elimination:** insert `NOP`s (bubble) at compile time (software based interlocking)
-  - **data forwarding/bypassing:** forward the result value as soon as the value is available from a later stage in the pipeline, brings a pipeline closer to data flow execution principles  
-![](./media/ca_old/data_forwarding.png)  
-sufficient to resolve raw data dependency (cannot resolve dependency with load)  
-![](./media/ca_old/data_forwarding_stall.png)
-- **control dependency:** data dependency on the instruction pointer, special case of data dependency on `PC` register, next instruction known only once branch is evaluated
+  - **scoreboarding:** each register in register file has associated valid bit associated with it, an instruction writing to register resets the bit, instruction in decode stage will check if all source & destination register are valid  
+  just 1bit per register but need to stall for all dependencies not just flow
+  - **combinational dependency check logic:** special logic that checks if any instruction in later stages is supposed to write to any source register of the instruction that is being decoded  
+  stalls for flow dependencies only but logic becomes more complex as pipelines gets deeper & wider
+- **stall:** make the dependent instruction wait until its source data value is available  
+**bubble:** insert `NOP`s instructions to ensure stalled instruction stays in its stage  
+**interlocking:** detection of dependence between instructions to guarantee correct execution
+- **resolving flow dependencies:**
+  - **stall:** till dependent value is updated in register file (HW based interlocking)
+  - **compile-time detection & elimination:** insert `NOP`s (bubble) at compile time (SW based interlocking)
+  - **data forwarding/bypassing:** data value needed by the consumer instruction can be supplied directly from a later stage in the pipeline (instead of only from the register file), brings a pipeline closer to data flow execution principles  
+  ![](./media/computer_architecture/data_forwarding.png)  
+  sufficient to resolve raw data dependency but stalling is necessary for memory-execution dependency  
+  ![](./media/computer_architecture/data_forwarding_stall.png)
+  - **out-of-order execution:** move it out of the way for independent instructions
+  - **speculative execution:** predict the needed values then execute speculatively & verify
+  - **fine-grained multithreading:** do something else
+- **resolving anti & output data dependencies:** always write to the destination only in the last stage and in program order
+- **control dependency:** special case of data dependency on the instruction pointer (`IP`/`PC`), for a control-flow instruction next instruction known only once branch is evaluated
 - **resolving control dependencies:**
   - **stall:** till branch resolved
-  - **delayed branching:** execute instruction that is independent of branch taken or not
-  - **prediction:** try to guess which way a branch will go before it is definitively known
-    - **predict-not-taken:** fetch next sequential instruction fetched, if branch is taken then instructions must be flushed  
-    ![](./media/ca_old/control_dependency_prediction.png)
-    - **predict-taken:** fetch branched instruction, backward branches (loop) are usually taken
-    - **dynamic prediction:** assumes next branch will be similar to previous branches
+  - **delayed branching:** execute instruction that is independent of branch direction
+  - **prediction:** try to guess which way a branch will go before it is definitively known, flush pipeline on misprediction
+  - **early branch resolution:** calculate branch direction in the decode stage, needs extra hardware
   - **loop unrolling:** during compilation will reduce number of branches
 - **scheduling:** order in which instructions are executed in pipeline
-  - **static:** software based instruction scheduling, compiler orders the instruction then hardware executes them in that order, can get runtime information through profiling
+  - **static:** software based instruction scheduling, compiler orders the instruction then hardware executes them in that order, can get runtime information (like instruction latency & branch history) through profiling
   - **dynamic:** hardware based instruction scheduling, hardware can execute instruction out of the compiler-specified order, has extra runtime information like variable length operation latency, memory address, branch history
 - **multi-cycle execution:** not all instructions take same amount of time for execution, so have multiple different functional units that take different number of cycles, can let previous independent instruction start execution on a different functional unit before a long-latency instruction finishes execution  
 ![](./media/ca_old/multi_cycle_execution.png)  
