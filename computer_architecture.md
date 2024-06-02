@@ -9,7 +9,9 @@
   - [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
   - [reorder buffer](#reorder-buffer)
-  - [out-of-order execution](#out-of-order-execution)
+  - [history buffer](#history-buffer)
+  - [future file](#future-file)
+- [out-of-order execution](#out-of-order-execution)
 - [dataflow](#dataflow)
 - [superscalar execution](#superscalar-execution)
 - [branch prediction](#branch-prediction)
@@ -486,59 +488,82 @@ control signals (microinstruction) for the current state control two things: pro
   - **prediction:** try to guess which way a branch will go before it is definitively known, flush pipeline on misprediction
   - **early branch resolution:** calculate branch direction in the decode stage, needs extra hardware
   - **loop unrolling:** during compilation will reduce number of branches
-- **scheduling:** order in which instructions are executed in pipeline
+- **instruction scheduling:** order in which instructions are executed in pipeline
   - **static:** software based instruction scheduling, compiler orders the instruction then hardware executes them in that order, can get runtime information (like instruction latency & branch history) through profiling
   - **dynamic:** hardware based instruction scheduling, hardware can execute instruction out of the compiler-specified order, has extra runtime information like variable length operation latency, memory address, branch history
-- **multi-cycle execution:** not all instructions take same amount of time for execution, so have multiple different functional units that take different number of cycles, can let previous independent instruction start execution on a different functional unit before a long-latency instruction finishes execution  
-![](./media/ca_old/multi_cycle_execution.png)  
-but architectural states are not updated in a sequential manner (sequential semantics of ISA not preserved), example: first instruction throws exception but second instruction is already executed and has modified the architectural state  
-![](./media/ca_old/multi_cycle_execution_issue.png)
-- **exception:** cause is internal to the running thread, handle when detected, example: divide by 0  
-**interrupt:** cause is external to the running thread, handle when convenient (except for very high priority ones like power failure), example: mouse input when executable is running
-- **retire/commit:** finish execution and update architectural state
-- **precise exception/interrupt:** architectural state should be consistent (precise) when the exception/interrupt is ready to be handled, aids software debugging by ensuring clean slate between two instruction, von Neumann ISA specifies this  
-**precise:** all previous instructions should be completely retired and no later instruction should be retired
+- **multi-cycle execution:** not all instructions take same amount of time in the execute stage, so we have multiple different functional units that take different number of cycles  
+this can let independent instruction start execution on a different functional unit before a previous long-latency instruction finishes execution  
+![](./media/computer_architecture/multi_cycle_execution.png)  
+but architectural states are not updated in a sequential manner so sequential semantics of von Neumann ISA is not preserved  
+example: first instruction throws exception but second instruction is already executed and has modified the architectural state  
+![](./media/computer_architecture/multi_cycle_execution_issue.png)
+- **exception:** are due to internal problems in execution of the program, handle when detected, example: divide by 0, page fault  
+**interrupt:** are due to external events that need to be handled by the processor, handle when convenient except for very high priority ones like power failure, example: keyboard input, system timer expiration  
+both require stopping of current program, saving the architectural state and switch to handler (then if possible return back to program execution)
+- **retire/commit:** finish execution and update architectural state  
+**precise:** all previous instructions should be completely retired and no later instruction should be retired  
+**precise exception/interrupt:** architectural state should be consistent (precise) when the exception/interrupt is ready to be handled  
+required because von Neumann model ISA specifies it, also aids software debugging by ensuring clean slate between two instruction and enables software traps (software implemented opcodes)
 - **handling exceptions in pipelining:** when the oldest instruction ready-to-be-retired is detected to have caused an exception, control logic:
   - ensures architectural state is precise
-  - flush younger instruction in the pipeline to process the exception handler
-  - saves `PC` & registers (as specified by ISA)
-  - redirects the fetch engine to appropriate exception handling routine
-- **example: ensuring precise exceptions in pipelining:** make each operation take the same amount of time, worst-case instruction latency determines all instructions' latency  
-![](./media/ca_old/precise_exceptions_pipelining.png)
+  - flush younger instruction in the pipeline (to process the exception handler)
+  - saves `PC` & registers (as specified by the ISA)
+  - redirects the fetch engine to the appropriate exception handling routine
+- **example: ensuring precise exceptions in pipelining:** for single-cycle machines instruction boundaries are cycle boundaries anyway  
+for multi-cycle machines make each operation take the same amount of time, slowest instruction latency determines all other instructions' latency but worst-case can be very high for memory operations  
+![](./media/computer_architecture/precise_exceptions_pipelining.png)
 
 ### reorder buffer
-- complete instruction execution out-of-order but reorder them before making results visible to architectural state, helpful for precise exceptions & rollback on mispredictions  
-![](./media/ca_old/reorder_buffer.png)  
-- when instruction is decoded it reserved the next-sequential entry in the ROB
+- idea is to complete instruction execution out-of-order but reorder them before making results visible to architectural state (rollback on mispredictions), useful for multi-cycle precise exceptions  
+![](./media/computer_architecture/reorder_buffer.png)
+- **reorder buffer (ROB):** hardware structure that keeps information about all instructions that are decoded but not yet retired, working cycle is:
+  - when instruction is decoded, it reserves the next-sequential entry in the ROB
   - when instruction completes, it writes result into ROB entry
-  - when instruction oldest in the ROB and it has completed without exceptions, its results moved into register file or memory
+  - when instruction oldest in the ROB and has completed without exceptions, its results moved into register file (or memory)
 - **ROB entry:** should contain everything to:  
-![](./media/ca_old/reorder_buffer_entry.png)
+![](./media/computer_architecture/reorder_buffer_entry.png)
   - correctly reorder instructions back into the program order
-  - update architectural state with instruction's results
+  - update the architectural state with instruction's results
   - handle an exception/interrupt precisely
-  - also needs valid bits to keep track of readiness of the results and find out if the instruction has completed execution
-- in case of data dependency, input dependency value can be in the register file, reorder buffer or bypass path  
-register file (random access memory) is already indexed with register ID, which is the address of an entry  
-ROB buffer (content addressable memory) has to be searched with register ID, which is part of the content of an entry  
-![](./media/ca_old/reorder_buffer_access.png)
-- **simplifying ROB access:** to get rid of content-addressable memory we can instead use indirection
-  - access register file first and check if the register file is valid, if register invalid it stores the ID of the reorder buffer entry that contains (or will contain) the value of the register
-  - access reorder buffer next
-- **dispatch:** act of sending an instruction to a functional unit
-- **register renaming:** mapping of register to ROB entry, register file maps the register to a ROB entry if there is an in-flight instruction writing to that register  
+  - also needs valid bits to keep track of readiness of the results and to find out if the instruction has completed execution
+- execution is simple for independent operations  
+![](./media/computer_architecture/reorder_buffer_execution.png)  
+but in case of data dependency the value can be in the register file, reorder buffer or bypass path  
+![](./media/computer_architecture/reorder_buffer_access.png)
+- **simplifying ROB access:** to get rid of (costly) content-addressable memory for ROB we instead use indirection
+  - check register file first and check if register valid bit is set, if register invalid then it stores the ID of the reorder buffer entry that contains (or will contain) the value of the register
+  - check reorder buffer next
+- **register renaming:** mapping of register to ROB entry, register file maps/renames the register to a ROB entry if there is an in-flight instruction writing to that register  
 **link instruction dependencies:** whenever an instruction at a particular ROB entry finishes execution it can broadcast its result to every instruction waiting for that ROB entry, name (ROB entry) is used to communicate the data value  
-ROB is not constrained by ISA interface (unlike register file), so it can be huge and can have many instructions writing to the same architectural register
-- **example: in-order pipeline with reorder buffer:**  
-in-order dispatch/execution, out-of-order execution and in-order retirement  
-in-order dispatch eliminates stalls due to false dependencies, but a true dependency will stall dispatch of younger instruction  
-![](./media/ca_old/reorder_buffer_example.png)  
+ROB is not constrained by ISA interface (unlike register file), so it can be huge and can have many instructions writing to the same architectural register (eliminates stalls due to false dependencies)
+- **dispatch:** act of sending an instruction to a functional unit
+- **in-order pipeline with reorder buffer:** in-order dispatch/execution, out-of-order execution and in-order retirement  
+![](./media/computer_architecture/reorder_buffer_inorder_pipeline.png)  
   - **decode (D):** access register file or ROB, allocate entry in ROB, check if instruction can execute, if so dispatch instruction
     - **execute (E):** instructions can complete out-of-order
     - **completion (R):** write result to reorder buffer
     - **retirement (W):** check for exceptions
 
-### out-of-order execution
+### history buffer
+- idea is to update the register file when instruction completes, but undo the updates when an exception occurs, working cycle is:  
+![](./media/computer_architecture/history_buffer.png)
+ - when instruction is decoded, it reserves an HB entry
+ - when instruction completes, it stores the old value of its destination in the HB
+ - when instruction is oldest and no exceptions/interrupts, the HB entry discarded
+ - when instruction is oldest and an exception needs to be handled, old values in the HB are written back into the architectural state from tail to head
+- advantage over ROB is that HB is not on the critical path but increased exception handling latency due to unwinding of history buffer  
+but assuming exceptions are rare then HB is better for common case
+
+### future file
+- idea is to keep two register files (speculative/future & architectural), future file is used for fast access to latest register values and architectural files is used for state recovery on exceptions  
+![](./media/computer_architecture/future_file.png)
+  - architectural register file is updated in program order for precise exceptions and a reorder buffer used to ensure in-order updates
+  - future register file is updated as soon as an instruction completes, so value is always from the youngest instruction to write the register
+- advantage over ROB is no need to read the new values from the ROB (or indirection) but in case of an exception architectural file needs to be copied to future file
+- branch mispredictions are much more common than exceptions, so to minimize the performance impact of mispredictions  
+**checkpointing:** checkpoint the future file at the time a branch is decoded and keep the checkpointed state updated with results of instructions older than the branch, but upon branch misprediction restore the checkpoint associated with the branch
+
+## out-of-order execution
 - **out-of-order (OoO) execution:** move the dependent instructions out of the way of independent ones into resting areas, ensure that true data dependency does not stall the processor, also known as dynamic scheduling  
 monitor the source values of each instruction in resting area, dispatch/fire the instruction when all source values are available  
 instructions dispatched in dataflow (not control flow) order
