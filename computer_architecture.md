@@ -8,10 +8,11 @@
 - [micro-architecture](#micro-architecture)
   - [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
-  - [reorder buffer](#reorder-buffer)
+- [reorder buffer](#reorder-buffer)
   - [history buffer](#history-buffer)
   - [future file](#future-file)
 - [out-of-order execution](#out-of-order-execution)
+  - [memory dependence handling](#memory-dependence-handling)
 - [dataflow](#dataflow)
 - [superscalar execution](#superscalar-execution)
 - [branch prediction](#branch-prediction)
@@ -391,7 +392,7 @@ except `TST`, `TEQ`, `CMP` & `CMN` all arithmetic instructions may modify PSR fl
 ## micro-architecture
 - **micro-architecture (μArch):** is an implementation of the ISA, to ensure backwards compatibility μArch keeps changing with constant ISA interface, example: `add` instruction vs underlying adder implementation
 - ISA specifies how the programmer sees the instructions to be executed but μArch can execute instructions in any order as long as it obeys the semantics specified by the ISA when making instruction results visible to software  
-so anything like pipelining, speculative execution, out-of-order execution can be done in HW without exposure to SW  
+so anything like pipelining, speculative execution, OoO execution can be done in HW without exposure to SW  
 - processing an instruction (all 6 stages) should transform architectural (or programmer visible) state (memory, registers & program counter) according to ISA specification  
 ISA defines abstractly what `AS'` should be given an instruction & `AS` and there are no intermediate states between `AS` & `AS'` during instruction execution  
 μArch implements how `AS` is transformed to `AS'`, but can have multiple programmer-invisible states to optimize the speed of instruction execution  
@@ -485,7 +486,7 @@ control signals (microinstruction) for the current state control two things: pro
 - **resolving control dependencies:**
   - **stall:** till branch resolved
   - **delayed branching:** execute instruction that is independent of branch direction
-  - **prediction:** try to guess which way a branch will go before it is definitively known, flush pipeline on misprediction
+  - **prediction:** try to guess which way a branch will go before it is definitively known, flush pipeline on mis-prediction
   - **early branch resolution:** calculate branch direction in the decode stage, needs extra hardware
   - **loop unrolling:** during compilation will reduce number of branches
 - **instruction scheduling:** order in which instructions are executed in pipeline
@@ -513,8 +514,8 @@ required because von Neumann model ISA specifies it, also aids software debuggin
 for multi-cycle machines make each operation take the same amount of time, slowest instruction latency determines all other instructions' latency but worst-case can be very high for memory operations  
 ![](./media/computer_architecture/precise_exceptions_pipelining.png)
 
-### reorder buffer
-- idea is to complete instruction execution out-of-order but reorder them before making results visible to architectural state (rollback on mispredictions), useful for multi-cycle precise exceptions  
+## reorder buffer
+- idea is to complete instruction execution out-of-order but reorder them before making results visible to architectural state (rollback on mis-predictions), useful for multi-cycle precise exceptions  
 ![](./media/computer_architecture/reorder_buffer.png)
 - **reorder buffer (ROB):** hardware structure that keeps information about all instructions that are decoded but not yet retired, working cycle is:
   - when instruction is decoded, it reserves the next-sequential entry in the ROB
@@ -540,9 +541,9 @@ ROB is not constrained by ISA interface (unlike register file), so it can be hug
 - **in-order pipeline with reorder buffer:** in-order dispatch/execution, out-of-order execution and in-order retirement  
 ![](./media/computer_architecture/reorder_buffer_inorder_pipeline.png)  
   - **decode (D):** access register file or ROB, allocate entry in ROB, check if instruction can execute, if so dispatch instruction
-    - **execute (E):** instructions can complete out-of-order
-    - **completion (R):** write result to reorder buffer
-    - **retirement (W):** check for exceptions
+  - **execute (E):** instructions can complete out-of-order
+  - **completion (R):** write result to reorder buffer
+  - **retirement (W):** check for exceptions
 
 ### history buffer
 - idea is to update the register file when instruction completes, but undo the updates when an exception occurs, working cycle is:  
@@ -560,69 +561,75 @@ but assuming exceptions are rare then HB is better for common case
   - architectural register file is updated in program order for precise exceptions and a reorder buffer used to ensure in-order updates
   - future register file is updated as soon as an instruction completes, so value is always from the youngest instruction to write the register
 - advantage over ROB is no need to read the new values from the ROB (or indirection) but in case of an exception architectural file needs to be copied to future file
-- branch mispredictions are much more common than exceptions, so to minimize the performance impact of mispredictions  
-**checkpointing:** checkpoint the future file at the time a branch is decoded and keep the checkpointed state updated with results of instructions older than the branch, but upon branch misprediction restore the checkpoint associated with the branch
+- branch mis-predictions are much more common than exceptions, so to minimize the performance impact of mis-predictions  
+**checkpointing:** checkpoint the future file at the time a branch is decoded and keep the checkpointed state updated with results of instructions older than the branch, but upon branch mis-prediction restore the checkpoint associated with the branch
 
 ## out-of-order execution
-- **out-of-order (OoO) execution:** move the dependent instructions out of the way of independent ones into resting areas, ensure that true data dependency does not stall the processor, also known as dynamic scheduling  
-monitor the source values of each instruction in resting area, dispatch/fire the instruction when all source values are available  
-instructions dispatched in dataflow (not control flow) order
+- **out-of-order (OoO) execution:** (or dynamic instruction scheduling) idea is to move the dependent instructions out of the way of independent ones to ensure that true data dependency does not stall the processor  
+dependent instructions are moved to into rest areas and monitor their source values, dispatch/fire the instruction when all source values are available  
+instructions dispatched in dataflow (not control flow) order but not exposed to ISA
+OoO execution tolerates the latency of multi-cycle operations (like memory) by executing independent operations concurrently
 - **reservation stations:** rest areas for dependent instructions or instructions waiting for hardware (adder, multiplier)
-- **example: in-order vs out-of-order execution:** assume `IMUL` takes 4 cycles and `ADD` takes 1  
-![](./media/ca_old/in_order_vs_out_of_order.png)
+- **example: in-order dispatch (ROB) vs out-of-order dispatch:** ROB gets rid of stalls due to false dependencies but a flow dependence still stalls the pipeline which OoO dispatch solves  
+example: assume `IMUL` takes 4 cycles and `ADD` takes 1, then first ADD stalls the entire pipeline  
+![](./media/computer_architecture/in_order_vs_out_of_order.png)
 - **enabling OoO execution:**
-  - need to link consumer of a value to the producer  
-  associate a tag with each data value (register renaming)  
+  - **link consumer of a value to the producer:** associate a tag (like reservation station ID) with each data value (register renaming)  
   eliminates false dependencies
-  - need to buffer instructions until they are ready to execute  
-  insert instruction into reservation stations after renaming  
+  - **buffer instructions until they are ready to execute:** insert instruction into reservation stations after renaming  
   enables the pipeline to move for independent operations
-  - instructions need to keep track of readiness of source values  
-  broadcast the tag when the value is produced, instructions compare their source tags to the broadcast tag  
+  - **keep track of readiness of source values:** broadcast the tag when the value is produced, instructions compare their source tags to the broadcast tag, if it matches then source value ready  
   enables communication of readiness of produced value between instructions
-  - when all source values of an instruction are ready, need to dispatch the instruction to its functional unit  
-  instruction wakes up if all sources are ready, if multiple instructions are awake, select one per functional unit  
+  - **dispatch the instruction to its functional unit when source values ready:** instruction wakes up if all sources are ready, if multiple instructions are awake select one per functional unit  
   enables out-of-order dispatch
-- **frontend register alias table:** an instruction updates this when it completes execution, if valid bit set data value used, if valid bit reset tag used, used for renaming
-- **architectural/backend register alias table:** an instruction updates this when it retires, always updated in program order, used for maintaining precise state  
+- **frontend register alias table:** an instruction updates this when it completes execution, if valid bit set data value used, if valid bit reset tag used, used for renaming  
+**architectural/backend register alias table:** an instruction updates this when it retires, always updated in program order, used for maintaining precise state  
 on an exception: flush pipeline, copy architectural RAT into frontend RAT
-- **OoO execution:** Tomasulo's algorithm with precise exceptions  
-two humps are reservation station (scheduling window) and reordering (instruction/active window)  
-**instruction window:** all decoded but not yet retired instruction  
-![](media/ca_old/out_of_order_execution.png)
-  - **find operand dependencies:** set tag (register renaming) if there is any dependency, else use data value directly
+- **OoO execution:** is basically Tomasulo's algorithm (out-of-order with register renaming) with precise exceptions, without precise exceptions processor was terrible to debug  
+**instruction window:** all decoded but not yet retired instruction, dataflow graph is limited to this window so latency tolerance depends on the window size  
+two humps are reservation station (scheduling window) and reordering (ROB or instruction/active window)  
+![](media/computer_architecture/out_of_order_execution.png)
+  - **find operand dependencies:** if there is any dependency set tag (register renaming), else use data value directly
   - **scheduling:** buffer instruction (with tag and/or data values) to reservation station, each functional unit has its own reservation station
   - **execute when ready:** wait for data/resource dependencies to resolve
   - **dispatch instruction if source values ready:** output tag is broadcasted when value is produced, each instruction compare their source tags to broadcasted one, instruction wakes up when source values ready
-  - **reorder output:** instruction updates output value in frontend RAT, then instruction added to reorder buffer, when instruction retires on becoming oldest instruction backend RAT will be updated
-- **example: dataflow graph from frontend RAT:**  
-![](./media/ca_old/dataflow_graph_example_1.png)  
-![](./media/ca_old/dataflow_graph_example_2.png)
-- **centralized physical register file:** data values stored at a common place (physical registers) that reservation station, frontend & backend RAT will use indirection to, eliminates the need to maintain multiple copies of data values, no need for data broadcast now but tag broadcast still needed
+  - **reorder output:** instruction updates output value in frontend RAT, then instruction added to reorder buffer  
+  backend RAT will be updated when instruction retires on becoming oldest instruction
+- **example: OoO execution:** assume 1 adder & 1 multiplier  
+![](./media/computer_architecture/out_of_order_execution_example_1.png)  
+at the end of cycle 7  
+![](./media/computer_architecture/out_of_order_execution_example_2.png)  
+dataflow graph from frontend RAT  
+![](./media/computer_architecture/out_of_order_execution_example_3.png)
+- **centralized physical register file:** data values stored at a common place (physical registers) that reservation station, frontend & backend RAT will indirect to, eliminates the need to maintain multiple copies of data values, now no need for data broadcast but tag broadcast still needed
 - **example: Pentium 4 micro-architecture:** OoO execution with centralized physical register file  
-![](./media/ca_old/out_of_order_tables_example.png)
-- **latency tolerance:** OoO execution tolerates the latency of multi-cycle operations by executing independent operations concurrently
+![](./media/computer_architecture/out_of_order_tables_example.png)
+
+### memory dependence handling
 - **register vs memory:**
-  - register dependencies known statically vs memory dependencies determined dynamically
-  - register state is small vs memory state is huge
-  - register state is not visible to other threads/processors vs shared
+  - register dependencies known statically  
+  memory dependencies determined dynamically
+  - register state is small  
+  memory state is huge
+  - register state is not visible to other threads/processors  
+  memory state shared
 - **memory dependency handling:** memory address is not known until a load/store executes (address computation)
   - renaming memory addresses is difficult (huge memory state)
-  - determining dependency/independency of load/store need to be handled after their partial execution
-  - when a load/store has its address ready, there may be older load/store with undetermined address in the machine
-- **memory disambiguation (unknown address) problem:** when a younger load can have its address ready before an store's address is known
-- **handling of store-load dependency:** a load's dependency status is not known until all previous store addresses are available
+  - determining dependency/independency of load/store need to be handled after their  partial execution (after address calculation done)
+  - when a load has its address ready, there may be older stores with unknown address in the machine  
+  similarly with a store having older loads with unknown address
+- **memory disambiguation (unknown address) problem:** when a younger load has its address ready before an store's address is known
+- **to detect store-load dependence:** a load's dependency status is not known until all previous store addresses are available
   - wait until all previous stores committed, no need to check for address match
   - keep a list of pending stores in a store buffer and check whether load address matches a previous store address
-- **when to schedule load:**
+- **scheduling a load instruction:**
   - **conservative:** stall the load until all previous stores have computed their addresses (or even retired), no need for recovery but delays independent loads unnecessarily
-  - **aggressive:** assume load is independent of unknown-address stores and schedule the load right away, simple and can be common case but recovery/re-execution of load & dependents on misprediction
-  - **intelligent:** predict (memory dependency prediction) if the load is dependent on any unknown-address store, more accurate since load store dependencies over time but still recovery on misprediction
+  - **aggressive:** assume load is independent of unknown-address stores and schedule the load right away, simple and can be common case but recovery/re-execution of load & dependents on mis-prediction
+  - **intelligent:** predict if the load is dependent on any unknown-address store, more accurate since load store dependencies over time but still recovery on mis-prediction
 - **store-to-load forwarding logic:** cannot update memory out of program order so need to buffer all store & load instructions in instruction window  
-modern processors use a load queue & a store queue for checking whether a load is dependent on a store and for forwarding data to load if it is dependent on a store  
-address & data are written to SQ (acts as store reorder buffer) after store execution  
-later when load computes its address, it searches SQ with its address (dependency on multiple SQ entries for multi-word load), access memory with its address & receive value from closest/youngest older store either from ROB or memory  
-similarly store searches LQ (for closest/oldest younger load) after it computes its address
+modern processors use a load queue (LQ) & a store queue (SQ) for checking whether a load is dependent on a store and for forwarding data to load if it is dependent on a store
+  - when a store instruction finishes execution, it writes its address & data to its ROB entry
+  - when a load computes its address, it searches SQ (multiple SQ entries for multi-word load) with its address and then receives the value from youngest (closest in queue) older store that wrote to that address
 
 ## dataflow
 - **dataflow (at ISA level):** availability of data determines order of execution, a data flow node fires when its sources are ready, programs represented as data flow graphs (of nodes)  
@@ -648,8 +655,8 @@ superscalar & out-of-order execution are orthogonal concepts, can have all 4 com
   - **multipath execution:** fetch from both possible paths, need to know the addresses of both possible paths
 - **branch problem:** control flow instructions are frequent and next fetch address after a control-flow instruction is not determined after `N` cycles (branch resolution latency) in a pipelined processor, if we are fetching `W` instructions per cycle then branch prediction leads to `N x W` wasted instruction slots  
 ![](media/ca_old/branch_prediction.png)
-- **branch misprediction penalty:** number of instructions flushed in case of misprediction  
-![](./media/ca_old/branch_misprediction_penalty.png)
+- **branch mis-prediction penalty:** number of instructions flushed in case of mis-prediction  
+![](./media/ca_old/branch_mis-prediction_penalty.png)
 - **simplest branch prediction:** always predict the next sequential instruction is the next instruction to be execution (`nextPC = PC + 4`), maximize the chances that the next sequential instruction is the next instruction to be executed, softwares (based on profiling) lays out the control flow graph such that likely next instruction is on the not-taken path of a branch, most branches are usually loops so branch not-taken
   ```cpp
   if (error)
@@ -662,7 +669,7 @@ superscalar & out-of-order execution are orthogonal concepts, can have all 4 com
   }
   ```
 - **for better instruction-per-cycle:**
-  - **reduce branch misprediction penalty (branch resolution latency):** resolve branch condition and calculate target address in earlier stages
+  - **reduce branch mis-prediction penalty (branch resolution latency):** resolve branch condition and calculate target address in earlier stages
   - **increase branch probability:** better branch prediction
 - **branch prediction:** predict the next fetch address (to be used in the next cycle)  
 target address remains the same for a conditional direct branch across dynamic instances, so store the target address in branch target buffer in a previous instance and access it with the `PC`, we need three things to be predicted at fetch stage:
@@ -692,7 +699,7 @@ target address remains the same for a conditional direct branch across dynamic i
 **pragma:** keywords that enable a programmer to convey hints to lower levels of the transformation hierarchy  
 example: `#pragma omp parallel` to direct OpenMP that loop can be parallelized
 - **run time (dynamic) prediction schemes:** predict branches based on dynamic information collected at runtime
-  - **one-bit last time predictor:** indicated which direction branch went last time it executed, single bit per branch, misprediction when branch changes behavior, always mispredicts the last & first iteration for loop branches, changes prediction too quickly  
+  - **one-bit last time predictor:** indicated which direction branch went last time it executed, single bit per branch, mis-prediction when branch changes behavior, always mispredicts the last & first iteration for loop branches, changes prediction too quickly  
   example: 0% accuracy if branch direction changes every time
   - **two-bit counter based predictor:** add hysteresis to one-bit predictor so that prediction does not change on a single different outcome, use two bits per branch to track history of predictions using saturating arithmetic counter, 2 states each for taken & not-taken, needs 2 incorrect guesses to change prediction scheme  
 ![](media/ca_old/two_bit_predictor.png)
@@ -731,7 +738,7 @@ example: instead of checking each predicate with a branch, a single branch check
   if if ((a == b) && (c < d) && (a > 5000)) { ... }
   ```
 - **predicated execution:** compiler converts control dependency to data dependency  
-each instruction has predicate bit set based on predicate computation, only instructions with predicates true are committed (others are turned into `NOP`s), enables straight line code by eliminating branches, useful for hard-to-predict branches, avoids misprediction cost (no flushing) so high performance and energy efficient, avoids misprediction cost but some instructions fetched/executed but discarded (backward branches like loops)  
+each instruction has predicate bit set based on predicate computation, only instructions with predicates true are committed (others are turned into `NOP`s), enables straight line code by eliminating branches, useful for hard-to-predict branches, avoids mis-prediction cost (no flushing) so high performance and energy efficient, avoids mis-prediction cost but some instructions fetched/executed but discarded (backward branches like loops)  
 example: convert tertiary operator using conditional move (`CMOV`)
   ```cpp
   r1 = (condition == true) ? r1 : r2
@@ -749,7 +756,7 @@ example: convert tertiary operator using conditional move (`CMOV`)
   ![](media/ca_old/predicated_execution.png)
 - **example: predicated execution in Intel Itanium:** each instruction can be separately predicated, has 64 one-bit predicate registers, each instruction carries predicate field (6-bit), instruction is effectively a `NOP` if its predicate is false  
 ![](media/ca_old/predicated_execution_itanium.png)
-- **multipath execution:** execute both paths (if you know the addresses) after a conditional branch, use for hard-to-predict branches if prediction confidence is low, improves performance is misprediction cost greater than useless work, for multiple nested branches paths followed will become exponential, duplicate work if paths merge (same instructions after branch)  
+- **multipath execution:** execute both paths (if you know the addresses) after a conditional branch, use for hard-to-predict branches if prediction confidence is low, improves performance is mis-prediction cost greater than useless work, for multiple nested branches paths followed will become exponential, duplicate work if paths merge (same instructions after branch)  
 ![](./media/ca_old/multipath_vs_predicated_execution.png)
 - **handling other branch types:**
   - **call:** easy to predict, always taken and single target address, call marked in BTB and target predicted by BTB

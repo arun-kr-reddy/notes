@@ -1,4 +1,5 @@
 # life
+- [why save money](#why-save-money)
 - [why sell RSUs on vest](#why-sell-rsus-on-vest)
 - [why not track every rupee](#why-not-track-every-rupee)
 - [why stay back in India](#why-stay-back-in-india)
@@ -6,6 +7,13 @@
 - [second brain](#second-brain)
 - [Maslow’s hierarchy](#maslows-hierarchy)
 - [quotes](#quotes)
+
+## [why save money](https://www.reddit.com/r/personalfinanceindia/comments/1ax2xrp/is_saving_money_really_worth_it/#:~:text=You'll%20learn%20to%20be,didn't%20save%20or%20invest)
+- **financial freedom:** it would be relieving to know you don't have to work and could walk away from your job if you wanted  
+- **future:** is an unknown territory with rise in inflation, AI taking over jobs etc so it’s best to save for the future while also enjoying the present  
+think about you being old & needing money being unable to work to earn, at that time only the savings/wealth will be of use
+- **[hedonic treadmill](https://www.reddit.com/r/Stoicism/comments/7ruan9/hedonic_treadmill/):** once you have met your basic needs, you can accumulate all the riches you can yet you will remain stuck at your natural usual state of happiness because the riches you gain will simply raise your expectations and leave you no better off than you were before  
+![](./media/life/hedonic_treadmill.png)
 
 ## [why sell RSUs on vest](https://www.reddit.com/r/personalfinance/comments/1ahq6t2/comment/kopijtv)
 - RSUs are basically the company giving you cash but in stock form, so if you had cash and would buy your company stock then hold on the RSUs else you should sell and diversify that money into an index fund  
