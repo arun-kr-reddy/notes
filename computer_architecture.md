@@ -13,7 +13,7 @@
   - [future file](#future-file)
 - [out-of-order execution](#out-of-order-execution)
   - [memory dependence handling](#memory-dependence-handling)
-- [dataflow](#dataflow)
+- [dataflow execution](#dataflow-execution)
 - [superscalar execution](#superscalar-execution)
 - [branch prediction](#branch-prediction)
 - [very-long instruction word](#very-long-instruction-word)
@@ -586,7 +586,7 @@ example: assume `IMUL` takes 4 cycles and `ADD` takes 1, then first ADD stalls t
 **architectural/backend register alias table:** an instruction updates this when it retires, always updated in program order, used for maintaining precise state  
 on an exception: flush pipeline, copy architectural RAT into frontend RAT
 - **OoO execution:** is basically Tomasulo's algorithm (out-of-order with register renaming) with precise exceptions, without precise exceptions processor was terrible to debug  
-**instruction window:** all decoded but not yet retired instruction, dataflow graph is limited to this window so latency tolerance depends on the window size  
+**instruction window:** all decoded but not yet retired instruction, a dataflow graph which is limited to this window (restricted dataflow) is dynamically built (so latency tolerance depends on the window size)  
 two humps are reservation station (scheduling window) and reordering (ROB or instruction/active window)  
 ![](media/computer_architecture/out_of_order_execution.png)
   - **find operand dependencies:** if there is any dependency set tag (register renaming), else use data value directly
@@ -601,7 +601,7 @@ at the end of cycle 7
 ![](./media/computer_architecture/out_of_order_execution_example_2.png)  
 dataflow graph from frontend RAT  
 ![](./media/computer_architecture/out_of_order_execution_example_3.png)
-- **centralized physical register file:** data values stored at a common place (physical registers) that reservation station, frontend & backend RAT will indirect to, eliminates the need to maintain multiple copies of data values, now no need for data broadcast but tag broadcast still needed
+- **centralized physical register file:** data values stored at a common place (physical register file) that reservation station, frontend & backend RAT will indirect to, eliminates the need to maintain multiple copies of data values, now no need for data broadcast but tag broadcast still needed
 - **example: Pentium 4 micro-architecture:** OoO execution with centralized physical register file  
 ![](./media/computer_architecture/out_of_order_tables_example.png)
 
@@ -631,7 +631,7 @@ modern processors use a load queue (LQ) & a store queue (SQ) for checking whethe
   - when a store instruction finishes execution, it writes its address & data to its ROB entry
   - when a load computes its address, it searches SQ (multiple SQ entries for multi-word load) with its address and then receives the value from youngest (closest in queue) older store that wrote to that address
 
-## dataflow
+## dataflow execution
 - **dataflow (at ISA level):** availability of data determines order of execution, a data flow node fires when its sources are ready, programs represented as data flow graphs (of nodes)  
 very good at exploiting parallelism but not enough execution units in hardware and no precise state semantics
 
