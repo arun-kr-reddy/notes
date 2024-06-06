@@ -582,7 +582,7 @@ example: assume `IMUL` takes 4 cycles and `ADD` takes 1, then first ADD stalls t
   enables communication of readiness of produced value between instructions
   - **dispatch the instruction to its functional unit when source values ready:** instruction wakes up if all sources are ready, if multiple instructions are awake select one per functional unit  
   enables out-of-order dispatch
-- **frontend register alias table:** an instruction updates this when it completes execution, if valid bit set data value used, if valid bit reset tag used, used for renaming  
+- **future/frontend register alias table:** an instruction updates this when it completes execution, if valid bit set data value used, if valid bit reset tag used, used for renaming  
 **architectural/backend register alias table:** an instruction updates this when it retires, always updated in program order, used for maintaining precise state  
 on an exception: flush pipeline, copy architectural RAT into frontend RAT
 - **OoO execution:** is basically Tomasulo's algorithm (out-of-order with register renaming) with precise exceptions, without precise exceptions processor was terrible to debug  
@@ -601,7 +601,8 @@ at the end of cycle 7
 ![](./media/computer_architecture/out_of_order_execution_example_2.png)  
 dataflow graph from frontend RAT  
 ![](./media/computer_architecture/out_of_order_execution_example_3.png)
-- **centralized physical register file:** data values stored at a common place (physical register file) that reservation station, frontend & backend RAT will indirect to, eliminates the need to maintain multiple copies of data values, now no need for data broadcast but tag broadcast still needed
+- **centralized physical register file:** data values stored at a common place (physical register file) that reservation station, frontend & backend RAT will indirect to, eliminates the need to maintain multiple copies of data values, now no need for data broadcast but tag broadcast still needed  
+![](./media/computer_architecture/centralized_physical_register_file.png)
 - **example: Pentium 4 micro-architecture:** OoO execution with centralized physical register file  
 ![](./media/computer_architecture/out_of_order_tables_example.png)
 
@@ -632,17 +633,20 @@ modern processors use a load queue (LQ) & a store queue (SQ) for checking whethe
   - when a load computes its address, it searches SQ (multiple SQ entries for multi-word load) with its address and then receives the value from youngest (closest in queue) older store that wrote to that address
 
 ## dataflow execution
-- **dataflow (at ISA level):** availability of data determines order of execution, a data flow node fires when its sources are ready, programs represented as data flow graphs (of nodes)  
-very good at exploiting parallelism but not enough execution units in hardware and no precise state semantics
+- **pure (ISA level) dataflow:** availability of data determines order of execution, a data flow node fires when its sources are ready, programs represented as data flow graphs (of nodes)  
+dataflow implementations at the μArch level (while preserving von Neumann model semantics) have been very successful (like OoO execution) but at ISA level have not been successful  
+pure dataflow is very good at exploiting irregular parallelism (only real dependencies constrain processing) but no precise state semantics which makes debugging extremely difficult
 
 ## superscalar execution
-- **superscalar execution:** fetch, decode, execute & retire multiple instructions per cycle, needs multiple copies of hardware resources  
-`N` wide superscalar means `N` instructions per cycle  
-superscalar & out-of-order execution are orthogonal concepts, can have all 4 combinations of processors: [in-order, out-of-order] x [scalar, superscalar]
-- **dependency checking:** dependencies make it tricky to issue multiple instructions at once, hardware performs the dependence checking between concurrently-fetched instructions, superscalar has vertical axis (within a pipeline stage) dependency check as well, OoO has only horizontal check (across pipeline stages)
-- **example: 2-wide superscalar execution:**  
-![](./media/ca_old/superscalar_dependency_example_1.png)  
-![](./media/ca_old/superscalar_dependency_example_2.png)
+- **superscalar execution:** fetch, decode, execute & retire multiple instructions per cycle, needs multiple copies of hardware resources (`N` wide superscalar means `N` instructions per cycle)
+- superscalar execution and out-of-order execution are orthogonal concepts  
+can have all four combinations of processors: [in-order, out-of-order] x [scalar, superscalar]
+- **dependency checking:** dependencies make it tricky to issue multiple instructions in the same cycle, hardware performs the dependence checking between concurrently-fetched instructions, superscalar has vertical axis (within a pipeline stage) dependency check as well, OoO has only horizontal check (across pipeline stages)
+- **example: 2-wide superscalar execution:** ideal case  
+![](./media/computer_architecture/superscalar_dependency_example_1.png)  
+with dependencies  
+![](./media/computer_architecture/superscalar_dependency_example_2.png)
+- higher instruction throughput but higher complexity for dependence checking as well and for a OoO superscalar processor register renaming also becomes complex
 
 ## branch prediction
 - ![](media/ca_old/branch_types.png)
