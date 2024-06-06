@@ -147,17 +147,31 @@
   ...
   return 0;
   ```
-- **goto:**
+- **goto:** dont use it unless:  
+you want to break out of nested loops without returning from the function to run some code
   ```cpp
-  int main()
+  int foo()
   {
-      goto second;
-      printf("1\n");
-  second:
-      printf("2\n");  // only prints this
+      for (int i = 0; i < 100; i++)
+      {
+          for (int j = 0; j < 100; j++)
+          {
+              if (i * j > 1000)
+              {
+                  goto done;    // break out of both loops
+              }
+          }
+      }
+
+  done:
+      cleanup();
 
       return 0;
   }
+  ```
+  asdasd
+  ```cpp
+  asdas
   ```
 - **function:**
   ```cpp
@@ -1063,7 +1077,8 @@ to link C code use:
   int enumValue = uFoo::a;  // implicit conversion
   int enumValue = sFoo::a;  // error
   ```
-- **union:** different variables of different types in same memory location
+- **union:** different variables of different types in same memory location  
+use when member variables are used in either-or but never both fashion
   ```cpp
   union unn
   {

@@ -463,6 +463,7 @@ control signals (microinstruction) for the current state control two things: pro
   - **flow (read after write):** always needs to be obeyed because they constitute true dependency on previous output value
   - **anti (write after read):** exists due to limited number of architectural registers, dependency on a (register) name only not on value
   - **output (write after write):** cause same as anti dependency
+- **control dependency:** special case of data dependency on the instruction pointer (`IP`/`PC`), for a control-flow instruction next instruction known only once branch is evaluated
 - **detecting data dependencies:** between instructions in a pipelined processor to guarantee correct execution
   - **scoreboarding:** each register in register file has associated valid bit associated with it, an instruction writing to register resets the bit, instruction in decode stage will check if all source & destination register are valid  
   just 1bit per register but need to stall for all dependencies not just flow
@@ -482,13 +483,6 @@ control signals (microinstruction) for the current state control two things: pro
   - **speculative execution:** predict the needed values then execute speculatively & verify
   - **fine-grained multithreading:** do something else
 - **resolving anti & output data dependencies:** always write to the destination only in the last stage and in program order
-- **control dependency:** special case of data dependency on the instruction pointer (`IP`/`PC`), for a control-flow instruction next instruction known only once branch is evaluated
-- **resolving control dependencies:**
-  - **stall:** till branch resolved
-  - **delayed branching:** execute instruction that is independent of branch direction
-  - **prediction:** try to guess which way a branch will go before it is definitively known, flush pipeline on mis-prediction
-  - **early branch resolution:** calculate branch direction in the decode stage, needs extra hardware
-  - **loop unrolling:** during compilation will reduce number of branches
 - **instruction scheduling:** order in which instructions are executed in pipeline
   - **static:** software based instruction scheduling, compiler orders the instruction then hardware executes them in that order, can get runtime information (like instruction latency & branch history) through profiling
   - **dynamic:** hardware based instruction scheduling, hardware can execute instruction out of the compiler-specified order, has extra runtime information like variable length operation latency, memory address, branch history
@@ -515,7 +509,7 @@ for multi-cycle machines make each operation take the same amount of time, slowe
 ![](./media/computer_architecture/precise_exceptions_pipelining.png)
 
 ## reorder buffer
-- idea is to complete instruction execution out-of-order but reorder them before making results visible to architectural state (rollback on mis-predictions), useful for multi-cycle precise exceptions  
+- idea is to complete instruction execution out-of-order but reorder them before making results visible to architectural state (rollback on mispredictions), useful for multi-cycle precise exceptions  
 ![](./media/computer_architecture/reorder_buffer.png)
 - **reorder buffer (ROB):** hardware structure that keeps information about all instructions that are decoded but not yet retired, working cycle is:
   - when instruction is decoded, it reserves the next-sequential entry in the ROB
@@ -561,8 +555,8 @@ but assuming exceptions are rare then HB is better for common case
   - architectural register file is updated in program order for precise exceptions and a reorder buffer used to ensure in-order updates
   - future register file is updated as soon as an instruction completes, so value is always from the youngest instruction to write the register
 - advantage over ROB is no need to read the new values from the ROB (or indirection) but in case of an exception architectural file needs to be copied to future file
-- branch mis-predictions are much more common than exceptions, so to minimize the performance impact of mis-predictions  
-**checkpointing:** checkpoint the future file at the time a branch is decoded and keep the checkpointed state updated with results of instructions older than the branch, but upon branch mis-prediction restore the checkpoint associated with the branch
+- branch mispredictions are much more common than exceptions, so to minimize the performance impact of mispredictions  
+**checkpointing:** checkpoint the future file at the time a branch is decoded and keep the checkpointed state updated with results of instructions older than the branch, but upon branch misprediction restore the checkpoint associated with the branch
 
 ## out-of-order execution
 - **out-of-order (OoO) execution:** (or dynamic instruction scheduling) idea is to move the dependent instructions out of the way of independent ones to ensure that true data dependency does not stall the processor  
@@ -625,8 +619,8 @@ dataflow graph from frontend RAT
   - keep a list of pending stores in a store buffer and check whether load address matches a previous store address
 - **scheduling a load instruction:**
   - **conservative:** stall the load until all previous stores have computed their addresses (or even retired), no need for recovery but delays independent loads unnecessarily
-  - **aggressive:** assume load is independent of unknown-address stores and schedule the load right away, simple and can be common case but recovery/re-execution of load & dependents on mis-prediction
-  - **intelligent:** predict if the load is dependent on any unknown-address store, more accurate since load store dependencies over time but still recovery on mis-prediction
+  - **aggressive:** assume load is independent of unknown-address stores and schedule the load right away, simple and can be common case but recovery/re-execution of load & dependents on misprediction
+  - **intelligent:** predict if the load is dependent on any unknown-address store, more accurate since load store dependencies over time but still recovery on misprediction
 - **store-to-load forwarding logic:** cannot update memory out of program order so need to buffer all store & load instructions in instruction window  
 modern processors use a load queue (LQ) & a store queue (SQ) for checking whether a load is dependent on a store and for forwarding data to load if it is dependent on a store
   - when a store instruction finishes execution, it writes its address & data to its ROB entry
@@ -646,22 +640,25 @@ can have all four combinations of processors: [in-order, out-of-order] x [scalar
 ![](./media/computer_architecture/superscalar_dependency_example_1.png)  
 with dependencies  
 ![](./media/computer_architecture/superscalar_dependency_example_2.png)
-- higher instruction throughput but higher complexity for dependence checking as well and for a OoO superscalar processor register renaming also becomes complex
+- superscalar execution gives higher instruction throughput but higher complexity for dependence checking as well and for a OoO superscalar processor register renaming also becomes complex
 
 ## branch prediction
-- ![](media/ca_old/branch_types.png)
+- ![](media/computer_architecture/branch_types.png)
 - **control dependencies handling:** critical to keep pipeline full with correct sequence of dynamic instructions
   - **stall:** the pipeline until we know the next fetch instruction
-  - **branch prediction:** guess the next fetch address
-  - **branch delay slot:** employ delayed branching
-  - **fine-grained multithreading:** do something else
-  - **predicated execution:** eliminate control-flow instructions
+  - **branch prediction:** try to guess which way a branch will go before it is definitively known, flush pipeline on misprediction
+  - **branch delay slot:** employ delayed branching by executing instructions that are independent of branch direction
+  - **fine-grained multithreading:** do something else till branch direction known
+  - **predicated execution:** eliminate control-flow instructions by converting them into data-flow instructions
   - **multipath execution:** fetch from both possible paths, need to know the addresses of both possible paths
-- **branch problem:** control flow instructions are frequent and next fetch address after a control-flow instruction is not determined after `N` cycles (branch resolution latency) in a pipelined processor, if we are fetching `W` instructions per cycle then branch prediction leads to `N x W` wasted instruction slots  
-![](media/ca_old/branch_prediction.png)
-- **branch mis-prediction penalty:** number of instructions flushed in case of mis-prediction  
-![](./media/ca_old/branch_mis-prediction_penalty.png)
-- **simplest branch prediction:** always predict the next sequential instruction is the next instruction to be execution (`nextPC = PC + 4`), maximize the chances that the next sequential instruction is the next instruction to be executed, softwares (based on profiling) lays out the control flow graph such that likely next instruction is on the not-taken path of a branch, most branches are usually loops so branch not-taken
+- **branch problem:** control flow instructions (branches) are frequent but next fetch address after a control-flow instruction is not determined after `N` cycles (branch resolution latency) in a pipelined processor  
+so if we are fetching `W` instructions per cycle (`W` wide superscalar pipeline) then branch prediction leads to `N x W` wasted instruction slots  
+![](media/computer_architecture/branch_prediction.png)
+- **branch misprediction penalty:** number of instructions flushed in case of misprediction  
+![](./media/computer_architecture/branch_misprediction_penalty.png)
+- **simplest branch prediction:** always predict the next sequential instruction is the next instruction to be execution (`PC += 4`)  
+to maximize the chances software (based on profiling) lays out the control flow graph such that likely next instruction is on the not-taken path of a branch  
+additionally most branches are usually loops (branch taken only for last iteration)
   ```cpp
   if (error)
   {
@@ -672,16 +669,15 @@ with dependencies
       // PC + 4: most likely code
   }
   ```
-- **for better instruction-per-cycle:**
-  - **reduce branch mis-prediction penalty (branch resolution latency):** resolve branch condition and calculate target address in earlier stages
-  - **increase branch probability:** better branch prediction
-- **branch prediction:** predict the next fetch address (to be used in the next cycle)  
-target address remains the same for a conditional direct branch across dynamic instances, so store the target address in branch target buffer in a previous instance and access it with the `PC`, we need three things to be predicted at fetch stage:
+- **branch prediction:** predict the next fetch address (to be used in the next cycle) to avoid misprediction penalty  
+target address remains the same for a conditional direct branch across dynamic instances, so store the target address in branch target buffer/cache (BTB) in a previous instance and index it with the `PC`  
+![](./media/computer_architecture/enhanced_branch_prediction_1.png)  
+use global branch history `XOR`ed (hashed) with `PC` to get better prediction accuracy  
+![](./media/computer_architecture/enhanced_branch_prediction_2.png)  
+we need three things to be predicted at fetch stage for early branch resolution (to avoid misprediction penalty):
   - **whether fetched instruction is a branch:** if BTB provides a target address for the `PC` then it must be a branch
   - **conditional branch direction:** branch prediction schemes used
   - **branch target address (if taken):** BTB remembers target address computed last time branch was executed
-- **example: branch prediction:** use target address if present in BTB (hit) and branch is taken else use `PC + instruction_size`, global branch history `XOR`ed (hashed) with `PC` to get better prediction accuracy  
-![](./media/ca_old/branch_prediction_fetch_stage.png)
 - **compile time (static) prediction schemes:** predict branches at compile time, cannot adapt to dynamic changes in branch behavior, this can be mitigated (but not at a fine granularity) by a dynamic compiler (like java just in time compiler) but has extra overheads
   - **always not-taken:** simple to implement, no need for BTB, no direction prediction, low accuracy, for better accuracy compiler can layout code such that the likely path is the not-taken path
   - **always taken:** no direction prediction, better accuracy, backward branch (target address lower than branch `PC`) like loops are usually taken
@@ -703,7 +699,7 @@ target address remains the same for a conditional direct branch across dynamic i
 **pragma:** keywords that enable a programmer to convey hints to lower levels of the transformation hierarchy  
 example: `#pragma omp parallel` to direct OpenMP that loop can be parallelized
 - **run time (dynamic) prediction schemes:** predict branches based on dynamic information collected at runtime
-  - **one-bit last time predictor:** indicated which direction branch went last time it executed, single bit per branch, mis-prediction when branch changes behavior, always mispredicts the last & first iteration for loop branches, changes prediction too quickly  
+  - **one-bit last time predictor:** indicated which direction branch went last time it executed, single bit per branch, misprediction when branch changes behavior, always mispredicts the last & first iteration for loop branches, changes prediction too quickly  
   example: 0% accuracy if branch direction changes every time
   - **two-bit counter based predictor:** add hysteresis to one-bit predictor so that prediction does not change on a single different outcome, use two bits per branch to track history of predictions using saturating arithmetic counter, 2 states each for taken & not-taken, needs 2 incorrect guesses to change prediction scheme  
 ![](media/ca_old/two_bit_predictor.png)
@@ -736,13 +732,13 @@ example: `#pragma omp parallel` to direct OpenMP that loop can be parallelized
   ![](./media/ca_old/delayed_branching_squashing.png)
   - f**illing delay slots:** reordering independent instructions does not change program semantics  
   ![](./media/ca_old/delayed_branching_delay_slots.png)
-- **predicate combining:** combine predicate operations to feed a single branch instruction instead of having one branch for each, complex predicates are usually converted into multiple branches  
+- **predicate combining:** combine predicate operations and test only once, complex predicates are usually converted into multiple branches  
 example: instead of checking each predicate with a branch, a single branch checks the value of the combined predicate
   ```cpp
   if if ((a == b) && (c < d) && (a > 5000)) { ... }
   ```
 - **predicated execution:** compiler converts control dependency to data dependency  
-each instruction has predicate bit set based on predicate computation, only instructions with predicates true are committed (others are turned into `NOP`s), enables straight line code by eliminating branches, useful for hard-to-predict branches, avoids mis-prediction cost (no flushing) so high performance and energy efficient, avoids mis-prediction cost but some instructions fetched/executed but discarded (backward branches like loops)  
+each instruction has predicate bit set based on predicate computation, only instructions with predicates true are committed (others are turned into `NOP`s), enables straight line code by eliminating branches, useful for hard-to-predict branches, avoids misprediction cost (no flushing) so high performance and energy efficient, avoids misprediction cost but some instructions fetched/executed but discarded (backward branches like loops)  
 example: convert tertiary operator using conditional move (`CMOV`)
   ```cpp
   r1 = (condition == true) ? r1 : r2
@@ -760,7 +756,7 @@ example: convert tertiary operator using conditional move (`CMOV`)
   ![](media/ca_old/predicated_execution.png)
 - **example: predicated execution in Intel Itanium:** each instruction can be separately predicated, has 64 one-bit predicate registers, each instruction carries predicate field (6-bit), instruction is effectively a `NOP` if its predicate is false  
 ![](media/ca_old/predicated_execution_itanium.png)
-- **multipath execution:** execute both paths (if you know the addresses) after a conditional branch, use for hard-to-predict branches if prediction confidence is low, improves performance is mis-prediction cost greater than useless work, for multiple nested branches paths followed will become exponential, duplicate work if paths merge (same instructions after branch)  
+- **multipath execution:** execute both paths (if you know the addresses) after a conditional branch, use for hard-to-predict branches if prediction confidence is low, improves performance is misprediction cost greater than useless work, for multiple nested branches paths followed will become exponential, duplicate work if paths merge (same instructions after branch)  
 ![](./media/ca_old/multipath_vs_predicated_execution.png)
 - **handling other branch types:**
   - **call:** easy to predict, always taken and single target address, call marked in BTB and target predicted by BTB
