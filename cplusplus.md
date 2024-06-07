@@ -32,6 +32,7 @@
 - template uses
 - STL
 - OOPs concepts
+- [MSVC init memory](https://stackoverflow.com/questions/127386/what-are-the-debug-memory-fill-patterns-in-visual-studio-c-and-windows)
 
 ## introduction
 - **standard I/O channels:** one input (`stdin` as `cin`) & two output (`stdout` as `cout` & `stderr` as `cerr`)
