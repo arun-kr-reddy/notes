@@ -17,13 +17,13 @@
 - [superscalar execution](#superscalar-execution)
 - [branch prediction](#branch-prediction)
 - [very-long instruction word](#very-long-instruction-word)
+- [systolic arrays](#systolic-arrays)
+- [decoupled access execute](#decoupled-access-execute)
 - [fine-grained multithreading](#fine-grained-multithreading)
 - [single instruction multiple data](#single-instruction-multiple-data)
 - [graphics processing units](#graphics-processing-units)
   - [programming](#programming)
   - [performance considerations](#performance-considerations)
-- [systolic arrays](#systolic-arrays)
-- [decoupled access execute](#decoupled-access-execute)
 - [memory organization](#memory-organization)
   - [memory hierarchy](#memory-hierarchy)
   - [cache](#cache)
@@ -228,7 +228,7 @@ so at rising/positive edge of clock `Q` get assigned `D`
   - **input:** `D` must be stable when sampled at rising clock edge  
   aperture time is the time around clock edge that data must be stable  
   ![](./media/computer_architecture/sequential_timing_input.png)  
-  **metastability:**is `D` is changing when sampled (aperture time) flip-flop output is stuck somewhere between `1` & `0`, output eventually settles non-deterministically  
+  **metastability:** if `D` is changing when sampled (aperture time) flip-flop output is stuck somewhere between `1` & `0`, output eventually settles non-deterministically  
   ![](./media/computer_architecture/metastability.png)
   - **output:** output `Q` starts changing at contamination delay clock-to-q and ends changing at propagation delay clock-to-q  
   ![](./media/computer_architecture/sequential_timing_output.png)
@@ -734,6 +734,8 @@ example: keep a record of correct & incorrect outcomes for past N instances of t
 - **delayed branching:** delay the execution of a branch by executing later instructions that are always executed regardless of branch direction (delay slots)  
 compiler finds delay slot instructions to keep the pipeline full with useful instructions but not easy to fill the delay slots so `NOP` added if compiler cannot find independent instructions  
 ![](./media/computer_architecture/delayed_branching.png)
+- **loop unrolling:** replicate loop body multiple times within an iteration, increases speed (by reducing/eliminating loop control logic) at the potential expense of its binary size (space–time tradeoff)  
+it is often counterproductive on modern processors as the increased code size can cause more cache misses
 - complex predicates are converted into multiple branches which increases the number of control dependencies  
 **predicate combining:** combine predicate operations to feed a single branch instruction instead of having one branch for each  
 each predicate stored & operated on using condition registers then a single branch checks the value of combined predicate (using condition registers)
@@ -770,35 +772,83 @@ bigger & more complex predictors are more accurate but slower
 ![](./media/computer_architecture/branch_prediction_latency.png)
 
 ## very-long instruction word
-- **very-long instruction word (VLIW):** software (compiler) finds independent instructions (insert `NOP`s if not found) and statically schedules (packs/bundles) them into a single VLIW instruction, hardware fetches & executes the instructions in the bundle concurrently  
-unlike SIMD, instructions can be logically unrelated (like `mov` & `add` together)  
-unlike superscalar execution, no need for dependency checking between concurrently-fetched instructions in the VLIW model  
-recompilation required when execution width (`N`) or instruction latencies or functional units change (unlike superscalar execution)  
-![](media/ca_old/vliw.png)
-- **lockstep (all or none) execution:** if any operation in a VLIW instruction (bundle) stalls then all operations stall  
+- **very-long instruction word (VLIW):** consists of multiple independent instructions (`NOP`s if not found) packed/bundled together by the compiler, hardware fetches & executes the instructions in the bundle concurrently  
+instructions can be logically unrelated (like `mov` & `add` together) and no need for dependency checking between concurrently-fetched instructions  
+recompilation required when execution width (`N`) or instruction latencies or functional units change  
+![](media/computer_architecture/very_large_instruction_word.png)  
+- **lockstep (all or none) execution:** if any operation in a VLIW instruction (bundle) stalls then all concurrent operations stall  
 in a truly VLIW machine, the compiler handles all dependency-related stalls and hardware does not perform dependency checking  
-so no instruction can progress until the longest-latency instruction in the bundle completes
-- **reduced instruction set computer (RISC):** compiler does the hardwork to translate high-level language code to simpler instructions, hardware does little translation/decoding  
-VLIW philosophy similar to RISC (simple instructions and hardware), compiler does the hardwork to find instruction level parallelism (ILP), hardware stays as simple & streamlined as possible
-- **example: Intel IA-64:** explicitly parallel instruction computing (EPIC) was not fully VLIW but based on VLIW principles  
+no operation can progress until the longest-latency instruction completes
+- in RISC machines compiler does the hardwork to translate high-level language code to simpler instructions, hardware does little translation/decoding  
+VLIW philosophy is similar to RISC (simple instructions and hardware), compiler does the hardwork to find instruction level parallelism (ILP), hardware stays as simple & streamlined as possible
+- **example: Intel Itanium IA-64:** explicitly parallel instruction computing (EPIC) was not fully VLIW but based on VLIW principles  
 instruction bundles can have dependent instructions, a few bits in the instruction format specify explicitly which instructions in the bundle are dependent on which other ones  
-useful because it is not easy to find independent instructions
+useful because it is not easy for compiler to find independent instructions
+
+## systolic arrays
+- **systolic array:** replace a single processing element (PE) with a regular array of PEs and carefully orchestrate flow of data between the PEs such that they collectively transform a piece of input data before outputting it to memory 
+maximizes computation done on a single piece of data element brought from memory (balanced computation and memory bandwidth)  
+similar to blood flow: heart ⟶ many cells ⟶ heart  
+![](./media/computer_architecture/systolic_array.png)
+- looks like a pipeline, but the array structure can be non-linear & multi-dimensional with PE connections being multi-directional  
+also PEs can have local memory and execute kernels rather than a piece of the instruction  
+![](./media/computer_architecture/systolic_array_multidimentional.png)
+- **example: CNN:** machine learning has hundreds of convolutional layers  
+![](./media/computer_architecture/convolutional_neural_network.png)  
+convolve input with weights determined based on training on many many images
+![](./media/computer_architecture/convolutional_neural_network_matrix_multiplication.png)  
+**systolic computation for convolution:** here weights `wi` stay the same and `xi`s & `yi`s move systolically in opposite directions  
+needs to be carefully orchestrated such that input to the array (data elements) are interleaved by one cycle and output is buffered every cycle  
+  ```cpp
+  y1 = (w1 * x1) + (w2 * x2) + (w3 * x3)
+  y2 = (w1 * x2) + (w2 * x3) + (w3 * x4)
+  y3 = (w1 * x3) + (w2 * x4) + (w3 * x5)
+  ```  
+  ![](./media/computer_architecture/systolic_computation_convolution.png)
+- **systolic array features:**
+  - **principled:** efficiently makes use of limited memory bandwidth by using each data item multiple times balancing computation to I/O bandwidth availability
+  - **specialized:** computation needs to fit PE functions and organization, not generic for arbitrary operations
+- **programmable systolic arrays:** each PE in systolic array can store multiple weights (selected on the fly), eases implementation of usecases like adaptive filtering  
+when taken further, each PE can have its own data & instruction memory
+- systolic array has lead to ideas like pipelined programs  
+**pipeline-parallel programs:** loop iterations are divided into code segments which are executed on different cores  
+used in file compression nowadays:  
+allocate buffers ⟶ read input file ⟶ compress ⟶ write output file --> deallocate  
+![](./media/computer_architecture/pipelined_programs.png)  
+- **example: tensor processing unit:** systolic data flow of the matrix multiply unit  
+software has the illusion that each 256B input is read at once and they instantly update one location of each of 256 output accumulator RAMs  
+multiply-accumulate operation moves through the matrix as a diagonal wave  
+![](./media/computer_architecture/tensor_processing_unit.png)
+
+## decoupled access execute
+- because Tomasulo's algorithm is too complex to implement  
+**decoupled access execute:** decouple operand access and execution via two separate instruction streams that communicate via ISA-visible queues  
+![](./media/computer_architecture/decoupled_access_execute.png)  
+compiler generates two instruction streams (`A` & `E`), branch instruction requires synchronization between the two  
+execute stream can run ahead of the access stream and vice versa (limited out-of-order execution without tagging, renaming, etc complexity)  
+example: if `A` is waiting for memory `E` can perform useful work, or if `A` hits in cache it supplies data to lagging `E`  
+compiler support required to partition the program and to manage the queues
+- **example: DAE code:** compile Livermore loops (parallel computers benchmark) into CRAY-1 and DAE  
+![](./media/computer_architecture/decoupled_access_execute_example.png)
+- **example: Astronautics ZS-1:** single stream steered into A & E(or X) queues, each queue/pipeline in-order  
+![](./media/computer_architecture/decoupled_access_execute_single_stream_example.png)
+- **example: DAE in Intel Pentium 4:**  
+![](./media/computer_architecture/decoupled_access_execute_pentium4_example.png)
 
 ## fine-grained multithreading
-- hardware has multiple thread contexts, switch to another thread every cycle such that no two instructions from a thread are in the pipeline concurrently  
+- **fine-grained multithreading:** hardware has multiple thread contexts (`PC` + registers) and each cycle fetch-engine fetches from a different thread such that no two instructions from a thread are in the pipeline concurrently  
 tolerates the control and data dependency latencies by overlapping the latency with useful work from other threads  
 improves pipeline utilization by taking advantage of multiple threads  
 reduced single thread performance since one instruction (from the same thread) fetched every `N` cycles  
 needs extra logic for keeping thread contexts and does not overlap latency if not enough threads to cover the whole pipeline  
-![](./media/ca_old/fine_grained_multithreading.png)  
-![](./media/ca_old/fine_grained_multithreading_example.png)
+![](./media/computer_architecture/fine_grained_multithreading.png)  
+![](./media/computer_architecture/fine_grained_multithreading_example.png)
 
 ## single instruction multiple data
-- ***to program a vector machine, the compiler or hand coder must make the data structures in the code fit nearly exactly the regular structure built in to the hardware. that's hard to do in first place, and just as hard to change. one tweak, and the low-level code has to be rewritten by a very smart and dedicated programmer who knows the hardware and often the subtleties of the application area***
 - **Flynn's taxonomy of computers:**
-  - **SISD:** single instruction operates on single data element, example: single core processor
+  - **SISD:** single instruction operates on a single data element, example: single core processor
   - **SIMD:** single instruction operates on multiple data elements, example: array & vector processor
-  - **MISD:** multiple instructions operates on single data element, example: systolic array processor, streaming processor
+  - **MISD:** multiple instructions operates on a single data element, example: systolic array processor, streaming processor
   - **MIMD:** multiple instructions operates on multiple data elements (multiple instruction streams), example: multi-core processor
 - **data parallelism:** concurrency arises from performing the same operation on different pieces of data, it is a form of instruction level parallelism where instruction happens to be the same across data  
 **contrast with data flow:** concurrency arises from executing different operations in parallel in a data driven manner  
@@ -945,7 +995,8 @@ better data layout can help minimize bank conflicts, example: transpose matrix B
 - **vector instruction level parallelism:** overlap execution of multiple vector instructions  
 example: machine has 32 elements per vector register and 8 lanes (so need 4 cycles to complete loading entire register), completes 24 operations/cycle when using all three functional codes  
 ![](./media/ca_old/vector_instruction_level_parallelism.png)
-- **automatic code vectorization:** compile-time reordering of operation sequencing, requires extensive loop dependence analysis  
+- *to program a vector machine, the compiler or hand coder must make the data structures in the code fit nearly exactly the regular structure built in to the hardware. that's hard to do in first place, and just as hard to change. one tweak, and the low-level code has to be rewritten by a very smart and dedicated programmer who knows the hardware and often the subtleties of the application area*  
+**automatic code vectorization:** compile-time reordering of operation sequencing, requires extensive loop dependence analysis  
 ![](./media/ca_old/auto_code_vectorization.png)
 
 ## graphics processing units
@@ -953,8 +1004,6 @@ example: machine has 32 elements per vector register and 8 lanes (so need 4 cycl
 - **programming model:** refers to how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
 **execution model:** refers to how the hardware executes the code underneath, example: OoO execution, vector processor, array processor  
 execution model can be very different from the programming model, example: von Neumann model implemented by OoO processor
-- **loop unrolling:** replicate loop body multiple times within an iteration, increase speed (by reducing/eliminating loop control logic) at the potential expense of its binary size (space–time tradeoff)  
-it is often counterproductive on modern processors as the increased code size can cause more cache misses
 - **example: exploit parallelism:**
   ```cpp
   for (i = 0; i < N; i++)
@@ -1175,43 +1224,6 @@ CPU-GPU data transfer ⟶ kernel execution ⟶ GPU-CPU data transfer
 ![](./media/ca_old/asynchronous_data_transfer.png)  
 applications with independent computation of different data instances (like video processing) can benefit by overlapping communication & computation  
 ![](./media/ca_old/asynchronous_data_transfer_example.png)
-
-## systolic arrays
-- **systolic array:** replace a single processing element (PE) with a regular array of PEs and carefully orchestrate flow of data between the PEs such that they collectively transform a piece of input data before outputting it to memory, maximizes computation done on a single piece of data element brought from memory, balance computation and memory bandwidth  
-![](./media/ca_old/systolic_array.png)  
-array structure can be non-linear and multi-dimensional, PE connections can be multidirectional
-- **example: CNN:** machine learning has hundreds of convolutional layers  
-![](./media/ca_old/convolutional_neural_network.png)  
-convolve input with weights (determined based on training on many images)
-![](./media/ca_old/convolutional_neural_network_matrix_multiplication.png)  
-**systolic computation for convolution:** here weights `wi` stay the same and `xi`s & `yi`s move systolically in opposite directions
-one needs to carefully orchestrate when data elements are input to the array (interleaved by one cycle) and when output is buffered (every cycle)  
-![](./media/ca_old/systolic_computation_convolution.png)  
-![](./media/ca_old/systolic_computation_convolution_equation.png)
-- **systolic array features:**
-  - **principled:** efficiently makes use of limited memory bandwidth by using each data item multiple times, balances computation to I/O bandwidth availability
-  - **specialized:** computation needs to fit PE functions and organization, not generic for arbitrary operations
-- **programmable systolic arrays:** each PE in systolic array can store multiple weights (selected on the fly), eases implementation of usecases like adaptive filtering
-- **pipelined programs:** loop iterations are divided into code segments which are executed on different cores, used in file compression nowadays:  
-allocate buffers ⟶ read input file ⟶ compress ⟶ write output file --> deallocate  
-![](./media/ca_old/pipelined_programs.png)  
-- **example: tensor processing unit:** systolic data flow of the matrix multiply unit, software has the illusion that each 256B input is read at once and they instantly update one location of each of 256 output accumulator RAMs, multiply-accumulate operation moves through the matrix as a diagonal wave  
-![](./media/ca_old/tensor_processing_unit.png)
-
-## decoupled access execute
-- **decoupled access execute:** decouple operand access and execution via two separate instruction streams that communicate via ISA-visible queues  
-was proposed because Tomasulo's algorithm is too complex  
-![](./media/ca_old/decoupled_access_execute.png)  
-compiler generates two instruction streams (`A` & `E`)  
-branch instruction requires synchronization between `A` & `E`
-execute stream can run ahead of the access stream and vice versa, example: if `A` is waiting for memory `E` can perform useful work, or if `A` hits in cache it supplies data to lagging `E`  
-limited out-of-order execution without tagging, renaming, etc complexity
-- **example: DAE code:** compile Livermore loops (parallel computers benchmark) into CRAY-1 and DAE  
-![](./media/ca_old/decoupled_access_execute_example.png)
-- **example: Astronautics ZS-1:** single stream steered into A & E(/X) queues, each queue/pipeline in-order  
-![](./media/ca_old/decoupled_access_execute_single_stream_example.png)
-- **example: DAE in Intel Pentium 4:**  
-![](./media/ca_old/decoupled_access_execute_pentium4_example.png)
 
 ## memory organization
 - physical memory size is much smaller than what the programmer assumes (infinite), system software along with hardware cooperatively ensure that this assumption holds by mapping virtual memory address to physical memory  
