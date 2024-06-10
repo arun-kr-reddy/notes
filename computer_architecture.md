@@ -848,51 +848,57 @@ needs extra logic for keeping thread contexts and does not overlap latency if no
 - **Flynn's taxonomy of computers:**
   - **SISD:** single instruction operates on a single data element, example: single core processor
   - **SIMD:** single instruction operates on multiple data elements, example: array & vector processor
-  - **MISD:** multiple instructions operates on a single data element, example: systolic array processor, streaming processor
+  - **MISD:** multiple instructions operates on a single data element, example: systolic array processor
   - **MIMD:** multiple instructions operates on multiple data elements (multiple instruction streams), example: multi-core processor
-- **data parallelism:** concurrency arises from performing the same operation on different pieces of data, it is a form of instruction level parallelism where instruction happens to be the same across data  
-**contrast with data flow:** concurrency arises from executing different operations in parallel in a data driven manner  
-**contrast with thread parallelism:** concurrency arises from executing threads of control in parallel
+- **data parallelism:** concurrency arises from performing the same operation on different pieces of data, is a form of instruction level parallelism where the instruction happens to be the same across data  
+contrast with data flow, concurrency arises from executing different operations in parallel in a data driven manner  
+contrast with thread parallelism, concurrency arises from executing different threads of control in parallel
 - **time-space duality:** single instruction operates on multiple data elements in time or in space  
-![](./media/ca_old/array_vs_vector_processor.png)
-  - **array processor:** instruction operates on multiple data elements at the same time using different spaces (functional units), example: 4 adders operates on 4 different input pairs concurrently
-  - **vector processor:** instruction operates on multiple data elements in consecutive time steps using the same space, pipelined functional units (each stage operates on a different data element)
-- **regular parallelism:** tasks are similar and have predictable dependencies, example: array processor  
-**irregular parallelism:** the tasks are dissimilar in a way that creates unpredictable dependencies, example: VLIW
+![](./media/computer_architecture/array_vs_vector_processor.png)
+  - **array processor:** instruction operates on multiple data elements at the same time using different spaces (processing elements)  
+  example: 4 adders operates on 4 different input pairs concurrently
+  - **vector processor:** instruction operates on multiple data elements in consecutive time steps using the same space, pipelined functional units where each stage operates on a different data element
 - **vector:** one-dimensional array of numbers  
 **stride:** distance in memory between two consecutive elements of a vector
 - **vector processor:** is one whose instructions operate on vectors rather than scalar (single data) values, requirements are
   - **vector data registers:** to load/store vectors, each register holds `N` number of `M`-bit values
   - **vector length register (`VLEN`):** to operate on vectors of different lengths, maximum can be `N`
-  - **vector stride register (`VSTR`):** elements of a vector might be stored apart from each other in memory, can be used to access non-consecutive elements  
+  - **vector stride register (`VSTR`):** can be used to access non-consecutive elements since elements of a vector can be stored apart from each other in memory  
 example: set `VSTR = 8` to access `A` ⟶ `A+8` ⟶ `A+16` ⟶ `A+24`
   - **vector mask register (`VMASK`):** indicates which elements of vector to operate on, set by vector test instructions
 - **vector instructions allow deeper pipelines:**
-  - no intra-vector dependencies
+  - no intra-vector dependencies so no hardware interlocking needed within a vector
   - no control flow within a vector
-  - known stride allows easy address calculation for all elements, enables prefetching into registers/cache/memory
-- **vector functional units:** use a deep pipeline to execute element operations (fast clock cycle), control of deep pipeline is simple because elements in vector are independent  
-![](media/ca_old/vector_functional_unit.png)
-- ***if you were plowing a field, which would you rather use: two strong oxen or 1024 chickens?***  
-scalar operations limit vector machine performance, here oxe is scalar processing and chicken is vector processing
-- **loading/storing vectors from/to memory:** requires loading/storing multiple elements,  elements can be loaded in consecutive cycles if we can start the load of one element per cycle  
+  - known stride allows easy address calculation for all elements, even enables prefetching into registers/cache/memory
+- **regular parallelism:** tasks are similar and have predictable dependencies, easier for SIMD to exploit, example: matrix multiplication  
+**irregular parallelism:** the tasks are dissimilar in a way that creates unpredictable dependencies, example: search key in linked list
+- memory (bandwidth) can easily become a bottleneck if:
+  - compute/memory operation balance is not maintained
+  - data is not mapped appropriately to memory banks
+- **vectorizable loops:** a loop is vectorizable if each iteration is independent of any other
+- **vector functional units:** use a deep pipeline to execute element operations (so fast clock cycle)  
+control of deep pipeline is simple because elements in vector are independent  
+![](media/computer_architecture/vector_functional_unit.png)
+- **vector chaining:** data forwarding from one vector functional unit to another  
+![](./media/computer_architecture/vector_chaining.png)
+- **example: CRAY 1 vector machine:** scalar operations limit vector machine performance  
+*if you were plowing a field, which would you rather use: two strong oxen or 1024 chickens?*  
+here oxe is scalar processing and chicken is vector processing, so a powerful vector machine needs a powerful scalar processor as well  
+![](./media/computer_architecture/vector_machine_example.png)
+- **loading/storing vectors from/to memory:** elements can be loaded in consecutive cycles if we can start the load of one element per cycle  
 if memory access takes more than 1 cycle: bank the memory and interleave the elements across banks  
 **memory banking:** memory is divided into banks that can be accessed independently, banks share address & data buses (to minimize cost)  
-can start and in parallel complete one bank access per cycle, can sustain `N` parallel accesses if all `N` go to different banks  
-![](./media/ca_old/memory_banking.png)
+can start and in parallel complete one bank access per cycle, so can sustain `N` parallel accesses if all `N` go to different banks  
+![](./media/computer_architecture/memory_banking.png)
 - **vector memory system:**  
-![](./media/ca_old/vector_memory_system.png)  
-we know `next address = previous address + stride`  
-we can sustain 1 element/cycle throughput if all three conditions are satisfied:
+![](./media/computer_architecture/vector_memory_system.png)  
+we know `next address = previous address + stride`, we can sustain 1 element/cycle throughput if:
   - stride is 1
   - consecutive elements are interleaved across banks  
-  if consecutive elements are from the same bank then second element access can be started only after first element access is completed (bank latency)
+  if consecutive elements are from the same bank then second element access can be started only after first element access is completed (after bank latency)
   - number of banks is greater than or equal to bank latency  
   starting from `0 + bank_latency` cycle we can get 1 element/cycle, ensures there are enough banks to overlap enough memory operations to cover memory latency
-- **example: scalar code element wise average:**  
-number of dynamic operations: `6 x 50 + 4 = 304` operations  
-execution time on in-order processor with 1 bank (load cannot be pipelined): `40 x 50 + 4 = 2004` cycles  
-execution time on in-order processor with 16 bank (> 11 (bank latency), first two loads can be pipelined): `30 x 50 + 4 = 1504` cycles
+- **example: element-wise average in scalar:**
   ```cpp
   // C
   for (i = 0; i < 50; i++)
@@ -912,17 +918,10 @@ execution time on in-order processor with 16 bank (> 11 (bank latency), first tw
   ST MEM[R3++] = R7     //; 11
   DECBNZ R0, X          //; 2 decrement and branch if NZ
   ```
-- **vectorizable loops:** a loop is vectorizable if each iteration is independent of any other
-- **vector chaining:** data forwarding from one vector functional unit to another  
-![](./media/ca_old/vector_chaining.png)
-- **example: vector code element wise average:**  
-number of dynamic operations: `7` operations  
-execution time with 16 banks with 1 memory port each (1 memory access at a time) but no chaining (so entire vector register needs to be ready before any element of it can be used as part of another operation):`285` cycles  
-![](./media/ca_old/vector_average_example_1.png)  
-execution time with 16 bank with 1 memory port each with chaining :`182` cycles  
-![](./media/ca_old/vector_average_example_2.png)  
-execution time with 16 bank with 2 load ports and 1 store port each (2 load + 1 store at once) with chaining:`79` cycles  
-![](./media/ca_old/vector_average_example_3.png)
+  number of dynamic operations: `6 x 50 + 4 = 304` operations  
+  execution time on in-order processor with 1 bank (load cannot be pipelined): `40 x 50 + 4 = 2004` cycles  
+  execution time on in-order processor with 16 bank (> 11 bank latency so first two loads can be pipelined): `30 x 50 + 4 = 1504` cycles
+- **example: element-wise average in vector:**
   ```cpp
   // vector ASM
   MOVI VLEN = 50        //; 1
@@ -933,13 +932,18 @@ execution time with 16 bank with 2 load ports and 1 store port each (2 load + 1 
   VSHFR V3 = V2 >> 1    //; 1 + VLEN - 1
   VST C = V3            //; 11 + VLEN – 1
   ```
-- **vector stripmining:** if number of data elements is larger than `VLEN` then break loops so that each iteration operates on `VLEN` elements in a vector register  
+  number of dynamic operations: `7` operations  
+  execution time with 16 banks with 1 memory port each (1 memory access at a time) but no chaining (entire vector register needs to be ready before any element can be used):`285` cycles  
+  ![](./media/computer_architecture/vector_average_example_1.png)  
+  execution time with 16 bank with 1 memory port each with chaining :`182` cycles  
+  ![](./media/computer_architecture/vector_average_example_2.png)  
+  execution time with 16 bank with 2 load ports and 1 store port each (2 load + 1 store at once) with chaining:`79` cycles  
+  ![](./media/computer_architecture/vector_average_example_3.png)
+- **vector stripmining:** if number of data elements is larger than `VLEN` then break loops such that each iteration operates on `VLEN` elements in a vector register  
 example: for 527 elements and 64-element registers, 8 iterations where `VLEN == 64`, last iteration where `VLEN == 15`
-- **scatter/gather operations:** use indirection to combine/pack elements into vector registers if vector data is not stored in a strided fashion in memory, example: `A[i] = B[i] + C[D[i]]`  
-vector load/store use an index vector which is added to the base register to generate the addresses  
-**sparse vector:** vector having a relatively small number of non-zero elements, used to implement gather/scatter operations  
+- **scatter/gather operations:** if vector data is not stored in a strided fashion in memory then use indirection to combine/pack elements into vector registers, example: `A[i] = B[i] + C[D[i]]`  
 gather is for loading data and scatter is for storing data  
-![](./media/ca_old/vector_scatter_gather_operations.png)
+vector load/store can use an index vector which will be added to the base register to generate the addresses  
   ```cpp
   // C
   for (i = 0; i < N; i++)
@@ -954,9 +958,9 @@ gather is for loading data and scatter is for storing data
   ADDV.D vA, vB, vC  //; do addition
   SV vA, rA          //; store result
   ```
-- **masked operations:** if some operations should not be executed on a vector based on a dynamically determined condition  
-`VMASK` register is a bit mask determining which data element should not be acted upon  
-this is predicated execution, execution predicated on mask bit
+  ![](./media/computer_architecture/vector_scatter_gather_operations.png)
+- **masked operations:** used if some elements should not be executed on based on a dynamically determined condition  
+`VMASK` register is a bit mask determining which data element should not be acted upon, this is predicated execution (predicated on mask bit)
   ```cpp
   // C
   for (i = 0; i < N; i++)
@@ -976,28 +980,28 @@ this is predicated execution, execution predicated on mask bit
   ```
 - **masked vector instructions implementations:**
   - **simple:** execute all N operations, turn off result writeback according to mask  
-![](./media/ca_old/vector_masked_instruction_simple.png)
+  no need to change pipeline but operated on values we don't need  
+![](./media/computer_architecture/vector_masked_instruction_simple.png)
   - **density-time:** scan mask vector and only execute elements with non-zero masks  
-![](./media/ca_old/vector_masked_instruction_density_time.png)
-- **storage of a matrix:**  
-![](./media/ca_old/row_column_major.png)
+![](./media/computer_architecture/vector_masked_instruction_density_time.png)
+- **matrix storage format:**  
+![](./media/computer_architecture/row_column_major.png)
   - **row major:** consecutive elements in a row are laid out consecutively in memory
   - **column major:** consecutive elements in a column are laid out consecutively in memory
-- **stride with banking:** we can sustain 1 element/cycle throughput as long as they are co-primes (no common factors except 1) and there are enough banks to cover bank access latency
+- **stride with banking:** we can sustain 1 element/cycle throughput as long as stride & number of banks are co-primes (no common factors except 1) and there are enough banks to cover bank access latency
 - **example: matrix multiply:** considering two matrices (`4 x 6`, `6 x 10`) stored in row major format  
-when loading A0 memory accesses stride will be 1, but will be 10 for B0, different strides can  lead to bank conflicts (if not co-primes)  
-better data layout can help minimize bank conflicts, example: transpose matrix B to get stride 1  
-![](./media/ca_old/matrix_multiplication_example.png)
+assuming we have 10 banks, A0 memory accesses (stride 1) will be from different banks and B0 (stride 10) from same bank, so better data layout can help minimize bank conflicts, example: transpose matrix B to get stride 1  
+![](./media/computer_architecture/matrix_multiplication_example.png)
 - modern SIMD processors exploit data parallelism in both time & space  
-![](./media/ca_old/time_space_duality_example.png)
+![](./media/computer_architecture/time_space_duality_example.png)
 - **vector unit structure:**  
-![](./media/ca_old/vector_unit_structure.png)
+![](./media/computer_architecture/vector_unit_structure.png)
 - **vector instruction level parallelism:** overlap execution of multiple vector instructions  
 example: machine has 32 elements per vector register and 8 lanes (so need 4 cycles to complete loading entire register), completes 24 operations/cycle when using all three functional codes  
-![](./media/ca_old/vector_instruction_level_parallelism.png)
+![](./media/computer_architecture/vector_instruction_level_parallelism.png)
 - *to program a vector machine, the compiler or hand coder must make the data structures in the code fit nearly exactly the regular structure built in to the hardware. that's hard to do in first place, and just as hard to change. one tweak, and the low-level code has to be rewritten by a very smart and dedicated programmer who knows the hardware and often the subtleties of the application area*  
 **automatic code vectorization:** compile-time reordering of operation sequencing, requires extensive loop dependence analysis  
-![](./media/ca_old/auto_code_vectorization.png)
+![](./media/computer_architecture/auto_code_vectorization.png)
 
 ## graphics processing units
 - GPU instruction pipeline operates like a SIMD pipeline, but the programming is done using threads (not SIMD instructions)
