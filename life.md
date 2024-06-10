@@ -1,5 +1,6 @@
 # life
 - [why save money](#why-save-money)
+- [why wake up early](#why-wake-up-early)
 - [why sell RSUs on vest](#why-sell-rsus-on-vest)
 - [why not track every rupee](#why-not-track-every-rupee)
 - [why stay back in India](#why-stay-back-in-india)
@@ -14,6 +15,11 @@
 think about you being old & needing money being unable to work to earn, at that time only the savings/wealth will be of use
 - **[hedonic treadmill](https://www.reddit.com/r/Stoicism/comments/7ruan9/hedonic_treadmill/):** once you have met your basic needs, you can accumulate all the riches you can yet you will remain stuck at your natural usual state of happiness because the riches you gain will simply raise your expectations and leave you no better off than you were before  
 ![](./media/life/hedonic_treadmill.png)
+
+## [why wake up early](https://www.reddit.com/r/getdisciplined/comments/5fw8ho/advice_waking_up_early_will_change_your_life/)
+- waking up at at 0600 is going to provide you with so much more time than the rest of the world  
+our energy runs much like a battery, at the very beginning of the day it is full so make use of that full energy
+- some type of movement in your morning routine is going to allow your body to truly wake up allowing the feel good endorphins to flood your system and will also help boost your metabolism for the day
 
 ## [why sell RSUs on vest](https://www.reddit.com/r/personalfinance/comments/1ahq6t2/comment/kopijtv)
 - RSUs are basically the company giving you cash but in stock form, so if you had cash and would buy your company stock then hold on the RSUs else you should sell and diversify that money into an index fund  

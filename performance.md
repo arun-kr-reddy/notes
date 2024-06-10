@@ -14,6 +14,7 @@
 ## todo  <!-- omit from toc -->
 - [[lectures] performance engineering of software systems](https://ocw.mit.edu/courses/6-172-performance-engineering-of-software-systems-fall-2018/)
 - [[lectures] gpu programming](http://www.cse.iitm.ac.in/~rupesh/teaching/gpu/jan22/)
+  - [parallel patterns](https://link.springer.com/chapter/10.1007/978-1-4842-5574-2_14)
 - SIMD - NEON & Hexagon DSP
   - intrinsic or assembly instructions
   - [halide library](https://halide-lang.org/)

@@ -19,11 +19,9 @@
 - [very-long instruction word](#very-long-instruction-word)
 - [systolic arrays](#systolic-arrays)
 - [decoupled access execute](#decoupled-access-execute)
-- [fine-grained multithreading](#fine-grained-multithreading)
 - [single instruction multiple data](#single-instruction-multiple-data)
+- [fine-grained multithreading](#fine-grained-multithreading)
 - [graphics processing units](#graphics-processing-units)
-  - [programming](#programming)
-  - [performance considerations](#performance-considerations)
 - [memory organization](#memory-organization)
   - [memory hierarchy](#memory-hierarchy)
   - [cache](#cache)
@@ -835,15 +833,6 @@ compiler support required to partition the program and to manage the queues
 - **example: DAE in Intel Pentium 4:**  
 ![](./media/computer_architecture/decoupled_access_execute_pentium4_example.png)
 
-## fine-grained multithreading
-- **fine-grained multithreading:** hardware has multiple thread contexts (`PC` + registers) and each cycle fetch-engine fetches from a different thread such that no two instructions from a thread are in the pipeline concurrently  
-tolerates the control and data dependency latencies by overlapping the latency with useful work from other threads  
-improves pipeline utilization by taking advantage of multiple threads  
-reduced single thread performance since one instruction (from the same thread) fetched every `N` cycles  
-needs extra logic for keeping thread contexts and does not overlap latency if not enough threads to cover the whole pipeline  
-![](./media/computer_architecture/fine_grained_multithreading.png)  
-![](./media/computer_architecture/fine_grained_multithreading_example.png)
-
 ## single instruction multiple data
 - **Flynn's taxonomy of computers:**
   - **SISD:** single instruction operates on a single data element, example: single core processor
@@ -1000,52 +989,42 @@ assuming we have 10 banks, A0 memory accesses (stride 1) will be from different 
 example: machine has 32 elements per vector register and 8 lanes (so need 4 cycles to complete loading entire register), completes 24 operations/cycle when using all three functional codes  
 ![](./media/computer_architecture/vector_instruction_level_parallelism.png)
 - *to program a vector machine, the compiler or hand coder must make the data structures in the code fit nearly exactly the regular structure built in to the hardware. that's hard to do in first place, and just as hard to change. one tweak, and the low-level code has to be rewritten by a very smart and dedicated programmer who knows the hardware and often the subtleties of the application area*  
-**automatic code vectorization:** compile-time reordering of operation sequencing, requires extensive loop dependence analysis  
+**automatic code vectorization:** compile-time reordering of operation sequencing, this requires extensive loop dependence analysis  
 ![](./media/computer_architecture/auto_code_vectorization.png)
 
+## fine-grained multithreading
+- **fine-grained multithreading:** hardware has multiple thread contexts (`PC` + registers) and each cycle fetch-engine fetches from a different thread such that no two instructions from a thread are in the pipeline concurrently  
+tolerates the control and data dependency latencies by overlapping the latency with useful work from other threads  
+improves pipeline utilization by taking advantage of multiple threads  
+improves thread-level throughput but sacrifices single thread performance (one instruction fetched every `N` cycles)  
+needs extra logic for keeping thread contexts and does not overlap latency if not enough threads to cover the whole pipeline  
+![](./media/computer_architecture/fine_grained_multithreading.png)  
+![](./media/computer_architecture/fine_grained_multithreading_example.png)
+
 ## graphics processing units
-- GPU instruction pipeline operates like a SIMD pipeline, but the programming is done using threads (not SIMD instructions)
-- **programming model:** refers to how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
-**execution model:** refers to how the hardware executes the code underneath, example: OoO execution, vector processor, array processor  
+- GPU instruction pipeline operates like a SIMD pipeline underneath, but the programming is done using threads (not SIMD instructions)
+- **programming model:** how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
+**execution model:** how the hardware executes the code underneath, example: OoO execution, vector processor, array processor  
 execution model can be very different from the programming model, example: von Neumann model implemented by OoO processor
-- **example: exploit parallelism:**
-  ```cpp
-  for (i = 0; i < N; i++)
-  {
-      C[i] = A[i] + B[i];
-  }
-  ```
-  - **sequential (SISD):** code implemented as-is, can be executed on a pipelined processor, OoO execution processor or superscalar/VLIW processor  
-  in OoO processor different iterations are present in the instruction window and can execute in parallel in multiple functional units (loop dynamically unrolled by hardware)
-  - **data parallel (SIMD):** programmer/compiler generates a SIMD instruction to execute the same instruction from all iterations across different data  
-  can be executed on a vector or array processor
-  - **multi-threaded (MIMD):** programmer/compiler generates a thread to execute each iteration, each thread does the same thing but on different data  
-  can be executed on a MIMD machine  
-  ![](./media/ca_old/multi_threaded_parallelism_example.png)
-- **single program multiple data (SPMD):** programming model where each processing element executes the same procedure on different data elements, procedures can synchronize at certain points in program using barriers, each program can execute a different control-flow path at runtime, run on MIMD hardware  
-**single instruction multiple thread (SIMT):** execution model to run SPMD programs, Nvidia terminology
-- GPUs is a SIMD engine underneath, except it is programmed using threads (SPMD programmingmodel) not SIMD instructions  
-each thread executes the same code but operates on a different piece of data, each thread has its own context, so can be treated/restarted/executed independently  
-**warp (wavefront):** dynamic grouping of threads that execute same instruction (same `PC`) on different data elements, warp is essentially a SIMD operation formed by hardware, warp is Nvidia terminology & wavefront AMD  
-analogous to threads that run lengthwise in a woven fabric  
-warps can be interleaved on the same pipeline (FGMT of warps)  
-![](./media/ca_old/gpu_warp.png)
-- **example: SPMD on SIMT machine:**  
-![](./media/ca_old/gpu_spmd_on_simt.png)
-- **SIMD vs SIMT:** single sequential instruction stream of SIMD instructions vs multiple instruction streams of scalar operations
-- **SIMT advantages:**
-  - **can treat each thread separately:** can execute each thread independently on any type of scalar pipeline (MIMD processing)
-  - **can group threads into warps flexibly:** can group threads that are supposed to truly execute the same instruction, dynamically obtain & maximize benefits of SIMD processing
+- **single program multiple data (SPMD):** programming model where each thread (processing element) executes the same procedure but on different data elements  
+procedures can synchronize at certain points in program using barriers and each program can execute a different control-flow path at runtime  
+single instruction multiple thread (SIMT) is Nvidia terminology for SPMD programs
+- GPUs are programmed using threads (SPMD) with each thread having its own context, so they can be treated/restarted/executed independently  
+**warp (wavefront):** dynamic grouping of threads that execute same instruction (same `PC`) on different data elements, is essentially a SIMD operation formed by hardware & is not exposed to the programmer  
+warp is Nvidia terminology and wavefront AMD  
+- **SIMD vs SIMT:** single sequential instruction stream of SIMD instructions vs multiple instruction streams of scalar operations  
+**advantages of SIMT over SIMD:**
+  - **treat each thread separately:** can execute each thread independently on any type of scalar pipeline (FGMT of warps)
+  - **group threads into warp flexibly:** can group threads that are supposed to truly execute the same instruction (dynamic warp formation/merging)
 - **GPU high-level view:** each scalar pipeline corresponds to one vector lane of an array processor  
-![](./media/ca_old/gpu_high_level.png)
-- **latency hiding via warp-level FGMT:** one instruction per thread in pipeline at a time (no interlocking)  
-interleave warp execution to hide latencies, FGMT enables long latency tolerance (like cache miss data load)  
-![](./media/ca_old/gpu_latency_hiding.png)
-- **SIMD execution unit structure:**  
-![](./media/ca_old/simd_execution_unit_structure.png)
-- **warp instruction level parallelism:** in modern GPU's for a given warp we cannot issue next instruction until previous load is done (no forwarding), so next instruction issue for a different warp  
-![](./media/ca_old/warp_intruction_level_parallelism.png)
-- **example: vector add GPU programming:**
+![](./media/computer_architecture/gpu_high_level.png)
+- **FGMT of warps:** warps can be interleaved on the same pipeline  
+![](./media/computer_architecture/gpu_warp_fgmt.png)  
+**latency hiding:** interleave warp execution to hide latencies by having one instruction per thread in the pipeline at a time (no HW interlocking), enables long latency tolerance (like cache miss or data load)  
+![](./media/computer_architecture/gpu_latency_hiding.png)
+- **warp instruction level parallelism:** with no data forwarding, for a given warp we cannot issue next instruction until previous load is done, so next instruction issue will be for a different warp  
+![](./media/computer_architecture/warp_intruction_level_parallelism.png)
+- **example: vector add:**
   ```cpp
   // C
   for (ii = 0; ii < 100000; ++ii)
@@ -1056,178 +1035,26 @@ interleave warp execution to hide latencies, FGMT enables long latency tolerance
   // CUDA
   __global__ void KernelFunction(…)
   {
-      int tid = blockDim.x * blockIdx.x + threadIdx.x;
+      int tid  = blockDim.x * blockIdx.x + threadIdx.x;
       int varA = aa[tid];
       int varB = bb[tid];
-      C[tid] = varA + varB;
+      C[tid]   = varA + varB;
   }
   ```
-- traditional SIMD contains a single thread, warp-based SIMD consists of multiple scalar threads executing in a SIMD manner
 - **SIMD utilization:** fraction of SIMD lanes executing a useful
 operation
-- **control flow problem:** each thread can execute different control flow paths but they have a common PC  
-![](./media/ca_old/gpu_control_flow_paths.png)  
-**branch divergence:** when threads inside warps branch to different execution paths  
-resolved using masked execution (similar to masked vector operations)  
-![](./media/ca_old/gpu_control_flow_masked_execution.png)  
-executing both paths for all warps reduces SIMD utilization, instead we can find individual threads that are at the same PC and group them together into a single warp dynamically, this reduces divergence and improves utilization
-- **dynamic warp formation/merging:** dynamically merge threads executing the same instruction after branch divergence  
-form new warps from warps that are waiting, enough threads branching to each path enables the creation of full new warps  
-![](./media/ca_old/dynamic_warp_merging_1.png)  
-![](./media/ca_old/dynamic_warp_merging_2.png)
+- **control flow problem:** each thread can have conditional control flow instructions (& paths) but they need to have a common PC  
+![](./media/computer_architecture/gpu_control_flow_paths.png)  
+**branch divergence:** occurs when threads inside warps branch to different execution paths  
+can be resolved using masked execution (similar to masked vector operations)  
+![](./media/computer_architecture/gpu_control_flow_masked_execution.png)
+- executing both paths for all warps reduces SIMD utilization, instead we can find individual threads that are at the same PC and group them together into a single warp dynamically, this reduces divergence and improves utilization  
+**dynamic warp formation/merging:** dynamically merge threads executing the same instruction after branch divergence by forming new warps from warps that are waiting  
+![](./media/computer_architecture/dynamic_warp_merging_1.png)  
+enough threads branching to each path enables the creation of full new warps  
+![](./media/computer_architecture/dynamic_warp_merging_2.png)
 - **example: dynamic warp formation:**  
-![](./media/ca_old/dynamic_warp_merging_example.png)
-
-### programming
-- easier programming of SIMD processors with SPMD programming model  
-GPUs have democratized high performance computing, since many workloads like matrices or image processing exhibit inherent parallelism  
-but new programming model and algorithms need to be re-implemented & rethought  
-and still some bottlenecks like CPU-GPU data transfer (PCIe) and DRAM memory bandwidth (GDDR5) exist
-- CPU has few OoO cores, GPU has many in-order FGMT cores  
-![](./media/ca_old/cpu_vs_gpu.png)
-- **GPU computing:** computation is offloaded to the GPU, has three steps:  
-![](./media/ca_old/gpu_computing.png)
-  - CPU-GPU data transfer
-  - GPU kernel execution
-  - GPU-CPU data transfer
-- **traditional program structure:** sequential (or modestly parallel) sections on CPU, massively parallel sections on GPU  
-![](./media/ca_old/gpu_traditional_program_structure.png)
-- **CUDA/OpenCL programming model:** global/coarse-grain synchronization between kernels (bulk synchronous programming)  
-host (CPU) allocates memory, copies data and launches kernels  
-device (GPU) executes kernels over grids (NDRange), blocks (work group) & threads (work item), within a block synchronization and shared memory available
-- **transparent scalability:** hardware is free to schedule thread blocks, each block can execute in any order relative to other blocks  
-![](./media/ca_old/transparent_scalability.png)
-- **example: Nvidia Tesla architecture:** group/warp of 8 threads share instruction stream, upto 32 warps are interleaved in a FGMT manner, upto 1024 thread contexts can be stored (in the registers)  
-streaming multi processors (SM) or compute units (CU) are SIMD pipelines  
-streaming processor (SP) or CUDA cores are vector lanes  
-30 SMs x 8 SPs  
-![](./media/ca_old/gpu_nvidia_tesla.png)
-- **example: Nvidia Fermi architecture:** specialized load store units  
-16 SMs x 32 SPs  
-![](./media/ca_old/gpu_nvidia_fermi.png)
-- **memory hierarchy:**  
-![](./media/ca_old/gpu_memory_hierarchy.png)
-- **traditional CUDA program structure:**
-  - define kernel `__global__ void kernel(...)`  
-  local variables go to local memory or registers, shared memory using `__shared__`  
-  intra-block synchronization using `__syncthreads()`
-  - allocate memory on device using `cudaMalloc((void**)&d_in, num_bytes)`
-  - transfer data from host to device using `cudaMemcpy(d_in, h_in, num_bytes, cudaMemcpyHostToDevice)`
-  - execution configuration setup `num_blocks` & `num_threads`
-  - kernel call `kernel<<<num_blocks, num_threads>>>(args)`
-  - transfer results from device to host using `cudaMemcpy(h_in, d_in, num_bytes, cudaMemcpyDeviceToHost)`
-  - deallocate memory `cudaFree(d_in)`
-  - use explicit synchronization `cudaDeviceSynchronize()` to make sure execution is done, useful for profiling
-- **images layout in memory:** images are 2D data structures but in a row-major memory layout will be accessed as `image[j][i] = image[j x width + i]`  
-![](./media/ca_old/image_2d.png)  
-![](./media/ca_old/image_1d.png)
-- **indexing and memory access:** assuming one GPU thread per pixel, grid of block of threads
-  - **1D:**  
-  ![](./media/ca_old/image_indexing_1D.png)
-  - **2D:**  
-  ![](./media/ca_old/image_indexing_2D.png)
-
-### performance considerations
-- **latency hiding:** FGMT can hide long latency operations like memory accesses  
-![](./media/ca_old/latency_hiding.png)  
-**occupancy:** ratio of active warps to maximum possible number of warps, calculated using:
-  - number of threads per block (defined by programmer)
-  - registers per thread (known at compile time)
-  - shared memory per block (defined by programmer)
-- **memory coalescing:** concurrent threads access nearby memory locations when accessing global memory, peak memory bandwidth utilization occurs when all threads in a warp access one cache line  
-![](./media/ca_old/memory_coalescing.png)
-- **example: uncoalesced memory access:**  
-![](./media/ca_old/memory_uncoalesced.png)
-- **example: coalesced memory access:**  
-![](./media/ca_old/memory_coalesced.png)
-- **AoS vs SoA:** GPUs prefer structure-of-arrays because each thread in a warp will access same cache line  
-CPUs prefer array-of-structures because for a particular thread all the required data will be on the same cache line  
-![](./media/ca_old/soa_aos.png)
-- **data reuse (tiling):** same memory locations accessed by neighboring threads, so to take advantage of data reuse we divide the input into tiles that can be loaded into shared memory  
-example: for `3x3` kernel, 1 output pixel needs 9 pixels, but can output 4 pixels by keeping 16 pixels in shared memory  
-use `__syncthreads()` after each thread in a warp is done loading data into the shared memory  
-![](./media/ca_old/tiling_1.png)
-![](./media/ca_old/tiling_2.png)
-- **shared memory:** is an banked memory, each bank can service one address per cycle  
-typically 32 banks in Nvidia GPUs, successive 32bit words are assigned to successive banks, `bank = address % 32`
-- **shared memory bank conflicts:** only possible within a warp  
-![](./media/ca_old/shared_memory_bank_conflict_1.png)  
-![](./media/ca_old/shared_memory_bank_conflict_2.png)  
-assume stride is equal to number of banks, here padding (unused cells) can help with reducing bank conflicts  
-![](./media/ca_old/shared_memory_bank_conflict_padding.png)
-- **example: reducing divergences:** even-odd threads
-  ```cpp
-  // intra warp divergence
-  compute(threadIdx.x);
-  if (threadIdx.x % 2 == 0)
-  {
-      do_this(threadIdx.x);
-  }
-  else
-  {
-      do_that(threadIdx.x);
-  }
-  ```  
-  ![](./media/ca_old/reducing_divergence_1.png)
-  ```cpp
-  // divergence free execution
-  // all if (or else) threads belong to the same warp
-  compute(threadIdx.x);
-  if (threadIdx.x < 32)
-  {
-      do_this(threadIdx.x * 2);
-  }
-  else
-  {
-      do_that((threadIdx.x % 32) * 2 + 1);
-  }
-  ```  
-  ![](./media/ca_old/reducing_divergence_2.png)
-- **example: increasing SIMD utilization:** vector reduction
-  ```cpp
-  // low SIMD utilization
-  __shared__ float partialSum[];
-
-  unsigned int t = threadIdx.x;
-
-  for (int stride = 1; stride < blockDim.x; stride *= 2)
-  {
-      __syncthreads();
-
-      if (t % (2 * stride) == 0)  // issue
-          partialSum[t] += partialSum[t + stride];
-  }
-  ```  
-  ![](./media/ca_old/simd_utilization_1.png)
-  ```cpp
-  // high SIMD utilization
-  // all active threads belong to the same warp
-  __shared__ float partialSum[];
-
-  unsigned int t = threadIdx.x;
-
-  for (int stride = blockDim.x; stride > 1; stride >> 1)
-  {
-      __syncthreads();
-
-      if (t < stride)  // fix
-          partialSum[t] += partialSum[t + stride];
-  }
-  ```  
-  ![](./media/ca_old/simd_utilization_2.png)
-- **atomic operations:** are needed when threads might update the same memory locations at the same time  
-**conflict degree:** number of threads in a warp that update the same memory position  
-![](./media/ca_old/atomic_conflicts.png)
-- **example: histogram calculation:** histograms count the number of data instances in disjoint categories, but frequent conflicts in natural images  
-![](./media/ca_old/histogram_calculation.png)  
-**privatization:** per-block sub-histograms in shared memory to reduce atomic shared memory latency adding up  
-![](./media/ca_old/histogram_calculation_privatization.png)
-- **stream (command queue):** sequence of operations that are performed in order  
-CPU-GPU data transfer ⟶ kernel execution ⟶ GPU-CPU data transfer
-- **asynchronous data transfer:** between CPU & GPU, computation divided into `nStreams`  
-![](./media/ca_old/asynchronous_data_transfer.png)  
-applications with independent computation of different data instances (like video processing) can benefit by overlapping communication & computation  
-![](./media/ca_old/asynchronous_data_transfer_example.png)
+![](./media/computer_architecture/dynamic_warp_merging_example.png)
 
 ## memory organization
 - physical memory size is much smaller than what the programmer assumes (infinite), system software along with hardware cooperatively ensure that this assumption holds by mapping virtual memory address to physical memory  
