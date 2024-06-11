@@ -1110,28 +1110,29 @@ two bitlines will be complement of each other, if they are same then system will
   - pre-charge bitlines for next access (like DRAM refresh)
 
 ### memory hierarchy
-- ![](./media/ca_old/memory_hierarchy_example.png)  
-![](./media/ca_old/memory_hierarchy_modern_example.png)
 - ideal memory would have zero access time (latency), infinite capacity, zero cost and infinite bandwidth to support multiple accesses in parallel  
-but practically these requirements oppose each other, bigger is slower (longer to determine the location), faster is more expensive (SRAM vs DRAM), higher bandwidth is more expensive (more banks, more ports, higher frequency)
-- **memory hierarchy:** multiple levels of memory which gets progressively bigger & slower as the levels get farther from the processor, ensure most of the data the processor needs is kept in the faster levels  
-basically large slow memory with small fast memory  
-last level cache (LLC): farthest away cache  
-![](./media/ca_old/memory_hierarchy.png)
+but practically these requirements oppose each other: bigger is slower (longer to determine the location), faster is more expensive (SRAM vs DRAM), higher bandwidth is more expensive (more banks, more ports, higher frequency)
+- so both fast & large cannot be achieved with a single level of memory  
+**memory hierarchy:** multiple levels of memory which gets progressively bigger & slower as the levels get farther from the processor while ensuring most of the data the processor needs is kept in the faster levels  
+fundamental tradeoff is small fast memory vs large slow memory  
+**last level cache (LLC):** farthest away cache  
+![](./media/computer_architecture/memory_hierarchy.png)
 - **locality of reference:** is the tendency of a program to access the same set of memory locations repetitively over a short period of time (like in loops)
   - **temporal:** reuse of specific data within a relatively small time duration, locality in time  
-  to exploit store recently accessed data in cache in anticipation that the data will be accessed again
+  to exploit: store recently accessed data (in fast memory) in anticipation that the data will be accessed again
   - **spatial:** use of data elements within relatively close storage locations, locality in space (like instruction fetch or traversing an array)  
-  to exploit divide memory into equal size blocks and store the recently accessed block in its entirety in cache
-- cache needs to be tightly integrated into the pipeline (ideally 1-cycle access to prevent stall), but cannot have a large cache in a high frequency pipeline due to longer cycle time so cache hierarchy is used instead, it can be managed:
-  - **manual:** programmer manages data movement across cache levels, too painful for programmers on substantial programs  
-  example: on-chip scratchpad memory in embedded processors and shared memory in GPUs
-  - **automatic:** hardware manages data movement across levels, programmer's life is easier since average programmer doesn't need to know about it
+  to exploit: divide memory into equal size blocks and store the recently accessed block in its entirety
 
 ### cache
 - **cache:** any structure that memorizes frequently used results to avoid repeating the long-latency operations required to reproduce the results from scratch  
 in processor context it is an automatically managed memory structure based on SRAM, memorizes the most frequently accessed DRAM memory locations to avoid repeatedly paying for DRAM access latency  
 divided into
+- **caching in a pipelined design:** cache needs to be tightly integrated into the pipeline (ideally 1-cycle access to prevent stall)  
+but cannot have a large cache in a high frequency pipeline due to longer cycle time so cache hierarchy is used which can be managed:
+  - **manual:** programmer manages data movement across cache levels, too painful for programmers on substantial programs  
+  example: on-chip scratchpad memory in embedded processors and shared memory in GPUs
+  - **automatic:** hardware manages data movement across levels, programmer's life is easier since average programmer doesn't need to know about it  
+  example: processor L1/L2/L3 caches
 - **block/line:** unit of storage in the cache, memory is logically divided into cache blocks that map to locations in the cache
 - on a reference:
   - **hit:** if data in cache, then use cached data instead of accessing memory

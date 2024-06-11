@@ -9,6 +9,7 @@
 - [stanford CV tutorial](https://ai.stanford.edu/~syyeung/cvweb/tutorials.html)
 - FastCV, OpenCV
 - edge & blur artifact detection
+- [time of flight](https://www.sony-semicon.com/en/technology/industry/tof.html)
 
 ## introduction
 - **computer vision:** convert light into meaning

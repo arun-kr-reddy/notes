@@ -12,6 +12,7 @@
 - go through document distance variations
 - [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
 - [leetcode 75](https://leetcode.com/studyplan/leetcode-75/)
+- [connected component labelling](https://en.wikipedia.org/wiki/Connected-component_labeling)
 
 ## algorithmic thinking
 - efficient procedures for solving problems on large inputs (like human genome)
