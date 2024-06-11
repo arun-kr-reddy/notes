@@ -44,6 +44,7 @@
 - [computer architecture (ETHZ 2019) (cover 19b onwards)](https://safari.ethz.ch/architecture/fall2019/doku.php?id=schedule)
 - optane persistent memory (phase change memory)
 - nvidia denver
+- processing in memory
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms (hardware, interface, system SW & programming model)  
@@ -1057,39 +1058,56 @@ enough threads branching to each path enables the creation of full new warps
 ![](./media/computer_architecture/dynamic_warp_merging_example.png)
 
 ## memory organization
-- physical memory size is much smaller than what the programmer assumes (infinite), system software along with hardware cooperatively ensure that this assumption holds by mapping virtual memory address to physical memory  
-life is easier for the programmer, but more complex system software and hardware architecture (programmer-architect tradeoff)
-- a larger level of storage is needed to manage a small amount of physical memory (RAM) automatically, so physical memory has a backing store as disk
+- most of the system is dedicated to storing & moving data, yet system is still bottlenecked by memory  
+![](./media/computer_architecture/onchip_memory.png)  
+important workloads (like AI/ML, genomics, data analytics) are all data intensive, they require rapid & efficient processing of large amounts of data  
+we are generating much more data than we can process  
+data movement takes order of magnitude more power than arithmetic operation  
+![](./media/computer_architecture/memory_power.png)
+- **memory abstraction:** physical memory size is much smaller than what the programmer assumes (infinite)  
+system software along with hardware cooperatively ensure that this assumption holds by mapping virtual memory address to physical memory  
+life is easier for the programmer but more complex system software and hardware architecture (programmer-architect tradeoff)  
+a larger level of storage is needed to manage a small amount of physical memory (RAM) automatically, so physical memory has a backing store (disk)
+- **ideal memory system:**  
+![](./media/computer_architecture/ideal_memory_system.png)
 - **memory storage types:**
   - **latches (flip-flops):** very fast & parallel access, very expensive (one bit costs tens of transistors)
-  - **static RAM:** relatively fast but one data word access at a time, expensive (6 transistors)
-  - **dynamic RAM:** slower and one data word at a time, cheap (1 transistor & 1 capacitor), reading destroys content, needs special process for manufacturing (requires putting capacitor and logic together)
-  - **other technologies:** like flash memory, hard disk & tape are much slower to access but non-volatile and very cheap (no transistors directly involved)
-- **array organization of memories:** to efficiently store large amounts of data, an `M` bit value can be read or written at each unique `N` bit address and the array will have `2^N` rows and `M` columns, all values can be access but only `M` bits at a time  
-example: 2-bit address with 3-bit data  
-![](./media/ca_old/memory_array_organization.png)  
-storage nodes in one column connected to one bitline, address decoder activates only one wordline, content of one line of storage available at output  
-![](./media/ca_old/memory_array_organization_connection.png)  
-access transistors configured as switches connect the bit storage to the bitline, access controlled by the wordline  
-![](./media/ca_old/memory_array_organization_access_control.png)
-- a single monolithic large memory array takes long to access and does not enable multiple accesses in parallel  
-- **memory interleaving (banking):** divide the memory into smaller arrays that can be accessed independently (in same or in consecutive cycles)
-example: DRAM interleaving: channel ⟶ rank ⟶ bank ⟶ subarrays ⟶ mats
-- **dynamic random access memory (DRAM):** capacitor change state indicates stored value  
+  - **static RAM:** relatively fast but one data word access at a time, expensive (6+ transistors)
+  - **dynamic RAM:** slower and one data word at a time, cheap (1 transistor & 1 capacitor)  
+  but reading destroys content, needs special process for manufacturing (putting capacitor and logic together)
+  - **other technologies:** like flash memory, hard disk & tape are much slower to access but non-volatile & very cheap (no transistors directly involved)
+- **array organization of memories:** to efficiently store large amounts of data we need:
+- **memory array:** store data  
+  an `M` bit value can be read/written at each unique `N` bit address and the array will have `2^N` rows and `M` columns, all values can be accessed but only `M` bits at a time  
+  example: 2-bit address with 3-bit data  
+  ![](./media/computer_architecture/memory_array.png)
+- **address selection logic:** select one row of data  
+  storage nodes in one column connected to one bitline, address decoder activates only one wordline, content of one line of storage available at output  
+  ![](./media/computer_architecture/memory_address_selection.png)
+- **readout circuit:** reads data out  
+  access transistors (configured as switches) connect the bit storage to the bitline, access controlled by the wordline  
+  ![](./media/computer_architecture/memory_readout_circuit.png)
+- a single monolithic large memory array takes too long to access and does not enable multiple accesses in parallel  
+**memory interleaving (banking):** divide a large array into smaller arrays that can be accessed independently in same/consecutive cycles (overlapped access)  
+example: DRAM interleaving: channel ⟶ rank ⟶ bank ⟶ subarrays ⟶ mats  
+![](./media/computer_architecture/memory_interleaving.png)  
+for a laptop, channel is a RAM stick, rank is collection of 8 chips (black die) on each side, each chip has 8 banks each  
+if each bank gives 1 bit per cycle, total throughput is `8banks x 8chips x 2ranks x 2channels = 256bits or 32bytes`  
+![](./media/computer_architecture/dram_stick.png)
+- **dynamic random access memory (DRAM):** capacitor charge state indicates stored value  
 but capacitor leaks through the RC path so DRAM cell needs to be refreshed frequently  
-**refresh:** DRAM controller must periodically read each row within the allowed refresh time (tens of ms) such that the charge is restored  
-![](./media/ca_old/memory_dram_cell.png)
-- **static random access memory (SRAM):** two cross coupled inverters store a single bit  
-feedback path enables the stored value to persist in the cell, 4 transistors for storage and 2 for access, faster access since no capacitor present  
+![](./media/computer_architecture/memory_dram_cell.png)
+- **static random access memory (SRAM):** two cross coupled inverters store a single bit, feedback path enables the stored value to persist in the cell  
+needs 4 transistors for storage and 2 for access, faster access since no capacitor present  
 two bitlines will be complement of each other, if they are same then system will be assume there is a issue with that cell  
-![](./media/ca_old/memory_sram_cell.png)
+![](./media/computer_architecture/memory_sram_cell.png)
 - **memory bank read access sequence:**  
-![](./media/ca_old/memory_bank_access.png)
-  - decode row address and drive single wordline
-  - most-significant bits drive bitlines (entire row read)
+![](./media/computer_architecture/memory_bank_access.png)
+  - decode row address and drive wordlines
+  - most-significant bits drive bitlines (read entire row)
   - amplify row data (capacitor charge)
   - decode column address and select subset of row to send to output
-  - precharge bitlines for next access, like refresh in DRAM
+  - pre-charge bitlines for next access (like DRAM refresh)
 
 ### memory hierarchy
 - ![](./media/ca_old/memory_hierarchy_example.png)  
