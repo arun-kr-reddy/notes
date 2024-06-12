@@ -1124,53 +1124,62 @@ fundamental tradeoff is small fast memory vs large slow memory
   to exploit: divide memory into equal size blocks and store the recently accessed block in its entirety
 
 ### cache
-- **cache:** any structure that memorizes frequently used results to avoid repeating the long-latency operations required to reproduce the results from scratch  
-in processor context it is an automatically managed memory structure based on SRAM, memorizes the most frequently accessed DRAM memory locations to avoid repeatedly paying for DRAM access latency  
-divided into
+- **cache:** any structure that memorizes frequently used/produced results to avoid repeating the long-latency operations required to reproduce/fetch the data from scratch, example: web cache  
+in processor context it is an automatically managed memory structure based on SRAM that memorizes the most frequently accessed DRAM memory locations to avoid repeatedly paying for DRAM access latency  
 - **caching in a pipelined design:** cache needs to be tightly integrated into the pipeline (ideally 1-cycle access to prevent stall)  
-but cannot have a large cache in a high frequency pipeline due to longer cycle time so cache hierarchy is used which can be managed:
+but cannot have a large cache in a high frequency pipeline due to longer cycle time (longer search time) so cache hierarchy is used which can be managed:
   - **manual:** programmer manages data movement across cache levels, too painful for programmers on substantial programs  
   example: on-chip scratchpad memory in embedded processors and shared memory in GPUs
   - **automatic:** hardware manages data movement across levels, programmer's life is easier since average programmer doesn't need to know about it  
   example: processor L1/L2/L3 caches
-- **block/line:** unit of storage in the cache, memory is logically divided into cache blocks that map to locations in the cache
+- **block/line:** unit of storage in the cache, memory is logically divided into cache blocks that map to potential locations in the cache
 - on a reference:
   - **hit:** if data in cache, then use cached data instead of accessing memory
-  - **miss:** if data not in cache, bring block into cache (may have to kick something else out)
+  - **miss:** if data not in cache, bring block into cache (if full then may have to evict some other block)
+- **miss penalty:** time it takes to retrieve a block from lower level of hierarchy
+- **types of misses:**
+  - **compulsory:** item has never been in the cache (first time access)
+  - **capacity:**  item has been in the cache, but space was tight and it was forced out (not enough size)
+  - **conflict:** item was in the cache, but the cache was not associative enough so it was forced out
 - **cache design decisions:**
   - **placement:** where and how to place/find a block
   - **replacement:** what data to remove to make room
   - **granularity of management:** large or small blocks, maybe sub-blocks
   - **write policy:** what do we do about writes
   - **instruction/data:** do we treat them separately
-- **average memory access time:** `(hit_rate x hit_latency) + (miss_rate x miss_latency)`  
-**cache hit rate:** `(num_hits) / (num_hits + num_misses)`
 - when address arrives to cache for read, in parallel address sent to:  
-**tag store:** check if the address is present in the cache, has some bookkeeping information for replacement/eviction, returns cache hit/miss  
-**data store:** stores memory blocks, returns memory, discard data if tag store returns miss
-- **cache addressing:** memory is logically divided into fixed-size blocks, each block maps to a location in the cache determined by the index bits in the address, these are used to index into the tag & data stores  
-![](./media/ca_old/cache_index_bits.png)  
-- for a cache access:  
+**tag store:** check if the address is present in the cache and returns hit/miss, also has some bookkeeping information for replacement/eviction  
+**data store:** stores memory blocks, returns memory, discard data if tag store returns miss  
+![](./media/computer_architecture/cache_tag_data_store.png)  
+**cache hit rate:** `(num_hits) / (num_hits + num_misses) = (num_hits) / (num_accesses)`  
+**average memory access time:** `(hit_rate x hit_latency) + (miss_rate x miss_latency)`
+- **cache addressing:** main memory is logically divided into fixed-size chunks (blocks)  
+cache can only house limited number of blocks so each block address maps to a potential location in the cache determined by the index bits in the address, these are used to index into the tag & data stores  
+![](./media/computer_architecture/cache_index_bits.png)  
+- **cache access:**  
+![](./media/computer_architecture/cache_access.png)
   - index into the tag and data stores with index bits in address
-  - check valid bit in tag store
-  - compare tag bits in address with stored tag in tag store
+  - check valid bit in tag store and compare tag bits in address with stored tag in tag store
+  - if the stored tag is valid and matches the tag of the block then it is a cache hit
+  - block in data store valid, get the required word from block using mux
 - **cache mapping:** how a certain block that is present in the main memory gets mapped to the memory of a cache in the case of any cache miss  
-**associativity:** how many blocks can map to the same index, blocks that map to the same index are called set
-  - **direct mapped:** a memory block can go to only one location, if the location is previously taken up then when a new block needs to be loaded the old block is trashed  
-  two blocks that map to the same index cannot be present in the cache at the same time so can cause conflict misses, can lead to 0% hit rate if same block accessed in interleaved manner  
-  ![](./media/ca_old/cache_mapping_direct.png)
-  - **fully associative:** a block can be placed in any cache location, don't have conflict misses instead has capacity misses  
-  ![](./media/ca_old/cache_mapping_fully_associative.png)
-  - **k-way set associative:** k-way associative memory within the set, trade-off between direct-mapped cache (less complex) and fully associative cache (fewer misses)  
+**associativity:** how many blocks can map to the same index, blocks that map to the same index are called set  
+![](./media/computer_architecture/cache_associativity.png)
+  - **direct mapped:** a given main memory block can be placed in only one possible cache location  
+  if the location is previously taken up then the new block is loaded after evicting old block, so two blocks that map to the same index cannot be present in the cache at the same time so can cause conflict misses  
+  example: can lead to 0% hit rate if same block accessed in interleaved manner
+  - **fully associative:** a block can be placed in any cache location, don't have conflict misses instead has capacity misses
+  - **k-way set associative:** a given main memory block can be placed in any of the `k` cache locations (`k`-way associative)  
+  trade-off between direct-mapped cache (less complex) and fully associative cache (fewer misses)  
   direct mapped is an extreme case with `k==1`  
-  diminishing returns from higher associativity as it will lead to higher hit rate but also slower cache access time (longer tag search) and more expensive hardware (more comparators)  
-  ![](./media/ca_old/cache_mapping_set_associative.png)
-- each block in set has a priority indicating how important it to keep the block in the cache, there are three key decisions within a set to determine/adjust block priorities:
+  diminishing returns for higher associativity as it will lead to higher hit rate but also slower cache access time (longer tag search) and more expensive hardware (more comparators)  
+  ![](./media/computer_architecture/cache_associativity_vs_hitrate.png)
+- think of each block in set having a priority indicating how important it to keep the block in the cache then there are three key decisions within a set to determine/adjust block priorities:
   - **insertion:** what happens to priorities when a block is inserted into the set (cache fill)
   - **promotion:** what happens to priorities on a cache hit
   - **eviction/replacement:** what happens to priorities on a cache miss
 - **working set:** whole set of data the executing application references within a time interval
-- **eviction/replacement policy:** on a cache miss replace any invalid block first, else if all blocks are valid then consult replacement policy
+- **eviction/replacement policy:** on a cache miss replace any invalid block first, if all blocks are valid then consult replacement policy
   - **first-in first-out (FIFO):** evict blocks in the order they were added
   - **least-recently used (LRU):** evict the least recently accessed block, so need to keep track of access ordering of blocks  
   example: there are `4! == 24` possible orderings in a 4-way cache (need 5 bits per set)  
