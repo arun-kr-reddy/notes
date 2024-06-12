@@ -1137,10 +1137,6 @@ but cannot have a large cache in a high frequency pipeline due to longer cycle t
   - **hit:** if data in cache, then use cached data instead of accessing memory
   - **miss:** if data not in cache, bring block into cache (if full then may have to evict some other block)
 - **miss penalty:** time it takes to retrieve a block from lower level of hierarchy
-- **types of misses:**
-  - **compulsory:** item has never been in the cache (first time access)
-  - **capacity:**  item has been in the cache, but space was tight and it was forced out (not enough size)
-  - **conflict:** item was in the cache, but the cache was not associative enough so it was forced out
 - **cache design decisions:**
   - **placement:** where and how to place/find a block
   - **replacement:** what data to remove to make room
@@ -1152,7 +1148,8 @@ but cannot have a large cache in a high frequency pipeline due to longer cycle t
 **data store:** stores memory blocks, returns memory, discard data if tag store returns miss  
 ![](./media/computer_architecture/cache_tag_data_store.png)  
 **cache hit rate:** `(num_hits) / (num_hits + num_misses) = (num_hits) / (num_accesses)`  
-**average memory access time:** `(hit_rate x hit_latency) + (miss_rate x miss_latency)`
+**average memory access time:** `(hit_rate x hit_latency) + (miss_rate x miss_latency)`  
+ reducing these three parameters will increase cache performance: miss rate, miss latency/cost & hit latency/cost
 - **cache addressing:** main memory is logically divided into fixed-size chunks (blocks)  
 cache can only house limited number of blocks so each block address maps to a potential location in the cache determined by the index bits in the address, these are used to index into the tag & data stores  
 ![](./media/computer_architecture/cache_index_bits.png)  
@@ -1172,8 +1169,7 @@ cache can only house limited number of blocks so each block address maps to a po
   - **k-way set associative:** a given main memory block can be placed in any of the `k` cache locations (`k`-way associative)  
   trade-off between direct-mapped cache (less complex) and fully associative cache (fewer misses)  
   direct mapped is an extreme case with `k==1`  
-  diminishing returns for higher associativity as it will lead to higher hit rate but also slower cache access time (longer tag search) and more expensive hardware (more comparators)  
-  ![](./media/computer_architecture/cache_associativity_vs_hitrate.png)
+  diminishing returns for higher associativity as it will lead to higher hit rate but also slower cache access time (longer tag search) and more expensive hardware (more comparators)
 - think of each block in set having a priority indicating how important it to keep the block in the cache then there are three key decisions within a set to determine/adjust block priorities:
   - **insertion:** what happens to priorities when a block is inserted into the set (cache fill)
   - **promotion:** what happens to priorities on a cache hit
@@ -1181,64 +1177,68 @@ cache can only house limited number of blocks so each block address maps to a po
 - **working set:** whole set of data the executing application references within a time interval
 - **eviction/replacement policy:** on a cache miss replace any invalid block first, if all blocks are valid then consult replacement policy
   - **first-in first-out (FIFO):** evict blocks in the order they were added
-  - **least-recently used (LRU):** evict the least recently accessed block, so need to keep track of access ordering of blocks  
-  example: there are `4! == 24` possible orderings in a 4-way cache (need 5 bits per set)  
-  so most modern processors don't implement true/perfect LRU in highly associative caches, so they implement:
+  - **least-recently used (LRU):** evict the least recently accessed block  
+  so need to keep track of access ordering of blocks, but for a 4-way cache there are `4! == 24` possible orderings so we need 5 bits per set  
+  so most modern processors don't implement true/perfect LRU in highly associative caches, instead:
     - **not most-recently used (nMRU):** keep track of only MRU, for replacement randomly choose one of the not-MRU blocks
     - **hierarchical LRU:** divide the k-way set into `m` groups and keep track of only the MRU group and MRU block within each group  
     on replacement select victim randomly from one of the not-MRU block in one of the not-MRU groups
     - **victim next-victim replacement:** only keep track of victim (MRU) and the next-victim (next MRU)
-  - **random:** is better when set thrashing (program working set in a set is larger than set associativity) occurs, example: 0% hit-rate with LRU for cyclic reference to A, B, C, D, E in a 4-way cache
+  - **random:** is better when set thrashing (program working set is larger than set associativity) occurs  
+  example: 0% hit-rate with LRU for cyclic reference to A, B, C, D, E in a 4-way cache
   - **least-frequently used (LFU):** algorithm counts how often a block is needed, those used less often are discarded first
   - **least costly to re-fetch:** different memory accesses have different cost (latency) associated with it (L2 cache vs DRAM), those with lowest latencies are evicted first
-  - **hybrid replacement policies:** in practice LRU vs random depends on the workload, so use a hybrid of LRU and random for best of both worlds
-  - **Belady's optimal replacement policy:** replace the block that is going to be referenced furthest in the future by the program, cannot be implemented
+  - **hybrid replacement policies:** in practice  performance of replacement policy depends on the workload (like LRU vs random for thrashing), so instead use a hybrid to get the best of both worlds
+  - **Belady's optimal replacement policy:** replace the block that is going to be referenced furthest in the future by the program, cannot be implemented since this requires knowledge of the future
 - when do we write the modified data in a cache to the next level:
   - **write-back:** when the block is evicted  
-  can combine multiple writes to the same block before eviction, saves bandwidth and energy, most modern caches use this  
+  can combine multiple writes to the same block before eviction saving bandwidth and energy  
+  most modern caches use this  
   - **write-through:** at the time the write happens  
-  simpler and makes sure all levels are up to date (cache-coherent), useful when multiple processors share memory  
-  but bandwidth intensive (multiple writes)
-- **dirty/modified bit:** is part of tag-store entry to indicate that data has been written (to cache) but memory has not been updated, happens with write-back caches
+  simpler and makes sure all levels are up to date (cache-coherent) but bandwidth intensive (multiple writes)  
+  useful when multiple processors share memory
+- **dirty/modified bit:** is part of tag-store entry to indicate that data has been written (to cache) but memory has not been updated, required for write-back caches
 - do we allocate a cache block on a write miss:
   - **allocate on write miss:** can combine writes instead of writing each of them individually to next level  
   simpler because write misses can be treated the same way as read misses  
-  but requires transfer of the whole cache block
-  - **no-allocate:** conserves cache space if locality of writes is low (potentially improves cache read hit rate)
+  but requires transfer of the whole cache block, example: entire 64byte cache block needs to be written for a 1byte modification
+  - **no-allocate:** conserves cache space if locality of writes is low (potentially improving cache read hit rate)
 - **streaming writes:** processor writes to an entire block over a small amount of time (like `memset()`), allocating on streaming writes is not preferable here since it can pollute the cache with unnecessary data
-- **sub-blocked (sectored) caches:** divide a block into sub-blocks (sectors) each having a separate valid & dirty bits, only a sub-block (or a subset of sub-blocks) on a request  
-a write simply validates & updates a sub-block and a cache block need not be in the cache fully  
-but increased complexity and may not exploit spatial locality fully  
-![](./media/ca_old/cache_sub_blocks.png)
-- instruction vs data caches:
+- instead write to only a portion of the block (sub-block) to get the best of allocate on write miss & no-allocate  
+**sub-blocked (sectored) caches:** divide a block into sub-blocks (sectors) each having a separate valid & dirty bits  
+allocate only a sub-block (or a subset of sub-blocks) on a request  
+no need to transfer the entire cache block from cache, a write simply validates and updates a sub-block  
+more freedom in transferring sub-blocks into the cache, a cache block does not need to be in the cache fully  
+but increased complexity and may not fully exploit spatial locality  
+![](./media/computer_architecture/cache_sub_blocks.png)
+- **instruction & data caches:**
   - **unified:** dynamic sharing of cache space (no static partitioning), but instructions & data can kick each other out (no guaranteed space for either)
   - **separate:** instruction and data are accessed in different places in the pipeline so first level caches are almost always split and higher level caches are almost always unified
 - **multi-level caching in a pipelined design:**
   - **first level caches:** separate instruction and data caches, decisions very much affected by cycle time, small & lower associativity cache (latency is critical), tag store and data store accessed in parallel
-  - **second level caches:** decisions need to balance hit rate and access latency, usually large and highly associative (latency not as important), tag store and data store accessed serially (to save energy since miss rate is higher)
-- **serial access of levels:** second level cache accessed only if first level misses  
-second level doesn't see the same accesses as the first, first level acts as a filter (filters some temporal and spatial locality)
+  - **second level caches:** decisions need to balance hit rate and access latency, usually large and highly associative (latency not as important), tag store and data store accessed serially (to save energy since miss rate is higher)  
+   second level doesn't see the same accesses as the first so first level acts as a filter (filtering some temporal and spatial locality)
+- **cache inclusion policy:**
+  - **inclusive:** a block in an lower level is always also included in higher levels to simplify cache coherence
+  - **exclusive:** a block in an lower level will not be included in higher levels to better utilize space across entire hierarchy
+  - **non-inclusive:** a block in an lower level may or may not be included in higher levels, relaxes design decisions
 - **cache performance:** depends on:
-  - **cache size:** total data (not including tag) capacity  
-  bigger can exploit temporal locality better  
-  too large of a cache can adversely affect latency (bigger is slower)  
-  ![](./media/ca_old/cache_performance_cache_size.png)
+  - **cache size:** total data (not including tag) capacity, bigger can exploit temporal locality better but too large of a cache can adversely affect latency (bigger is slower)  
+  ![](./media/computer_architecture/cache_performance_cache_size.png)
   - **block size:** data that is associated with an address tag  
   too small blocks don't exploit spatial locality well and have larger tag overhead  
-  too large blocks will lead to less total number of blocks so less temporal locality exploitation and waste of cache space & bandwidth/energy if spatial locality is not high  
-  ![](./media/ca_old/cache_performance_block_size.png)
-    - **critical word:** large cache blocks can take a long time to fill into the cache, so fetch critical word first into the cache line and supply it to the processor then fill the cache line
-    - sub-blocks to help with higher bandwidth wastage for large cache blocks
-  - **associativity:** larger associativity lower miss rate (reduced conflicts) but higher hit latency & area cost, also has diminishing returns  
+  too large blocks will lead to less total number of blocks so less temporal locality exploitation and waste of cache space (& bandwidth/energy) if spatial locality is not high  
+  ![](./media/computer_architecture/cache_performance_block_size.png)
+    - **critical word first:** large cache blocks can take a long time to fill into the cache, so fetch critical word first into the cache line and supply it to the processor then fill the cache line
+    - **sub-blocking:** sub-blocks to help with higher bandwidth wastage for large cache blocks
+  - **associativity:** larger associativity lowers miss rate (reduced conflicts) but higher hit latency & area cost, but diminishing returns on miss rate  
   smaller associativity lowers cost & hit latency (important for L1 caches)  
-  ![](./media/ca_old/cache_performance_associativity.png)
+  ![](./media/computer_architecture/cache_performance_associativity.png)
 - **cache miss classification:**
-  - **compulsory:** first reference to an address (block) always results in a miss  
-  prefetching can reduce misses by anticipating which blocks will be needed soon
-  - **capacity:** cache is too small to hold everything needed, these would occur even in a fully-associative cache (with optimal replacement) of the same capacity  
-  utilizing cache space better (like better replacement policy) can help reduce these
-  - **conflict:** any miss that is neither a compulsory nor a capacity miss  
-  increasing associativity can help reduce these misses
+  - **compulsory:** first reference to an address (block) always results in a miss, prefetching can reduce misses by anticipating which blocks will be needed soon
+  - **capacity:** cache is too small to hold everything needed  
+  defined as the misses that would occur even with a fully-associative cache (with optimal replacement) of the same capacity
+  - **conflict:** any miss that is neither a compulsory nor a capacity miss, increasing associativity can help reduce these misses
 - software approaches for higher hit rate by restructuring data layout or data access patterns:
   - **loop interchange:** exchanging the order of two iteration variables used by a nested loop, it is done to ensure that the data is accessed in the order in which they are present in memory  
   example: for a row major layout accessing consecutive elements help with spatial locality
