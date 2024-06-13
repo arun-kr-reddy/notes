@@ -1326,7 +1326,7 @@ inconsistent performance across runs since performance depends on co-executing t
 slower access since cache not tightly coupled with the core  
 ![](./media/computer_architecture/cache_shared_vs_private.png)
 - **cache coherence:** refers to the consistency and synchronization of data stored in different caches within a multi-core system  
-a simple idea is that all caches observe each other’s write/read operations and if a processor writes to a block, all others will invalidate that block in their respective caches
+a simple implementation is that all caches will observe each other’s write/read operations and if a processor writes to a block, others will invalidate that block in their respective caches
 
 ## virtual memory
 - programmer sees virtual memory (illusion of infinite memory) but physical memory is much smaller than what the programmer assumes  
