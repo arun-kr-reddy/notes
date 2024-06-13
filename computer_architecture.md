@@ -23,9 +23,10 @@
 - [fine-grained multithreading](#fine-grained-multithreading)
 - [graphics processing units](#graphics-processing-units)
 - [memory organization](#memory-organization)
-  - [memory hierarchy](#memory-hierarchy)
-  - [cache](#cache)
-  - [virtual memory](#virtual-memory)
+- [memory hierarchy](#memory-hierarchy)
+- [cache](#cache)
+  - [multi core caches](#multi-core-caches)
+- [virtual memory](#virtual-memory)
 
 ## links  <!-- omit from toc -->
 - [[lectures] design of digital circuits](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
@@ -1109,7 +1110,7 @@ two bitlines will be complement of each other, if they are same then system will
   - decode column address and select subset of row to send to output
   - pre-charge bitlines for next access (like DRAM refresh)
 
-### memory hierarchy
+## memory hierarchy
 - ideal memory would have zero access time (latency), infinite capacity, zero cost and infinite bandwidth to support multiple accesses in parallel  
 but practically these requirements oppose each other: bigger is slower (longer to determine the location), faster is more expensive (SRAM vs DRAM), higher bandwidth is more expensive (more banks, more ports, higher frequency)
 - so both fast & large cannot be achieved with a single level of memory  
@@ -1123,7 +1124,7 @@ fundamental tradeoff is small fast memory vs large slow memory
   - **spatial:** use of data elements within relatively close storage locations, locality in space (like instruction fetch or traversing an array)  
   to exploit: divide memory into equal size blocks and store the recently accessed block in its entirety
 
-### cache
+## cache
 - **cache:** any structure that memorizes frequently used/produced results to avoid repeating the long-latency operations required to reproduce/fetch the data from scratch, example: web cache  
 in processor context it is an automatically managed memory structure based on SRAM that memorizes the most frequently accessed DRAM memory locations to avoid repeatedly paying for DRAM access latency  
 - **caching in a pipelined design:** cache needs to be tightly integrated into the pipeline (ideally 1-cycle access to prevent stall)  
@@ -1239,32 +1240,95 @@ but increased complexity and may not fully exploit spatial locality
   - **capacity:** cache is too small to hold everything needed  
   defined as the misses that would occur even with a fully-associative cache (with optimal replacement) of the same capacity
   - **conflict:** any miss that is neither a compulsory nor a capacity miss, increasing associativity can help reduce these misses
-- software approaches for higher hit rate by restructuring data layout or data access patterns:
-  - **loop interchange:** exchanging the order of two iteration variables used by a nested loop, it is done to ensure that the data is accessed in the order in which they are present in memory  
+- **restructuring data access patterns:** software approaches for higher hit rate
+  - **loop interchange:** exchanging the order of two iteration variables used by a nested loop to ensure that the data is accessed in the order in which they are present in memory  
   example: for a row major layout accessing consecutive elements help with spatial locality
     ```cpp
-    // poor code
+    // original
     for (int x = 0, x < width; x++)
         for (int y = 0, y < height; y++)
             sum += input[x * width + y];
 
-    // better code
+    // improved
     for (int y = 0, y < height; y++)
         for (int x = 0, x < width; x++)
             sum += input[x * width + y];
     ```
-  - **blocking/tiling:** divide the working set so that each piece fits in the cache, avoids cache conflicts between different chunks of computation  
-  example: divide loops operating on arrays into computation chunks so that each chunk can hold its data in the cache
-- **private cache:** cache belongs to one core, shared data blocks needs to be brought into respective caches (redundant transfer)  
+  - **tiling:** divide the working set so that each piece fits in the cache, avoids cache conflicts between different chunks of computation  
+  basically operate on smaller data (tiles) that fit fast memories (cache or shared memory)  
+  example: in image convolution same memory locations access by neighboring threads, so divide the input into tiles that can be loaded in shared memory  
+  ![](./media/computer_architecture/tiling.png)
+  - **improved data packing:** separate rarely-accessed fields of a data structure and pack them into a separate data structure  
+  example: in a linked-list, rarely accessed data occupy most of the cache line
+    ```cpp
+    // original
+    typedef struct
+    {
+        // frequently accessed
+        node_t *next;
+        int key;
+        // rarely accessed
+        char[256] name;
+        char[256] school;
+    } node_t;
+
+    while (node)
+    {
+        if (node->key == input_key)
+        {
+            // access other fields of node
+        }
+        node = node->next;
+    }
+
+    // improved
+    typedef struct
+    {
+        // frequently accessed
+        node_t *next;
+        int key;
+        // rarely accessed
+        node_data_t *node_data;
+    } node_t;
+
+    typedef struct
+    {
+        char[256] name;
+        char[256] school;
+    } node_data_t;
+
+    while (node)
+    {
+        if (node->key == input - key)
+        {
+            // access node->node_data
+        }
+        node = node->next;
+    }
+    ```
+- **memory level parallelism:** generating & servicing multiple memory accesses in parallel  
+eliminating an isolated miss helps performance more than eliminating a parallel miss  
+eliminating a higher-latency miss could help performance more than eliminating a lower-latency miss
+![](./media/computer_architecture/memory_level_parallelism.png)  
+![](./media/computer_architecture/memory_level_parallelism_example.png)
+
+### multi core caches
+- cache efficiency becomes even more important in a multi-core/threaded systems since memory bandwidth is at premium & cache space is a limited resource across cores/threads
+- **private cache:** cache belongs to one core, a shared data blocks needs to be brought into respective caches (redundant transfer)  
 **shared cache:** cache is shared by multiple cores  
-improves utilization/efficiency (throughput), when a resource is left idle by one thread then another thread can use it (no fragmentation, dynamic partitioning)  
+improves utilization since a idle resource can be used by another thread  
+no fragmentation due to static partitioning  
+easier to maintain coherence  
 reduces communication latency by storing shared data in same cache  
 easier to maintain coherence between cores  
-can lead to contention for resources between threads, leads to performance degradation and inconsistent performance across runs (depends on co-executing threads)  
-![](./media/ca_old/cache_shared_vs_private.png)
-- **cache coherence:** refers to the consistency and synchronization of data stored in different caches within a multi-core system
+but can lead to contention for resources between threads leading to performance degradation  
+inconsistent performance across runs since performance depends on co-executing threads  
+slower access since cache not tightly coupled with the core  
+![](./media/computer_architecture/cache_shared_vs_private.png)
+- **cache coherence:** refers to the consistency and synchronization of data stored in different caches within a multi-core system  
+a simple idea is that all caches observe each other’s write/read operations and if a processor writes to a block, all others will invalidate that block in their respective caches
 
-### virtual memory
+## virtual memory
 - programmer sees virtual memory (illusion of infinite memory) but physical memory is much smaller than what the programmer assumes  
 system software & hardware cooperatively and automatically manage the physical memory space to provide the illusion (for each independent process)  
 programmer doesn't need to know the physical size of memory nor manage it making programmer's life easier, a small physical memory can appear as a huge one to the programmer
