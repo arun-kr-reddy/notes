@@ -1,4 +1,4 @@
-# algorithms & data structures
+# algorithms
 - [algorithmic thinking](#algorithmic-thinking)
 - [models of computation](#models-of-computation)
 - [sorting](#sorting)

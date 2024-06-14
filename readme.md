@@ -11,19 +11,16 @@
 - [ ] [algorithms and data structures](./algorithms.md)
 - [ ] [maths](./maths.md)
 - [ ] [operating systems](./operating_system.md)
-- [ ] [computer networking]()
-- [ ] [databases]()
-- [ ] [languages and compilers]()
-- [ ] [distributed systems]()
 
 ## domain specific
 - [ ] [C++](./cplusplus.md)
 - [ ] [computer vision](./computer_vision.md)
 - [ ] [performance](./performance.md)
+- [ ] [gpu programming](./performance.md)
 
 ## advanced
-- [ ] [design patterns](./programming.md.md)
-- [ ] [system design](./programming.md.md)
+- [ ] [design patterns](./programming.md)
+- [ ] [system design](./programming.md)
 - [ ] [SOLID principles](./programming.md)
 - [ ] [life](./life.md)
 - [ ] [tools](./tools.md)

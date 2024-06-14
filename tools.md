@@ -96,7 +96,8 @@
 ## ffmpeg
 - mkv to mp4
   ```sh
-  ffmpeg -i input.mkv -codec copy output.mp4
+  for %f in (*.mkv) do ffmpeg -i "%f" -codec copy "%f.mp4"
+  get-childitem *.* | foreach { rename-item $_ $_.Name.Replace(".mkv.mp4",".mp4") }
   ```
 - concatenate multiple files
   ```sh
