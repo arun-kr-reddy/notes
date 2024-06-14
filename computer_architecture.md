@@ -26,6 +26,8 @@
 - [memory hierarchy](#memory-hierarchy)
 - [cache](#cache)
   - [multi core caches](#multi-core-caches)
+- [prefetching](#prefetching)
+  - [runahead execution](#runahead-execution)
 
 ## links  <!-- omit from toc -->
 - [[lectures] design of digital circuits](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
@@ -45,6 +47,7 @@
 - optane persistent memory (phase change memory)
 - nvidia denver
 - processing in memory
+- [memory ordering](https://www.google.com/search?q=memory+ordering&rlz=1C1GCEA_enIN1108IN1108&oq=memory&gs_lcrp=EgZjaHJvbWUqBggAEEUYOzIGCAAQRRg7MgwIARBFGDkYsQMYgAQyDQgCEAAYgwEYsQMYgAQyCggDEAAYsQMYgAQyBwgEEAAYgAQyBggFEEUYPDIGCAYQRRg8MgYIBxBFGDzSAQgxNjc2ajBqN6gCALACAA&sourceid=chrome&ie=UTF-8)
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms (hardware, interface, system SW & programming model)  
@@ -1044,12 +1047,12 @@ warp is Nvidia terminology and wavefront AMD
   ```
 - **SIMD utilization:** fraction of SIMD lanes executing a useful
 operation
-- **control flow problem:** each thread can have conditional control flow instructions (& paths) but they need to have a common PC  
+- **control flow problem:** each thread can have conditional control flow instructions (& paths) but they need to have a common `PC`  
 ![](./media/computer_architecture/gpu_control_flow_paths.png)  
 **branch divergence:** occurs when threads inside warps branch to different execution paths  
 can be resolved using masked execution (similar to masked vector operations)  
 ![](./media/computer_architecture/gpu_control_flow_masked_execution.png)
-- executing both paths for all warps reduces SIMD utilization, instead we can find individual threads that are at the same PC and group them together into a single warp dynamically, this reduces divergence and improves utilization  
+- executing both paths for all warps reduces SIMD utilization, instead we can find individual threads that are at the same `PC` and group them together into a single warp dynamically, this reduces divergence and improves utilization  
 **dynamic warp formation/merging:** dynamically merge threads executing the same instruction after branch divergence by forming new warps from warps that are waiting  
 ![](./media/computer_architecture/dynamic_warp_merging_1.png)  
 enough threads branching to each path enables the creation of full new warps  
@@ -1325,4 +1328,53 @@ inconsistent performance across runs since performance depends on co-executing t
 slower access since cache not tightly coupled with the core  
 ![](./media/computer_architecture/cache_shared_vs_private.png)
 - **cache coherence:** refers to the consistency and synchronization of data stored in different caches within a multi-core system  
-a simple implementation is that all caches will observe each other’s write/read operations and if a processor writes to a block, others will invalidate that block in their respective caches
+**simple coherence implementation:** all caches will observe each other’s write/read operations, if a processor writes to a block then others will invalidate that block in their respective caches
+
+## prefetching
+- **prefetching:** fetch the data before it is needed by the program  
+if data can be prefetched accurately & early enough then (high) memory latency can be reduced/eliminated  
+can eliminate compulsory cache misses (only option other than very large cache blocks)  
+prefetching involves predicting which address will be needed in the future, mis-predicted data is simply not used so no need for state recovery like branch prediction but can lead to side channels like meltdown & spectre
+- **example: HW prefetcher in memory system:**  
+![](./media/computer_architecture/prefetch_memory_system.png)
+- **prefetching challenges:**
+  - **what:** prefetching useless data wastes resources (memory bandwidth, cache/prefetch buffer space, energy consumption) so accurate prediction of addresses is important  
+  predict based on past access pattern in HW or compiler's/programmer's knowledge of data structures SW
+  - **when:** if data prefetched too early then it might not be used before it is evicted  
+  if prefetched too late it might not hide the entire memory latency
+  in HW prefetcher try to stay far ahead of the processor's demand access stream  
+  in SW move the prefetch instructions earlier in the code
+  - **where:** prefetcher will see different access patterns based on where it is placed  
+  example: at L1 it sees all L1 hits & misses, at L2 level it only sees L1 misses and at L3 level it only sees L2 misses  
+  so having the prefetcher closer to processor leads to better accuracy & coverage but prefetcher needs to examine more requests
+  - **how:** how & who does the prefetching
+    - **software:** programmer/compiler insert ISA provided prefetch instructions (extra effort), usually works well for regular access patterns
+    - **hardware:** specialized hardware monitors memory accesses (auto address generation)  
+    memorizes, finds & learns address strides, patterns & correlation
+    - **execution-based:** a special thread execute to prefetch data for the main program, can be generated by either SW/programmer or HW
+- **example: IBM POWER4 streaming prefetcher:** when load instruction miss sequential cache lines (ascending or descending) the prefetch engine initiates access to the following cache lines before being referenced by load instructions  
+![](./media/computer_architecture/streaming_prefetcher.png)
+- **stride prefetcher:** record the stride between consecutive memory accesses, if stable use it to predict future memory accesses  
+stride can be determined on a per-instruction (hash `PC`) basis or per-memory-region (hash cache block) basis  
+stream prefetching is a special case of  per-memory-region prefetching with stride 1
+memory-region based stride prefetching where N = 1
+- **prefetcher performance:**
+  - **accuracy:** `used_prefetches / sent_prefetches`
+  - **coverage:** `prefetched_misses / all_prefetches`
+  - **timeliness:** `on_time_prefetches / used_prefetches`
+  - **bandwidth consumption:** bandwidth consumed with/without prefetcher, can utilize idle bus bandwidth if available
+  - **cache pollution:** extra load demand misses due to prefetch placement in cache
+
+### runahead execution
+- long latency cache misses are responsible for most OoO execution full-window stalls so large instruction windows are required to fully tolerate memory latency  
+but this conflicts with lower energy consumption (tag matching, load/store buffers), shorter cycle time (wakeup/select, regfile & bypass latencies) and lower DV (design & verification) complexity
+![](./media/computer_architecture/full_window_stall.png)
+- **runahead execution:** technique to obtain the memory-level parallelism benefits of a large instruction window  
+![](./media/computer_architecture/runahead_execution.png)
+  - when the oldest instruction is a long-latency cache miss, checkpoint architectural state and enter runahead mode
+  - in runahead mode processor speculatively pre-execute instructions with sole purpose of prefetching, instructions dependent on long-latency cache miss are ignored & dropped
+  - when the original miss returns restore the checkpoint, flush pipeline and resume normal execution
+  - architecturally nothing has happened but hopefully micro-architecturally lot of useful data has been prefetched and subsequent cache misses can be avoided
+- very accurate prefetches since it follows the program path  
+simple to implement since most of the hardware is already present  
+but prefetch distance limited by memory latency

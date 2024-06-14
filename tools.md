@@ -88,18 +88,18 @@
   ```
 
 ## powershell
-- replace string in all files
+- **replace string in all files:**
   ```sh
   get-childitem *.mp4 | foreach { rename-item $_ $_.Name.Replace("Lecture ","") }
   ```
 
 ## ffmpeg
-- mkv to mp4
+- **mkv to mp4:**
   ```sh
   for %f in (*.mkv) do ffmpeg -i "%f" -codec copy "%f.mp4"
   get-childitem *.* | foreach { rename-item $_ $_.Name.Replace(".mkv.mp4",".mp4") }
   ```
-- concatenate multiple files
+- **concatenate multiple files:**
   ```sh
   ffmpeg -f concat -i merge.txt -c copy merged.mp4
 
@@ -108,12 +108,14 @@
   file '2.mp4'
   file '3.mp4'
   ```
-- change resolution
+- **change resolution:**
   ```sh
   ffmpeg -i input_720p.mp4 -s 640x360 -c:a copy output.mp4
   ffmpeg.exe -i input.mp4 -filter:v scale=-2:360 -c:a copy output.mp4
   ```
 
 ## vlc
-- filename as title  
+- **filename as title:**  
 ![](./media/tools/vlc_filename_title.png)
+- **always on top:** `View` ⟶ `Always on Top`
+- **minimal view default:** `Tools` ⟶ `Preferences` ⟶ `All` ⟶ `Interface` ⟶ `Main interfaces` ⟶ `Qt` ⟶ `Start in minimal view`
