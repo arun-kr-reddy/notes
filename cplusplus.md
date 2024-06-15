@@ -33,6 +33,7 @@
 - STL
 - OOPs concepts
 - [MSVC init memory](https://stackoverflow.com/questions/127386/what-are-the-debug-memory-fill-patterns-in-visual-studio-c-and-windows)
+- atomics & memory ordering
 
 ## introduction
 - **standard I/O channels:** one input (`stdin` as `cin`) & two output (`stdout` as `cout` & `stderr` as `cerr`)
@@ -42,23 +43,26 @@
   ```
 - **preprocessor:** continuation (`\`), stringize (`#`), token pasting (`##`)
   ```cpp
-  __DATE__  // May 16 2022
-  __TIME__  // 09:42:38
-  __FILE__  // D:\workspace\code\src\main.cpp
-  __LINE__  // 23
+  __DATE__    // May 16 2022
+  __TIME__    // 09:42:38
+  __FILE__    // D:\workspace\code\src\main.cpp
+  __LINE__    // 23
 
-  #pragma once  // include file only once
+  #pragma once    // include file only once
 
   #error message  // preproc error
 
-  #define macroFunc(a, b) printf("val"#a " : %d, " "val"#b " : %d\n", \
-                                  val##a, val##b)
+  // stringizing operator  : #
+  // token-pasting operator: ##
+  #define macroFunc(a, b) printf("val" #a " : %d, "  \
+                                "val" #b " : %d\n", \
+                                val##a, val##b)
 
   int main(void)
   {
       int val1 = 40;
       int val2 = 30;
-      macroFunc(2, 1);  // val2 : 30, val1 : 40
+      macroFunc(2, 1);    // val2 : 30, val1 : 40
       return 0;
   }
   ```
@@ -71,70 +75,74 @@
 - **compiler:** preprocessor ⟶ compiler ⟶ assembler ⟶ linker  
 ![](./media/cplusplus/compilation_stages.png)
   ```sh
-  -std=c++11        # set C++ standard
-  -Wall             # all warnings
-  -Wextra           # extra warnings
-  -Werror           # warnings as errors
-  -O<n>             # speed optimization
-  -Os               # size optimization
-  -Og               # debug optimization
-  -ftree-vectorize  # auto vectorization
-  -g<n>             # keep debugging symbols
-  -pg               # extra profile information for gprof
-  -l                # library
-  -L                # library search path
-  -I                # include search path
-  -D<flag>=<value>  # add preprocessor flag
-  -fPIC             # position independent code (suitable for inclusion in shared libs), example: jumps relative instead of absolute
-  -c                # compile but don't link
-  -save-temps       # save intermediate source files
+  -std=c++11          # set C++ standard
+  -Wall               # all warnings
+  -Wextra             # extra warnings
+  -Werror             # treat warnings as errors
+  -O<n>               # optimize for speed
+  -Os                 # optimize for size
+  -Og                 # optimize for debuggability
+  -ftree-vectorize    # auto vectorization
+  -g<n>               # keep debugging symbols
+  -pg                 # extra profile information (used for gprof)
+  -l                  # library name
+  -L                  # library search path
+  -I                  # include search path
+  -D<flag>=<value>    # add preprocessor flag (with value if required)
+  -fPIC               # position independent code (suitable for inclusion in shared libs)
+                      # example: jumps will be relative instead of absolute
+  -c                  # compile but don't link
+  -save-temps         # save intermediate source files
   ```
 - **auto:** type deduced from initialization value
   ```cpp
-  auto var = 13;     // int
-  auto var = 13.0f;  // float
-  auto var = 13.0;   // double
+  auto var = 13;       // int
+  auto var = 13.0f;    // float
+  auto var = 13.0;     // double
   ```
 - **bitwise operators:**
   ```
-  A     = 0011 1100
-  B     = 0000 1101
+  A         = 0011 1100
+  B         = 0000 1101
   -----------------
-  A&B   = 0000 1100     AND
-  A|B   = 0011 1101     OR
-  A^B   = 0011 0001     XOR  // (same bit == 0, else == 1)
-  ~A    = 1100 0011     NOT
-  A<<2  = 1111 0000     RSH
-  A>>2  = 0000 1111     LSH
+  A & B     = 0000 1100    AND
+  A | B     = 0011 1101    OR
+  A ^ B     = 0011 0001    XOR
+  ~A        = 1100 0011    NOT
+  A << 2    = 1111 0000    RSH
+  A >> 2    = 0000 1111    LSH
   ```
 - **example: XOR number swap:**
   ```cpp
-  x = x ^ y;  // x == x ^ y
-  y = x ^ y;  // y == (x ^ y) ^ y ⟶ (y ^ y) ^ x ⟶ 0 ^ x ⟶ x
-  x = x ^ y;  // x == (x ^ y) ^ x ⟶ (x ^ x) ^ y ⟶ 0 ^ y ⟶ y
+  x = x ^ y;    // x == x ^ y
+  y = x ^ y;    // y == (x ^ y) ^ y ⟶ (y ^ y) ^ x ⟶ 0 ^ x ⟶ x
+  x = x ^ y;    // x == (x ^ y) ^ x ⟶ (x ^ x) ^ y ⟶ 0 ^ y ⟶ y
   ```
 - **example: bit manipulation:**
   ```cpp
-  #define setBit(num, idx) (num |= (0x1 << idx))     // num |= 1 << idx;
-  #define clearBit(num, idx) (num &= ~(0x1 << idx))  // num &= ~(1 << idx);
-  #define flipBit(num, idx) (num ^= (0x1 << idx))    // num ^= 1 << idx;
+  #define setBit(num, idx)   (num |= (0x1 << idx))     // num |= 1 << idx;
+  #define clearBit(num, idx) (num &= ~(0x1 << idx))    // num &= ~(1 << idx);
+  #define flipBit(num, idx)  (num ^= (0x1 << idx))     // num ^= 1 << idx;
   ```
-- **ranged for loop:**
+- **ranged for loop:** uses iterators to loop over collection/container
   ```cpp
-  int a[] = {0, 1, 5};
+  std::vector<int> vec{0, 1, 5};
+
   // for(const auto& value : container)
-  for (auto n : a)
+  for (auto n : vec)
   {
-      std::cout << n << " "; // 0 1 5
+      std::cout << n << " ";    // 0 1 5
   }
   ```
-- ```cpp
-  for (;;)   // K&R style, no warning
-  while (1)  // readable but compiler warning for condition always true
-  ```
+- **example:infinite loop:**
   ```cpp
-  while (i = 0)   // set i, use i as condition (0 here)
-  while (i == 0)  // use (i == 0) condition
+  for (;;)     // K&R style, no warning
+  while (1)    // readable but compiler warning for condition always true
+  ```  
+  **example: while loop typo:** so always put rvalue first (`while (0 == i)`), single `=` will give compilation error
+  ```cpp
+  while (i = 0)     // set i then use i as condition (0 here)
+  while (i == 0)    // use (i == 0) condition
   ```
 - **break:** exit loop  
 **continue:** skip to next iteration
@@ -142,14 +150,13 @@
   do
   {
       ...
-      break;  // break without returning
+      break;    // break without returning
       ...
   } while (0)
   ...
   return 0;
   ```
-- **goto:** dont use it unless:  
-you want to break out of nested loops without returning from the function to run some code
+- **goto:** dont use it unless you want to break out of nested loops without returning from the function to run some code
   ```cpp
   int foo()
   {
@@ -170,15 +177,12 @@ you want to break out of nested loops without returning from the function to run
       return 0;
   }
   ```
-  asdasd
-  ```cpp
-  asdas
-  ```
 - **function:**
   ```cpp
-  // declaration: interface
+  // declaration (interface)
   void printSum(int a, int b);
-  // definition: implementation
+
+  // definition (implementation)
   void printSum(int a, int b) { std::cout << a + b << std::endl; }
   ```
   - **overloading:** pick from all function with same name but different arguments (not return type), picked at compile-time
@@ -194,7 +198,8 @@ you want to break out of nested loops without returning from the function to run
 ![](./media/cplusplus/pass_by_reference_vs_value.gif)
 
 - **library:** logically connected multiple object files
-  - **static:** linked into final executable, faster, takes lot of space, `*.a`
+  - **static:** part of final executable after linking  
+  faster but takes lot of space (`*.a`)
     ```sh
     ar rcs lib.a module1.o module2.o
     # rcs: replace, create, sort
@@ -202,19 +207,20 @@ you want to break out of nested loops without returning from the function to run
     # r: replace old files within library (if already exists)
     # s: create sorted index of library
     ```
-  - **dynamic:** loaded every time executable is executed, slower, can be copied, `*.so`
+  - **dynamic:** exists as a separate file outside the executable, is loaded at run-time  
+  slower but can be copied (`*.so`)
     ```sh
     gcc -c -fPIC main.c -o main.o
     gcc -shared main.o -o libmain.so
     ```
 
 ## containers
-- **iterator:** used to point at the memory addresses of containers, similar to pointer, allows quick navigation through containers
+- **iterator:** used to point at the memory addresses of containers (similar to a pointer), allows quick navigation through containers
 ![](./media/cplusplus/iterator.png)
   ```cpp
   T::iterator
-  *itr         // current element
-  ++itr        // next element
+  *itr           // current element
+  ++itr          // next element
   ```  
 
 ### sequence
@@ -224,26 +230,26 @@ you want to break out of nested loops without returning from the function to run
   #include <string>
   std::string str;
 
-  +                       // concatenate
-  pos = str.find(substr)  // find substring pos
-  str.empty()             // check empty
-  str.size()              // size
-  str.data()              // underlying C array
-  str.c_str()             // NULL terminated string
-  str[i]                  // access
-  str.at(i)               // access with bounds checking
-  str.front()             // first char, back()
-  str.clear()             // clear string
-  str.push_back(val)      // add val (as char) at end, pop_back()
-  str.reserve(size)       // reserve size (prevent frequent mem alloc)
-  str.shrink_to_fit()     // dealloc unused mem
+  +                         // concatenate operator
+  pos = str.find(substr)    // find substring pos
+  str.empty()               // check empty
+  str.size()                // size
+  str.data()                // underlying C array
+  str.c_str()               // NULL terminated string
+  str[i]                    // access
+  str.at(i)                 // access with bounds checking
+  str.front()               // first char, back()
+  str.clear()               // clear string
+  str.push_back(val)        // add val (as char) at end, pop_back()
+  str.reserve(size)         // reserve size (prevent frequent mem alloc)
+  str.shrink_to_fit()       // dealloc unused mem
   ```
 - **array:** static contiguous array
   ```cpp
   #include <array>
   std::array<T, size> arr;
 
-  arr.fill(value)  // assign value all elements
+  arr.fill(value)    // assign value all elements
   // same as earlier: empty, size, data, c_str() [i], at(i), front, clear & iterators
   ```
 - **vector:** dynamic contiguous array
@@ -253,12 +259,12 @@ you want to break out of nested loops without returning from the function to run
 
   // same as earlier: empty, size, data, c_str(), [i], at(i), front, clear, push_back, reserve, shrink_to_fit & iterators
   ```l
-- **deque:** double-ended queue (2 sided vector, non contiguous mem)
+- **deque:** double-ended queue, basically a two-sided vector with non contiguous mem
   ```cpp
   #include <deque>
   std::deque<T> dq;
 
-  dq.push_front(val)  // add val at beginning, popfront()
+  dq.push_front(val)    // add val at beginning, popfront()
   // same as earlier: empty, size, [i], at(i), front, clear, push_back, shrink_to_fit & iterators
   ```
 
@@ -268,17 +274,18 @@ you want to break out of nested loops without returning from the function to run
   ```cpp
   #include <utility>
   std::pair<T1, T2> pr;
-  pr = std::make_pair(val1, val2)  // create pair
-  pr.first                         // first element, second
+  pr = std::make_pair(val1, val2)    // create pair
+  pr.first                           // first element, second
   ```
-- **map:** collection of key-value pairs, sorted by unique keys, anything with defined less-than operator (`<`) can be used as key
+- **map:** collection of key-value pairs which is sorted by unique keys  
+anything with a defined less-than operator (`<`) can be used as key
   ```cpp
   #include <map>
   std::map<keyT, valT> mp;
-  mp[key] = val;                           // insert/assign
-  <posItr, bool> = mp.insert({key, val});  // insert value if not exists
-  posItr = mp.find(key);                   // find element, (posItr == mp.end()) if not present
-  if (mp.count(key) > 0)                   // check if key present, 0/1 for map
+  mp[key] = val;                             // insert/assign
+  <posItr, bool> = mp.insert({key, val});    // insert value if not exists
+  posItr = mp.find(key);                     // find element, (posItr == mp.end()) if not present
+  if (mp.count(key) > 0)                     // check if key present, 0/1 for map
   // empty, size, at(key), clear & iterators
   ```
 
@@ -292,53 +299,59 @@ you want to break out of nested loops without returning from the function to run
   ```
 
 ## object oriented programming
-- **namespace:** helps avoid name conflicts & group project into logical modules
-  ```cpp
-  // use
-  using std::cout;
-  // instead of
-  using namespace std;  // especially in headers
-  ```
-  **nameless namespace:** local to translation unit, like static but can also take user defined types
+- **namespace:** helps avoid name conflicts and helps group project into logical modules  
+use `using std::cout;` instead of `using namespace std;` especially in headers
+- **nameless namespace:** local to translation unit, like global static but can also take user defined types  
+useful if same variable names reused in multiple files
   ```cpp
   namespace
   {
   const int SIZE = 100;
   }
   ```
-- **class:** to encapsulate data along with methods to process them, `this` is pointer to current object
+- **encapsulation:** bundle data and methods into easy-to-use units
+- **class:** to encapsulate data along with methods to process them, `this` used as pointer to current object
   ```cpp
   class someClass
   {
-  public:
-      someClass() {}   // constructor, atleast one
-      ~someClass() {}  // destructor, exactly one
+    public:
+      someClass() {}     // constructor, atleast one
+      ~someClass() {}    // destructor, exactly one
       // if no constructor/destructor, default one generated
-      someClass(int a, int b) : num_a_(a), num_b_(b) {}  // initializer list, can initialize const members
-      bool operator<(const someClass& other) {}          // operator overload
-      someFunc() const {}  // const correctness, should not change object, const reference object needs this
-      someFunc() {}        // function overload (because const missing)
-      static void someStaticFunc() {}  // static member function, call without object
-      static int some_num;  // static member variable, common across all objects
-      static int getNumA() {};  // getter/accessor (setter/mutator, can set conditions on the value)
-  protected:
 
-  private:  // default access specifier
+      someClass(int a, int b) : num_a_(a), num_b_(b) {}    // initializer list, can initialize const members
+      bool operator<(const someClass &other) {}            // operator overload
+      someFunc() const {}                                  // const correctness (should not change object), const reference object needs this
+      someFunc() {}                                        // function overload (because const missing)
+      static void someStaticFunc() {}                      // static member function
+      static int some_num;                                 // static member variable
+      static int getNumA(){};                              // getter/accessor (setter/mutator)
+
+    protected:
+      int num_x_ = 0;
+
+    private:    // default access specifier
       int num_a_ = 0;
       int num_b_ = 0;
 
       // friend, give another class/function access to private & protected
-      friend class anotherClass;                // friend class
-      friend int add(someClass, anotherClass);  // friend function
+      friend class anotherClass;                  // friend class
+      friend int add(someClass, anotherClass);    // friend function
   };
   ```
+  `{ }` used instead of `( )` for argument type checking
   ```cpp
-  someClass var_0;             // default constructor
-  someClass var_1(10, 11);     // custom constructor
-  someClass var_2{10, 11};     // custom constructor with argument type checking
-  someClass var_3 = {10, 11};  // same as var_2
+  someClass var_0;               // default constructor
+  someClass var_1(10, 11);       // custom constructor
+  someClass var_2{10, 11};       // custom constructor with argument type checking
+  someClass var_3 = {10, 11};    // same as var_2
   ```
-- **static variable:** exists once per class (not per object), value equal across all objects, example: reference counter, must be defined in *.cpp file
+- **access specifiers/modifiers:** define how the members (variables & functions/methods) of a class can be accessed
+  - **`public`:** accessible outside the class
+  - **`protected`:** inaccessible outside the class
+  - **`private`:** inaccessible outside the class but can be accessed in inherited classes
+- **static variable:** exists once per class (not per object) and shared across all (base & derived class) objects, must be defined in source (not header) file  
+example: count number of objects of a class
   ```cpp
   class countedClass
   {
@@ -348,7 +361,7 @@ you want to break out of nested loops without returning from the function to run
       static int count;
   }
   ```
-  **static function:** doesn't need an object, only needs an object to access private members, must be defined in *.cpp file
+  **static function:** doesn't need an object to call, object required only when private members accessed, must be defined in source file
   ```cpp
   // static member function call
   someClass::staticFunc(args);
@@ -369,13 +382,14 @@ you want to break out of nested loops without returning from the function to run
 
   int main()
   {
-      printStruct({10, "world"});  // braced initialization
+      printStruct({10, "world"});    // braced initialization
       return 0;
   }
   ```
-  **padding:** align members to natural address boundaries  
-**packing:** prevent padding
-  **bitfields:** pointer not possible since size can be smaller than granularity allowed by pointers
+  **padding:** align members to natural address boundaries (usually processor word size)  
+  **packing:** prevent padding  
+  **bitfields:** specify the size (in bits) of the structure and union members  
+  if bitfields used then pointer not possible since member sizes are (typically) smaller than granularity allowed by pointers (`char`)
   ```cpp
   typedef struct
   {
@@ -386,17 +400,17 @@ you want to break out of nested loops without returning from the function to run
   two_nibbles temp;
   temp.a = 5;
   temp.b = 17;
-  printf("%u %u %u\n", sizeof(temp), temp.a, temp.b);  // 1 5 1 (b overflowed)
+  printf("%u %u %u\n", sizeof(temp), temp.a, temp.b);    // 1 5 1 (b overflowed)
   ```
 - **resource acquisition is initialization (RAII):** resource allocation/acquisition/initialization is done by the constructor, while resource deallocation/release/deinitialization is done by the destructor
 - **forward declaration:**
   ```cpp
-  class someClass1;  // forward declaration
-  class someClass2;  // forward declaration
+  class someClass1;    // forward declaration
+  class someClass2;    // forward declaration
 
   class someClass1
   {
-      friend int sum(someClass1, someClass2);  //  error without forward declaration error (someClass2 undefined)
+      friend int sum(someClass1, someClass2);    //  error without forward declaration (someClass2 undefined)
   };
 
   class someClass2
@@ -408,34 +422,30 @@ you want to break out of nested loops without returning from the function to run
 ### move semantics
 - **lvalue:** occupies memory  
 **rvalue:** everything else, defined using `&&`
-- `std::move` converts lvalue to rvalue, transfers ownership, don't access moved variable (undefined by cpp standard), performance better than copying but worse than passing by reference
+- `std::move` converts lvalue to rvalue by transfering ownership so don't access a moved variable (undefined by cpp standard)  
+performance better than copying but worse than passing by reference
   ```cpp
-  int b = std::move(a)  // memory transferred to b
+  int b = std::move(a);    // memory transferred to b
   ```
-- **copy/move constructor/assignment operator:** use move constructor/assignment operator to take ownership of another object
+- **copy/move constructor/assignment operator:** move constructor/assignment operator used to take ownership of another object
   ```cpp
-  myClass(myClass &other) {}              // copy constructor
-  myClass &operator=(myClass &other) {}   // copy assignment operator
-  myClass(myClass &&other) {}             // move constructor
-  myClass &operator=(myClass &&other) {}  // move assignment operator
-  ```
-  ```cpp
-  myClass a;      // default constructor
-  myClass b(a);   // copy constructor
-  myClass c = a;  // copy constructor
-  a = b;          // copy assign operator
+  myClass(myClass &other) {}                // copy constructor
+  myClass &operator=(myClass &other) {}     // copy assignment operator
 
-  myClass b(std::move(a));   // move constructor
-  myClass c = std::move(b);  // move constructor
-  a = std::move(b);          // move assign operator
+  myClass(myClass &&other) {}               // move constructor
+  myClass &operator=(myClass &&other) {}    // move assignment operator
   ```
-- **rule of all or nothing:** define all 6 special functions (destructor + constructor + above 4) or define none, if none defined `default` functions used  
-if class has constant data member then above 4 functions are implicitly marked `delete` by compiler
   ```cpp
-  myClass() = default;               // autogenerated functions, may use shallow copy
-  myClass(myClass &other) = delete;  // compilation error if called
+  myClass a;                   // default constructor
+  myClass b(a);                // copy constructor
+  myClass c = a;               // copy constructor
+  a = b;                       // copy assign operator
+
+  myClass b(std::move(a));     // move constructor
+  myClass c = std::move(b);    // move constructor
+  a = std::move(b);            // move assign operator
   ```
-- `delete` can be used to disallow certain functions as an alternative to `{ }`
+- **`delete`:** to disallow certain functions
   ```cpp
   class someClass
   {
@@ -444,9 +454,16 @@ if class has constant data member then above 4 functions are implicitly marked `
       int someFunc(double size) = delete;
   }
   ```
+- **rule of all or nothing:** define all 6 special functions (destructor + constructor + above 4) or define none  
+if none defined `default` functions used, for something that cannot be moved (like `const`), move falls back to a copy and move marked as `delete`
+  ```cpp
+  myClass() = default;                 // autogenerated functions, may use shallow copy
+  myClass(myClass &other) = delete;    // compilation error if called
+  ```
 
 ### inheritance
-- **inheritance:** inherit public & protected data & functions from another class, separate 6 special functions & private members
+- **inheritance:** inherit public & protected data & functions from another class  
+separate 6 special functions & private members
   ```cpp
   class rectangleClass
   {
@@ -458,19 +475,18 @@ if class has constant data member then above 4 functions are implicitly marked `
       int height_;
   };
 
-  class squareClass : public rectangleClass  // default private
+  class squareClass : public rectangleClass    // default private
   {
   public:
       squareClass(size) : rectangleClass(size, size) {}
   };
   ```
-- **types:**
-  - **`public`:** public & protected same as base
-  - **`protected`:** both protected
-  -  **`private`:** both private
+  - **`public`:** public & protected from base maintain their access specifier
+  - **`protected`:** both will be  protected in derived class
+  -  **`private`:** both will be private in derived class
 - **composition:** combining simpler objects to make more complex ones  
 inheritance is `is a` relationship, example: square is a rectangle  
-composition is `has a` relationship, example: car has a wheel
+composition is `has a` relationship, example: car has a wheel (& other objects)
 
 ### polymorphism
 - **polymorphism:** ability to present same interface for differing underlying implementations, inherited classes may have different functionality but share a common interface
@@ -479,9 +495,10 @@ composition is `has a` relationship, example: car has a wheel
     ```cpp
     derivedClass1 a;
     derivedClass2 b;
-    baseClass& c = a;  // can be generic reference for derivedClass1 or derivedClass2
+    baseClass& c = a;    // can be generic reference for derivedClass1 or derivedClass2
     ```
-- **function overriding:** `virtual` function in base class can be overridden in derived class, same function prototype in both base & derived, need to check which function in virtual table needs to be called (costs extra time)
+- **function overriding:** `virtual` function in base class can be overridden in derived class  
+same function prototype in both base & derived, so need to check which function needs to be called in virtual table (extra cycles)
   ```cpp
   class baseClass
   {
@@ -506,9 +523,9 @@ composition is `has a` relationship, example: car has a wheel
   int main()
   {
       derivedClass b;
-      b.print1();  // print1 baseClass
-      b.print2();  // print2 derivedClass
-                   // but without virtual: print2 baseClass
+      b.print1();    // print1 baseClass
+      b.print2();    // print2 derivedClass
+                     // but without virtual: print2 baseClass
       return 0;
   }
   ```
@@ -516,7 +533,7 @@ composition is `has a` relationship, example: car has a wheel
   ```cpp
   virtual myFunc() = 0;
   ```
-  **abstract class:** class with atleast one pure virtual function, cannot create object  
+  **abstract class:** class with atleast one pure virtual function, cannot create object of this class  
 **interface:** class with only pure virtual functions & no data members
 
 ## file & string stream
@@ -527,28 +544,28 @@ composition is `has a` relationship, example: car has a wheel
   ```
   ```cpp
   // modes
-  in      // for reading
-  out     // for writing
-  binary  // in binary mode
-  app     // append output
-  ate     // seek to EOF when opened
-  trunc   // overwrite existing file
+  in        // for reading
+  out       // for writing
+  binary    // in binary mode
+  app       // append output
+  ate       // seek to EOF when opened
+  trunc     // overwrite existing file
   ```
   **`ifstream`:** file stream with default mode `in`  
 **`ofstream`:** file stream with default mode `out`
-- ```cpp
-  // read one line at a time
+- **example: read line by line:**
+  ```cpp
   while (getline(ifstream, string))
   {
       // process line
   }
   ```
+- **example: write binary data:**
   ```cpp
-  // binary data
   std::ofstream output_file("output.bin", ios_base::out | ios_base::binary);
   output_file.write(reinterpret_cast<char*>(data), sizeof(data));
   ```
-- **example: read regular columns:** every line should have all columns
+- **example: read regular columns:** every line should have same number of columns
   ```cpp
   // 1   one     0.1
   // 2   two     0.2
@@ -560,9 +577,9 @@ composition is `has a` relationship, example: car has a wheel
 
   std::ifstream input_file("input_data.txt", ios_base::in);
 
-  while (input_file >> a >> b >> c)  // read values
+  while (input_file >> a >> b >> c)    // read values
   {
-      std::cout << a << b << c << std::endl;  // print values in same order
+      std::cout << a << b << c << std::endl;    // print values in same order
   }
   ```
 - **sstream:** allows a string to be treated like a stream
@@ -573,7 +590,7 @@ composition is `has a` relationship, example: car has a wheel
   std::stringstream out_sstream;
   out_sstream << "pi " << 3.14;
   std::string str_out = out_sstream.str();
-  std::cout << str_out << std::endl;  // pi 3.14
+  std::cout << str_out << std::endl;    // pi 3.14
 
   // reset sstream string
   out_sstream.str("");
@@ -582,14 +599,16 @@ composition is `has a` relationship, example: car has a wheel
   std::stringstream in_sstream(str_out);
   std::string str;
   float val;
-  in_sstream >> str >> val;  // str: "pi", val: 3.14
+  in_sstream >> str >> val;    // str: "pi" & val: 3.14
   ```
 
 ## memory
-- **type qualifiers:** C++ only has first two
+- **type qualifiers:**
   - **const:** read-only
-  - **volatile:** value might be changed by something beyond the program, no caching, use `const volatile` for read-only status register
-  - **restrict:** optimization hint to compiler that during its lifetime no other pointer will be used to access the same memory
+  - **volatile:** value might be changed by something beyond the program (so not cached)  
+  use `const volatile` for read-only status register
+  - **restrict:** optimization hint to compiler that during its lifetime no other pointer will be used to access the same memory  
+  not part of C++ standard but most compilers support it
   - **atomic:** read-modify-write operators guaranteed in single instruction, free from data races
     ```cpp
     #include <iostream>
@@ -598,15 +617,15 @@ composition is `has a` relationship, example: car has a wheel
         #error no atomics
     #endif
 
-    _Atomic const int *p1;   // pointer to atomic const int
-    const atomic_int *p2;    // same
-    const _Atomic(int) *p3;  // same
+    _Atomic const int *p1;     // pointer to atomic const int
+    const atomic_int *p2;      // same
+    const _Atomic(int) *p3;    // same
     ```
 - **storage class specifier:**
   - **auto:** default
   - **register:** hint to compiler to place it in processor's register
-  - **static:** local static variable keeps its value between invocations, global static variable/function local to translation unit
-  - **extern:** used for external linkages, only mention specifier for declarations & keep them in header, cross checking between translation units
+  - **static:** local static variable keeps its value between invocations, global static variable/function local to translation unit (but prefer)
+  - **extern:** used for external linkages, only mention specifier for declaration & keep it in a header, cross checking takes place between translation units
     ```cpp
     // header.h
     extern int g_val;
@@ -619,16 +638,16 @@ composition is `has a` relationship, example: car has a wheel
 
     // source2.c
     #include "header.h"
-    printf("%d\n", g_val);        // 77
-    printf("%d\n", increment());  // 78
+    printf("%d\n", g_val);          // 77
+    printf("%d\n", increment());    // 78
     ```
   - **mutable:** C++ only, to allow a particular data member of const object to be modified, example: mutexes
 - **1s complement:** invert all bits  
 **2s complement:** add 1 to 1s complement
   ```cpp
-  00011001  //  25
-  11100110  //     (1s complement)
-  11100111  // -25 (2s complement)
+  00011001    //  25
+  11100110    //     (1s complement)
+  11100111    // -25 (2s complement)
   ```
 - **integer representation:** negative numbers stored as 2s complement  
 **signed:** `-2^(n-1)` to `2^(n-1) - 1`  
@@ -637,25 +656,25 @@ composition is `has a` relationship, example: car has a wheel
   ```cpp
   unsigned int a = 6;
   int b = -20;
-  (a + b > 6) ? printf(">6") : printf("<=6");  // >6
+  (a + b > 6) ? printf(">6") : printf("<=6");    // >6
   ```
   **sign extension:** preserving sign while increasing number of bits of a binary number
   ```cpp
-  1001 0110            //  8 bit (-106)
-  1111 1111 1001 0110  // 16 bit (-106)
+  1001 0110              //  8 bit (-106)
+  1111 1111 1001 0110    // 16 bit (-106)
   ```
-  both `128` & `-128` have same 8-bit 2s complement (`10000000`), so `-128` assumed since all bit-patterns with MSB set are negative
+  both `128` & `-128` have same 8-bit 2s complement (`10000000`), so `-128` assumed since all bit-patterns with MSB (sign bit) set are negative
 - **float representation (IEEE 754):** single precision `1 + 8 + 23`, double precision `1 + 1 + 53`  
 ![](./media/cplusplus/IEEE754.png)
   ```cpp
-  263.3                            // floating number
-  100000111.0100110011...          // binary
-  1.000001110100110011... x 2^8    // scientific notation, true_exponent = 8
-                                   // 1 is invisible leading bit
+  263.3                             // floating number
+  100000111.0100110011...           // binary
+  1.000001110100110011... x 2^8     // scientific notation, true_exponent = 8
+                                    // 1 is invisible leading bit
   sign = 0
-  exp = 8 + 127 = 10000111         // exponent = true_exponent + bias
-                                   // bias = 2^(exp_bits-1)-1
-  mant = 00000111010011001100110   // bits after leading bit
+  exp = 8 + 127 = 10000111          // exponent = true_exponent + bias
+                                    // bias = 2^(exp_bits-1)-1
+  mant = 00000111010011001100110    // bits after leading bit
 
   0 10000111 00000111010011001100110
   ```
@@ -680,26 +699,29 @@ composition is `has a` relationship, example: car has a wheel
   ```
 - **memory layout:** each of the six different segments stores different parts of code and have their own read & write permissions  
 ![](./media/cplusplus/memory_layout.png)
-  - **text:** read only instructions, `.rodata` read only const global data
-  - **data:** initialized `global` & `static` variables (but `static` function in text)
-  - **bss (b​lock started by symbol):** uninitialized, only size mentioned in executable, allocated after program load, initialized with 0 after allocation
-  - **heap:** dynamic allocated during runtime, `std::bad_alloc` error if out of heap
+  - **text:** read only instructions  
+  `.rodata` read only const global data
+  - **data:** initialized `global` & `static` variables (but `static` functions will be in text section)
+  - **bss (b​lock started by symbol):** uninitialized `global` & `static` variables, only size mentioned in executable, allocated after program load and initialized with 0 after allocation
+  - **heap:** dynamically allocated during runtime, `std::bad_alloc` error if out of heap  
   **memory leak:** heap not dealloced or address lost (pointer reassigned)  
   **dangling pointer:** pointing to dealloced memory  
   **wild pointer:** pointing to random address
     ```cpp
-    float* f_ptr = new float[num];  // allocate array
-    delete[] f_ptr;                 // delete array
+    float* f_ptr = new float[num];    // allocate array
+    delete[] f_ptr;                   // delete array
     ```
-  - **stack:** simple last-in-first-out (LIFO) structure, stores local variables, function params & inheritance virtual function table  
+  - **stack:** simple last-in-first-out (LIFO) structure that stores local variables, function arguments & inheritance virtual function table  
   **stack pointer:** keeps track of top of the stack  
   **stack overflow:** program attempts to use more memory than is available on stack, usually due to deep/infinite recursion leading to stack shortage  
-  **stack frame:** function data (return addr, args, local vars) pushed onto stack, on ARM first 4 args stored `r0` to `r3`  
+  **stack frame:** function data (return addr, args, local vars) pushed onto stack  
+  example: on ARM first 4 args stored `r0` to `r3`  
   `ebp` (frame pointer) is used to backup `esp` (stack pointer), while `esp` is being modified by the current function  
   ![](./media/cplusplus/stack.png)
-- **segmentation fault:** error from a program trying to access the value stored in any segment differently than it is supposed to
-- **shallow copying:** just copy pointers, not data (default copy constructor/assignment op), can lead to dangling pointer when object shallow copied  
-**deep copying:** copy data, create new pointers
+- **segmentation fault:** occurs when a program attempts to access a memory location it does not have permission to access or access differently than it is supposed to (like write to read-only location)
+- **shallow copying:** just copy pointer not the underlying data (used in default copy constructor/assignment operator)  
+can lead to dangling pointer when object shallow copied  
+**deep copying:** create new pointers and copy data into it
 
 ## pointers
 - **pointer vs reference:**
@@ -711,7 +733,7 @@ composition is `has a` relationship, example: car has a wheel
   - can apply arithmetic operations vs cannot
   - can store in vector/array vs cannot
 - **arrow operator:** `obj->myFunc()` is same as `(*obj).myFunc()`
-- **pointer polymorphism:** used for strategy pattern, initialize to NULL & check interface pointer before calling its methods
+- **pointer polymorphism:** used for strategy pattern
   ```cpp
   derivedClass a;
   baseClass *b = &a;
@@ -719,28 +741,28 @@ composition is `has a` relationship, example: car has a wheel
 - **const pointers:**
   ```cpp
   // read right to left
-  const int *       // pointer to const int
-  int *const        // const pointer to int
-  const int *const  // const pointer to const int
+  const int *         // pointer to int that is const
+  int *const          // const pointer to int
+  const int *const    // const pointer to int that is const
   ```
-- **smart pointer:** wrapper class over a raw pointer that owns heaps memory & manages its lifetime, when the object is destroyed it frees the memory as well
+- **smart pointer:** wrapper class over a raw pointer that owns heap memory and manages its lifetime, when the object is destroyed it frees the memory as well
   ```cpp
   #include <memory>
-  sPtr.get();  // get raw pointer
+  sPtr.get();    // get raw pointer
   ```
   - **unique:** can be moved but cannot be copied, memory always owned by single unique pointer
     ```cpp
-    auto uPtr = std::unique_ptr<myType>(new myType);        // default constructor
-    auto uPtr = std::unique_ptr<myType>(new myType(args));  // custom constructor
-    auto uPtr = std::make_unique<myType>(args);             // C++14
+    auto uPtr = std::unique_ptr<myType>(new myType);          // default constructor
+    auto uPtr = std::unique_ptr<myType>(new myType(args));    // custom constructor
+    auto uPtr = std::make_unique<myType>(args);               // C++14
     ```
-  - **shared:** `std::shared_ptr`, can be copied, `usage_count` incremented/decremented when copied/destructed, mem freed when `usage_count == 0`
+  - **shared:** `std::shared_ptr`, can be copied, `usage_count` incremented/decremented when copied/destructed, memory freed when `usage_count == 0`
     ```cpp
-    auto sPtr = std::shared_ptr<myType>(new myType);        // default constructor
-    auto sPtr = std::shared_ptr<myType>(new myType(args));  // custom constructor
-    auto sPtr = std::make_shared<myType>(args);             // C++11
-    sPtr.use_count();                                       // return usage_count
-    sPtr.reset(ptr);                                        // decrease usage_count
+    auto sPtr = std::shared_ptr<myType>(new myType);          // default constructor
+    auto sPtr = std::shared_ptr<myType>(new myType(args));    // custom constructor
+    auto sPtr = std::make_shared<myType>(args);               // C++11
+    sPtr.use_count();                                         // return usage_count
+    sPtr.reset(ptr);                                          // decrease usage_count
     ```
     ```cpp
     class A
@@ -769,50 +791,50 @@ composition is `has a` relationship, example: car has a wheel
   ```cpp
       int a = 0;
       auto a_ptr = std ::unique_ptr<int>(&a);
-      return 0;  // *** Error in `file ': free (): invalid pointer: 0 x00007fff30a9a7bc ***
+      return 0;    // *** Error in `file ': free (): invalid pointer: 0 x00007fff30a9a7bc ***
   ```
 - **example: smart pointer polymorphism:** good way of using smart pointer
   ```cpp
   std::vector<unique_ptr<baseClass>> vec;
 
-  // first method, "new derivedClass" passed to constructor of unique_ptr
+  // first method: "new derivedClass" passed to constructor of unique_ptr
   vec.push_back(new derivedClass);
 
-  // second method, need to move (default is copy)
+  // second method: need to move (default is copy)
   auto var = unique_ptr<derivedClass>(new derivedClass);
   vec.push_back(std::move(var));
 
-  return 0;  // both dealloced
+  return 0;    // both dealloced
   ```
 - **type casting:** converting expression of given type into another type
   - **implicit:** change types without changing the value, happens automatically, lower data type converted to higher type
     ```cpp
     short a = 1024;
     int b = 5;
-    b = a;  // implicit conversion
+    b = a;    // implicit conversion
     ```
   - **explicit:** force type conversion, two types
     ```cpp
     float a = 1.2;
-    int b = (int)a + 1;  // C-like notation explicit conversion
-    int c = int(a) + 1;  // functional C-like explicit conversion
+    int b = (int)a + 1;    // C-like notation explicit conversion
+    int c = int(a) + 1;    // functional C-like explicit conversion
     ```
     ```cpp
-    unsigned char u = (unsigned char)(-9);  // same bit pattern (2s complement), 247
+    unsigned char u = (unsigned char)(-9);    // same bit pattern (2s complement), 247
     ```
 - **type casting operators:**
   ```cpp
     // newType new_var = static_cast<newType>(var);
-    static_cast       // compile-time implicit conversion
-    const_cast        // remove const from const ref of non-const variable
-    reinterpret_cast  // reinterpret bytes of one type as another type
-    dynamic_cast      // runtime conversion of derivedClass pointer to baseClass pointer, nullptr if failed
+    static_cast         // compile-time implicit conversion
+    const_cast          // remove const from const ref of non-const variable
+    reinterpret_cast    // reinterpret bytes of one type as another type
+    dynamic_cast        // runtime conversion of derivedClass pointer to baseClass pointer, nullptr if failed
     ```
-- **function pointer:**
+- **function pointer:** stores the address of a function
   ```cpp
-  int foo(int);     // function
-  int *foo(int);    // function returning int*
-  int (*foo)(int);  // function pointer, by changing precedence using ()
+  int foo(int);       // function
+  int *foo(int);      // function returning int*
+  int (*foo)(int);    // function pointer, by changing precedence using ()
   ```
   ```cpp
   int foo(int arg)
@@ -826,13 +848,13 @@ composition is `has a` relationship, example: car has a wheel
   {
       int (*func_ptr)(int);
       func_ptr = &foo;
-      int ret = (*func_ptr)(10);  // foo 10
+      int ret = (*func_ptr)(10);    // foo 10
 
       // OR
       func_ptr = foo;
-      int ret = func_ptr(10);    // foo 10
+      int ret = func_ptr(20);       // foo 20
 
-      printf("ret %d\n", ret);   // ret 10
+      printf("ret %d\n", ret);      // ret 20
 
       return 0;
   }
@@ -840,9 +862,9 @@ composition is `has a` relationship, example: car has a wheel
 - **spiral/right-left rule:**
   ```
   read these symbols as:
-  *          pointer of           - always on left side
-  []         array of             - always on right side
-  ()         function returning   - always on right side
+  *          pointer of                      - always on left side
+  []         array of                        - always on right side
+  ()         function returning/expecting    - always on right side
 
   step1: find the identifier, this is the starting point
   step2: look at symbols on the right of identifier, continue until you run out of symbols or hit `)`
@@ -868,10 +890,10 @@ composition is `has a` relationship, example: car has a wheel
   int *(*func())();
 
   int *(*func())();   // step1
-          ^^^^         // func is
+         ^^^^         // func is
 
   int *(*func())();   // step2, cant move right
-              ^^       // func is function returning
+             ^^       // func is function returning
 
   int *(*func())();   // step3, cant move left
         ^             // func is function returning pointer to
@@ -886,9 +908,12 @@ composition is `has a` relationship, example: car has a wheel
   ^^^                 // func is function returning pointer to function returning pointer to int
   ```
   ```cpp
-  int (*(*fun_one)(char*,double))[9][20];
-  int (*(*fun_one)())[][];  // without arguments or array sizes
-  // fun_one is pointer to function expecting (char*, double) and 
+  int (*(*foo)(char*,double))[9][20];
+
+  // without arguments or array sizes
+  int (*(*foo)())[][];
+
+  // foo is pointer to function expecting (char*, double) and 
   // returning pointer to 2D array (size 9X20) of int
   ```
   ```cpp

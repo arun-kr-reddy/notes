@@ -13,11 +13,11 @@
 - [undo (almost) anything with git](https://github.blog/2015-06-08-how-to-undo-almost-anything-with-git/)
 - [regex basics](https://www.youtube.com/watch?v=sa-TUpSx1JA)
 - linux commands (from archived ?)
-- gdb
-- cmake
-- gtest
-- gprof
-- valgrind
+- gdb (check on cppcon)
+- cmake (check on cppcon)
+- gtest (check on cppcon)
+- gprof (check on cppcon)
+- valgrind (check on cppcon)
 - thread sanitizers
 - basic linux commands
 - bash scripting
