@@ -36,6 +36,7 @@ free healthcare sounds cool until when you need anything beyond a cold, waiting 
 - not having to worry about housing and having rock solid family support is a huge advantage  
 robust startup revolution here has made QOL truly luxurious, you can do everything sitting at home without moving an inch
 - total compensation is damn good in india now, almost all the tech companies have big teams/decent work here now
+- [100K in US vs 30LPA India](https://www.youtube.com/watch?v=8KgF9k9dAc0&list=TLPQMTYwNjIwMjSp-s9vQ4lz1g&index=6&pp=gAQBiAQB)
 
 ## [exercising for weight loss](https://www.reddit.com/r/loseit/wiki/index/?rdt=42852#wiki_exercising_for_weight_loss)
 - exercise is not equal to diet because we can control most of our energy intake but only about 10%-20% of our energy expenditure through exercise, studies repeatedly show that exercise has little effect on weight, but diet does  
