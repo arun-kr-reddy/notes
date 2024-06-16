@@ -75,6 +75,6 @@ key idea is that lower-level needs must be satisfied before higher-level needs c
   - **self-actualization:** refers to the realization of a person’s potential, self-fulfillment, seeking personal growth & peak experiences
 
 ## quotes
-- *if you crush a cockroach you're a hero, if you crush a beautiful butterfly you're a villain, morals have aesthetic criteria* (Friedrich Nietzsche)
-- *just because you can afford it doesn't mean you should buy it* (Suze Orman)
+- *if you crush a cockroach you're a hero, if you crush a beautiful butterfly you're a villain, morals have aesthetic criteria*
+- *just because you can afford it doesn't mean you should buy it*
 - *AI can only replace you if your work is already done and readily accessible over the internet, AI cannot replace novelty*

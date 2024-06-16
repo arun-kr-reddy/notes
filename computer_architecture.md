@@ -316,11 +316,11 @@ except `TST`, `TEQ`, `CMP` & `CMN` all arithmetic instructions may modify PSR fl
   MVN regd, arg         //; regd ⟵ ~argb, MOV_NOT
 
   // branching
-  B   label  //; unconditional branch
-  BNE label  //; branch if not equal
+  B   label             //; unconditional branch
+  BNE label             //; branch if not equal
 
   // memory
-  MOV rega, arg        //; rega ⟵ arg, used to load from another register or immediate (upto 12bits)
+  MOV rega, arg         //; rega ⟵ arg, used to load from another register or immediate (upto 12bits)
   LDR regd, [rega]      //; regd ⟵ *rega, LOAD_REGISTER, to load from RAM or for large immediate values
   STR regd, [rega]      //; regd ⟶ *rega, STORE_REGISTER
   // LDRB & STRB are 8bit variants

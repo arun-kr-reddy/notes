@@ -34,89 +34,144 @@
 - OOPs concepts
 - [MSVC init memory](https://stackoverflow.com/questions/127386/what-are-the-debug-memory-fill-patterns-in-visual-studio-c-and-windows)
 - atomics & memory ordering
+- [templates FAQ](https://isocpp.org/wiki/faq/templates)
+
+## todo list  <!-- omit from toc -->
+- Basics and Fundamentals:
+  - Syntax and language features
+  - Variables, data types, and type conversions
+  - Control flow (if-else, loops, switch statements)
+  - Functions and parameter passing
+- Object-Oriented Programming (OOP):
+  - Classes and objects
+  - Inheritance, polymorphism, and encapsulation
+  - Constructors and destructors
+  - Overloading and overriding
+- Standard Template Library (STL):
+  - Containers (vectors, lists, sets, maps, etc.)
+  - Iterators and algorithms (sorting, searching, etc.)
+  - Smart pointers (unique_ptr, shared_ptr)
+  - Exception handling
+- Memory Management:
+  - Stack vs. heap memory
+  - Dynamic memory allocation (new, delete)
+  - Memory leaks and resource management
+  - RAII (Resource Acquisition Is Initialization)
+- Operator Overloading:
+  - Unary and binary operators
+  - Assignment operators
+  - Stream insertion and extraction operators
+  - Comparison operators
+- Templates and Generic Programming:
+  - Function templates
+  - Class templates
+  - Template specialization
+  - Template metaprogramming
+- Advanced Concepts:
+  - Lambdas and functional programming
+  - Multithreading and concurrency
+  - File I/O and streams
+  - Exception safety and error handling
 
 ## introduction
-- **standard I/O channels:** one input (`stdin` as `cin`) & two output (`stdout` as `cout` & `stderr` as `cerr`)
+- *within C++ there is a much smaller & cleaner language struggling to get out*
+- **standard I/O channels:** are preconnected input & output communication channels between a computer program and its environment when it begins execution  
+one input channel: standard input `cin` and two output channels: standard output (`cout`) & standard error (`cerr`)  
+`stdin`, `stdout` & `stderr` streams are identified by the file descriptors 0, 1 & 2 in linux
   ```cpp
-  std::cout << "out log" << std::endl;
+  // C++
+  std::cout << "out log" << std::endl;  // endl: endline
+
+  // C
   fprintf(stderr, "error log");
   ```
-- **preprocessor:** continuation (`\`), stringize (`#`), token pasting (`##`)
+- **command line arguments:** to pass arguments define `main()` to receive number of arguments (`int argc`) & list of arguments (`char const *argv[]`)
   ```cpp
-  __DATE__    // May 16 2022
-  __TIME__    // 09:42:38
-  __FILE__    // D:\workspace\code\src\main.cpp
-  __LINE__    // 23
+  // ./exe_main command line arguments
 
+  int main(int argc, char const *argv[])
+  {
+      // argc == 4
+      // argv[] == {"exe_main", "command", "line", "arguments"}
+  }
+  ```
+- **compilation process:** transforms a human-readable code into a machine-readable format  
+![](./media/cplusplus/compilation_stages.png)
+  - **preprocessor:** all statements beginning with `#` are processed  
+  tasks include comments removal, file inclusion, macros expansion & conditional expansion
+  - **compiler:** converts pre-processed intermediate file (`*.i`) into an assembly file (`*.s`) having low-level assembly instructions
+  - **assembler:** converts assembly code into machine-readable object (binary/hex) code (`*.o`)
+  - **linker:** combines the object files with other necessary libraries & modules (object files) to create an executable file (`*.exe/*.out`)  
+  ensures that necessary functions & variables referenced from different modules are correctly connected
+- **example: GCC compiler flags:**
+  ```sh
+  -std=c++11        # set C++ standard
+  -Wall             # all warnings
+  -Wextra           # extra warnings
+  -Werror           # treat warnings as errors
+  -O<n>             # optimize for speed
+  -Os               # optimize for size
+  -Og               # optimize for debuggability
+  -ftree-vectorize  # auto vectorization
+  -g<n>             # keep debugging symbols
+  -pg               # extra profile information (used for gprof)
+  -l                # library name
+  -L                # library search path
+  -I                # include search path
+  -D<flag>=<value>  # add preprocessor flag (with value if required)
+  -fPIC             # position independent code (suitable for inclusion in shared libs)
+                    # example: jumps will be relative instead of absolute
+  -c                # compile but don't link
+  -save-temps       # save intermediate source files
+  ```
+- **preprocessor:**
+  ```cpp
+  __DATE__        // May 16 2022
+  __TIME__        // 09:42:38
+  __FILE__        // C:\workspace\code\src\main.cpp
+  __LINE__        // 23
   #pragma once    // include file only once
-
   #error message  // preproc error
-
-  // stringizing operator  : #
-  // token-pasting operator: ##
-  #define macroFunc(a, b) printf("val" #a " : %d, "  \
-                                "val" #b " : %d\n", \
+  ```
+  continuation (`\`), stringize (`#`) & token pasting (`##`) operators
+  ```cpp
+  #define macroFunc(a, b) printf("val"#a " : %d, val"#b " : %d\n", \
                                 val##a, val##b)
 
   int main(void)
   {
       int val1 = 40;
       int val2 = 30;
-      macroFunc(2, 1);    // val2 : 30, val1 : 40
+      macroFunc(2, 1);  // val2 : 30, val1 : 40
       return 0;
   }
   ```
-- **command line arguments:** `int main(int argc, char const *argv[])`
-  ```sh
-  ./exe_main command line arguments
-  # argc == 4
-  # argv[] == {"exe_main", "command", "line", "arguments"}
-  ```
-- **compiler:** preprocessor ⟶ compiler ⟶ assembler ⟶ linker  
-![](./media/cplusplus/compilation_stages.png)
-  ```sh
-  -std=c++11          # set C++ standard
-  -Wall               # all warnings
-  -Wextra             # extra warnings
-  -Werror             # treat warnings as errors
-  -O<n>               # optimize for speed
-  -Os                 # optimize for size
-  -Og                 # optimize for debuggability
-  -ftree-vectorize    # auto vectorization
-  -g<n>               # keep debugging symbols
-  -pg                 # extra profile information (used for gprof)
-  -l                  # library name
-  -L                  # library search path
-  -I                  # include search path
-  -D<flag>=<value>    # add preprocessor flag (with value if required)
-  -fPIC               # position independent code (suitable for inclusion in shared libs)
-                      # example: jumps will be relative instead of absolute
-  -c                  # compile but don't link
-  -save-temps         # save intermediate source files
-  ```
-- **auto:** type deduced from initialization value
+- **`auto`:** is a placeholder type that will be replaced later by the compiler  
+for a variable placeholder replaced typically by deduction from an initializer
   ```cpp
-  auto var = 13;       // int
-  auto var = 13.0f;    // float
-  auto var = 13.0;     // double
+  auto var = 13;     // int
+  auto var = 13.0f;  // float
+  auto var = 13.0;   // double
+
+  auto a = 0, b = 3.14;  // error: inconsistent types for a and b
   ```
-- **bitwise operators:**
+- **bitwise operators:** variants of AND (`&&`), OR (`||`) & NOT (`!`)
   ```
-  A         = 0011 1100
-  B         = 0000 1101
+  A      = 0011 1100
+  B      = 0000 1101
   -----------------
-  A & B     = 0000 1100    AND
-  A | B     = 0011 1101    OR
-  A ^ B     = 0011 0001    XOR
-  ~A        = 1100 0011    NOT
-  A << 2    = 1111 0000    RSH
-  A >> 2    = 0000 1111    LSH
+  A & B  = 0000 1100  AND
+  A | B  = 0011 1101  OR
+  A ^ B  = 0011 0001  XOR
+  ~A     = 1100 0011  NOT
+  A << 2 = 1111 0000  RSH
+  A >> 2 = 0000 1111  LSH
   ```
 - **example: XOR number swap:**
   ```cpp
-  x = x ^ y;    // x == x ^ y
-  y = x ^ y;    // y == (x ^ y) ^ y ⟶ (y ^ y) ^ x ⟶ 0 ^ x ⟶ x
-  x = x ^ y;    // x == (x ^ y) ^ x ⟶ (x ^ x) ^ y ⟶ 0 ^ y ⟶ y
+  x = x ^ y;  // x == x ^ y
+  y = x ^ y;  // y == (x ^ y) ^ y ⟶ (y ^ y) ^ x ⟶ 0 ^ x ⟶ x
+  x = x ^ y;  // x == (x ^ y) ^ x ⟶ (x ^ x) ^ y ⟶ 0 ^ y ⟶ y
   ```
 - **example: bit manipulation:**
   ```cpp
@@ -874,38 +929,38 @@ can lead to dangling pointer when object shallow copied
   ```cpp
   int *p[];
 
-  int *p[];         // step1
-      ^             // p is
+  int *p[];            // step1
+      ^                // p is
 
-  int *p[];         // step2, cant move right
-        ^^          // p is array of
+  int *p[];            // step2, cant move right
+        ^^             // p is array of
 
-  int *p[];         // step3
-      ^             // p is array of pointer to
+  int *p[];            // step3
+      ^                // p is array of pointer to
 
-  int *p[];         // step3
-  ^^^               // p is array of pointer to int
+  int *p[];            // step3
+  ^^^                  // p is array of pointer to int
   ```
   ```cpp
   int *(*func())();
 
-  int *(*func())();   // step1
-         ^^^^         // func is
+  int *(*func())();    // step1
+         ^^^^          // func is
 
-  int *(*func())();   // step2, cant move right
-             ^^       // func is function returning
+  int *(*func())();    // step2, cant move right
+             ^^        // func is function returning
 
-  int *(*func())();   // step3, cant move left
-        ^             // func is function returning pointer to
+  int *(*func())();    // step3, cant move left
+        ^              // func is function returning pointer to
 
-  int *(*func())();   // step2, cant move right
-                ^^    // func is function returning pointer to function returning
+  int *(*func())();    // step2, cant move right
+                ^^     // func is function returning pointer to function returning
 
-  int *(*func())();   // step3
-      ^               // func is function returning pointer to function returning pointer to
+  int *(*func())();    // step3
+      ^                // func is function returning pointer to function returning pointer to
 
-  int *(*func())();   // step3
-  ^^^                 // func is function returning pointer to function returning pointer to int
+  int *(*func())();    // step3
+  ^^^                  // func is function returning pointer to function returning pointer to int
   ```
   ```cpp
   int (*(*foo)(char*,double))[9][20];
@@ -917,44 +972,44 @@ can lead to dangling pointer when object shallow copied
   // returning pointer to 2D array (size 9X20) of int
   ```
   ```cpp
-  int i;           // an int
-  int *p;          // an int pointer (ptr to an int)
-  int a[];         // an array of ints
-  int f();         // a function returning an int
-  int **pp;        // a pointer to an int pointer (ptr to a ptr to an int)
-  int (*pa)[];     // a pointer to an array of ints
-  int (*pf)();     // a pointer to a function returning an int
-  int *ap[];       // an array of int pointers (array of ptrs to ints)
-  int aa[][];      // an array of arrays of ints
-  int *fp();       // a function returning an int pointer
-  int ***ppp;      // a pointer to a pointer to an int pointer
-  int (**ppa)[];   // a pointer to a pointer to an array of ints
-  int (**ppf)();   // a pointer to a pointer to a function returning an int
-  int *(*pap)[];   // a pointer to an array of int pointers
-  int (*paa)[][];  // a pointer to an array of arrays of ints
-  int *(*pfp)();   // a pointer to a function returning an int pointer
-  int **app[];     // an array of pointers to int pointers
-  int (*apa[])[];  // an array of pointers to arrays of ints
-  int (*apf[])();  // an array of pointers to functions returning an int
-  int *aap[][];    // an array of arrays of int pointers
-  int aaa[][][];   // an array of arrays of arrays of int
-  int **fpp();     // a function returning a pointer to an int pointer
-  int (*fpa())[];  // a function returning a pointer to an array of ints
-  int (*fpf())();  // a function returning a pointer to a function returning an int
+  int i;             // an int
+  int *p;            // an int pointer (ptr to an int)
+  int a[];           // an array of ints
+  int f();           // a function returning an int
+  int **pp;          // a pointer to an int pointer (ptr to a ptr to an int)
+  int (*pa)[];       // a pointer to an array of ints
+  int (*pf)();       // a pointer to a function returning an int
+  int *ap[];         // an array of int pointers (array of ptrs to ints)
+  int aa[][];        // an array of arrays of ints
+  int *fp();         // a function returning an int pointer
+  int ***ppp;        // a pointer to a pointer to an int pointer
+  int (**ppa)[];     // a pointer to a pointer to an array of ints
+  int (**ppf)();     // a pointer to a pointer to a function returning an int
+  int *(*pap)[];     // a pointer to an array of int pointers
+  int (*paa)[][];    // a pointer to an array of arrays of ints
+  int *(*pfp)();     // a pointer to a function returning an int pointer
+  int **app[];       // an array of pointers to int pointers
+  int (*apa[])[];    // an array of pointers to arrays of ints
+  int (*apf[])();    // an array of pointers to functions returning an int
+  int *aap[][];      // an array of arrays of int pointers
+  int aaa[][][];     // an array of arrays of arrays of int
+  int **fpp();       // a function returning a pointer to an int pointer
+  int (*fpa())[];    // a function returning a pointer to an array of ints
+  int (*fpf())();    // a function returning a pointer to a function returning an int
   ```
 
 ## templates
 - **generic programming:** separate algorithms from data type
-- **templates:** compile-time type-independent/generic algorithms, `<T>` macro expanded, no definition till expansion is done (linker error)  
+- **templates:** compile-time type-independent/generic algorithms (`<T>` macro expanded), no definition till expansion is done (else linker error)  
 **template function:** can use any type that is copy constructable, assignable & defined by the time template compiled (custom classes)
   ```cpp
-  template <typename T>  // can use typename or class keyword
+  template <typename T>    // can use typename or class keyword
   T func1(const T &arg1)
   {
   }
 
-  func(10);     // type inferred by compiler
-  func<int>();  // explicit type (in case data type cannot be determined by compiler)
+  func(10);       // type inferred by compiler
+  func<int>();    // explicit type (in case data type cannot be determined by compiler)
   ```
   **template class:** used for meta programming (programs that modify programs), compiler generates objects based on types we passed
   ```cpp
@@ -972,20 +1027,20 @@ can lead to dangling pointer when object shallow copied
   ```
 - **specialization:** different template function/class implementation for a specific type
   ```cpp
-  template <typename T>  // generic
+  template <typename T>    // generic
   T func()
   {
   }
 
-  template <>  // specialized
+  template <>              // specialized
   int func()
   {
   }
 
-  func<int>();     // specialized
-  func<double>();  // generic
+  func<int>();             // specialized
+  func<double>();          // generic
   ```
-- **template classes headers/source:** always declare & define in same `*.h` file, concrete template classes are generated at compile time, linker does not know about the implementation
+- **where to keep template:** a template is a pattern that the compiler uses to generate a family of classes or functions, so for the compiler to generate the code it must see both the template definition (not just declaration) and the specific types/whatever used to fill-in the template, so keep declaration & definition in a header & include it
 
 ## error handling
 - **exception:** thrown when there is an error, constructor of exception receives a string error message, use `what()` to get exception string
