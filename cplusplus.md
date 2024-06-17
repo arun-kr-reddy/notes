@@ -103,7 +103,7 @@ one input channel: standard input `cin` and two output channels: standard output
   - **assembler:** converts assembly code into machine-readable object (binary/hex) code (`*.o`)
   - **linker:** combines the object files with other necessary libraries & modules (object files) to create an executable file (`*.exe/*.out`)  
   ensures that necessary functions & variables referenced from different modules are correctly connected
-- **example: GCC compiler flags:**
+- **example: GCC compiler flags:** MSVC flags are similar but instead of `-` uses `/`
   ```sh
   -std=c++11        # set C++ standard
   -Wall             # all warnings
@@ -175,21 +175,39 @@ for a variable placeholder replaced typically by deduction from an initializer
   ```
 - **example: bit manipulation:**
   ```cpp
-  #define setBit(num, idx)   (num |= (0x1 << idx))     // num |= 1 << idx;
-  #define clearBit(num, idx) (num &= ~(0x1 << idx))    // num &= ~(1 << idx);
-  #define flipBit(num, idx)  (num ^= (0x1 << idx))     // num ^= 1 << idx;
+  #define setBit(num, idx)   (num |= (0x1 << idx))
+  #define clearBit(num, idx) (num &= ~(0x1 << idx))
+  #define flipBit(num, idx)  (num ^= (0x1 << idx))
   ```
-- **ranged for loop:** uses iterators to loop over collection/container
+- **example: check power of 2:** power-of-2 will have only one bit set and if one is subtracted all lower bits will be set then bitwise AND of these two should result in zero
+  ```cpp
+  // first part to check if number is zero
+  return (x && !(x & (x - 1)));
+  ```
+- **example: count number of ones:** `n & (n-1)` will remove least significant 1 per iteration
+  ```cpp
+  while (n)  // run till n equals 0
+  {
+      n = n & (n - 1);
+      count++;          
+  }
+
+  // n = 1010
+  // 1010 & 1001 ⟶ 1000  second place 1 removed
+  // 1000 & 0001 ⟶ 0     fourth place 1 removed
+  ```
+- **ranged for loop:** more readable equivalent to traditional for loop for iterating over containers (using iterators)  
+there will be no wrong outside memory access since container iterator used
   ```cpp
   std::vector<int> vec{0, 1, 5};
 
-  // for(const auto& value : container)
-  for (auto n : vec)
+  // for (type& value : container)
+  for (int n : vec)
   {
-      std::cout << n << " ";    // 0 1 5
+      std::cout << n << " ";  // 0 1 5
   }
   ```
-- **example:infinite loop:**
+- **example: infinite loops:**
   ```cpp
   for (;;)     // K&R style, no warning
   while (1)    // readable but compiler warning for condition always true
