@@ -20,6 +20,8 @@
 ## links  <!-- omit from toc -->
 - [[lectures] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
 - [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
+- [bit manipulation](https://www.hackerearth.com/practice/basic-programming/bit-manipulation/basics-of-bit-manipulation/tutorial/)
+- [why avoid `goto`](https://smartbear.com/blog/goto-still-has-a-place-in-modern-programming-no-re/)
 
 ## todo  <!-- omit from toc -->
 - [cpp core guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#main)
@@ -146,7 +148,7 @@ one input channel: standard input `cin` and two output channels: standard output
       return 0;
   }
   ```
-- **`auto`:** is a placeholder type that will be replaced later by the compiler  
+- **auto:** is a placeholder type that will be replaced later by the compiler  
 for a variable placeholder replaced typically by deduction from an initializer
   ```cpp
   auto var = 13;     // int
@@ -207,29 +209,20 @@ there will be no wrong outside memory access since container iterator used
       std::cout << n << " ";  // 0 1 5
   }
   ```
-- **example: infinite loops:**
-  ```cpp
-  for (;;)     // K&R style, no warning
-  while (1)    // readable but compiler warning for condition always true
-  ```  
-  **example: while loop typo:** so always put rvalue first (`while (0 == i)`), single `=` will give compilation error
-  ```cpp
-  while (i = 0)     // set i then use i as condition (0 here)
-  while (i == 0)    // use (i == 0) condition
-  ```
-- **break:** exit loop  
-**continue:** skip to next iteration
+- **break:** exit enclosing loop  
+**continue:** skip to next loop iteration
   ```cpp
   do
   {
       ...
-      break;    // break without returning
+      break;  // break without returning
       ...
   } while (0)
   ...
   return 0;
   ```
-- **goto:** dont use it unless you want to break out of nested loops without returning from the function to run some code
+- **goto:** don't use it unless you want to break out of some complex code without returning because you need to run some cleanup code  
+a good rule-of-thumb is to only jump forward & to the end of a block
   ```cpp
   int foo()
   {
@@ -250,29 +243,22 @@ there will be no wrong outside memory access since container iterator used
       return 0;
   }
   ```
-- **function:**
+- **function overloading:** two or more functions can have the same name but with different parameters  
+pick at compile-time based on arguments (not return type)
   ```cpp
-  // declaration (interface)
   void printSum(int a, int b);
-
-  // definition (implementation)
-  void printSum(int a, int b) { std::cout << a + b << std::endl; }
+  void printSum(double a, double b);
   ```
-  - **overloading:** pick from all function with same name but different arguments (not return type), picked at compile-time
-    ```cpp
-    void printSum(int a, int b);
-    void printSum(double a, double b);
-    ```
-  - **default arguments:** only in declaration, after mandatory arguments
-    ```cpp
-    int printSum(int a, int b, int c = 0, int d = 0);
-    ```
-- **argument passing:** use pass-by-reference (pointer or reference) to prevent copying of large objects, const reference to prevent copy & modification  
+- **name mangling:** encoding of function/variable names so linker can separate common names due to overloading/namespaces  
+  use `extern "C" { .... }` in C++ when declaring a function that was implemented/compiled in C (name mangling not done)
+- **function argument passing:** use pass-by-reference (pointer or reference) to prevent copying of large objects, use const reference to prevent modification as well  
 ![](./media/cplusplus/pass_by_reference_vs_value.gif)
-
-- **library:** logically connected multiple object files
-  - **static:** part of final executable after linking  
-  faster but takes lot of space (`*.a`)
+- **default argument:** is a value provided in a function declaration (after mandatory arguments) that is automatically assigned by the compiler if the calling function doesn’t provide a value
+  ```cpp
+  int printSum(int a, int b, int c = 0, int d = 0);
+  ```
+- **library:** is a collection of pre-compiled code that can be re-used by programs
+  - **static:** is linked directly into the final executable, fast but takes lot of space (`*.a` archive)
     ```sh
     ar rcs lib.a module1.o module2.o
     # rcs: replace, create, sort
@@ -280,8 +266,7 @@ there will be no wrong outside memory access since container iterator used
     # r: replace old files within library (if already exists)
     # s: create sorted index of library
     ```
-  - **dynamic:** exists as a separate file outside the executable, is loaded at run-time  
-  slower but can be copied (`*.so`)
+  - **dynamic:** is linked but exists as a separate file that will be loaded at run-time, slower but can be copied (`*.so` shared object)
     ```sh
     gcc -c -fPIC main.c -o main.o
     gcc -shared main.o -o libmain.so
@@ -1118,14 +1103,6 @@ can lead to dangling pointer when object shallow copied
 
   type1 a, b;  // "a" pointer-to struct but "b" just struct
   type2 c, d;  // both "c" & "d" pointer
-  ```
-- **name mangling:** encoding of function/variable names so linker can separate common names (overloading, namespaces)  
-to link C code use:
-  ```cpp
-  extern "C"
-  {
-      ....
-  }
   ```
 - **maximum munch rule:** compiler bites off biggest legal chunk
   ```cpp

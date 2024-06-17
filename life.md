@@ -79,3 +79,4 @@ key idea is that lower-level needs must be satisfied before higher-level needs c
 - *if you crush a cockroach you're a hero, if you crush a beautiful butterfly you're a villain, morals have aesthetic criteria*
 - *just because you can afford it doesn't mean you should buy it*
 - *AI can only replace you if your work is already done and readily accessible over the internet, AI cannot replace novelty*
+- *code clarity trumps micro-optimization most of the time*
