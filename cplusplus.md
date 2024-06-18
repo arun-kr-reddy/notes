@@ -4,6 +4,7 @@
   - [sequence](#sequence)
   - [associative](#associative)
   - [unordered associative](#unordered-associative)
+  - [container adaptors](#container-adaptors)
 - [object oriented programming](#object-oriented-programming)
   - [move semantics](#move-semantics)
   - [inheritance](#inheritance)
@@ -30,7 +31,6 @@
 - [mix C & C++](https://isocpp.org/wiki/faq/mixing-c-and-cpp#:~:text=Just%20declare%20the%20C%20function,int)
 - [structure packing](http://www.catb.org/esr/structure-packing/)
 - [efficient c++](https://embeddedgurus.com/stack-overflow/category/efficient-cc/)
-- [add other containers](https://en.cppreference.com/w/cpp/container)
 - template uses
 - STL
 - OOPs concepts
@@ -284,11 +284,11 @@ pick at compile-time based on arguments (not return type)
   ```  
 
 ### sequence
-- **sequence containers:** data structures that can be accessed sequentially
+- **sequence containers:** data structures that can be accessed sequentially (`O(n)`)
 - **string:** sequences of characters, better than C-style arrays (which is faster) because this has dynamic size & useful member functions
   ```cpp
   #include <string>
-  std::string str("hello world");
+  std::string str;                      // std::string str("hello world");
 
   +                                     // concatenate operator
   int pos          = str.find(substr);  // find substring pos
@@ -299,60 +299,106 @@ pick at compile-time based on arguments (not return type)
   str.clear();                          // clear string
   str.push_back(val);                   // add val char at the end, pop_back()
   str.reserve(size);                    // reserve size to prevent frequent memory-allocs
+                                        // optional second arg for initializing new elements
   str.shrink_to_fit();                  // dealloc unused memory
   ```
 - **vector:** dynamic contiguous (so cache-friendly) array
   ```cpp
   #include <vector>
-  std::vector<T> vec{1, 2, 3, 4};
+  std::vector<T> vec;                   // std::vector<int> vec{1, 2, 3, 4};
 
   // empty, size, data, at(i), clear, push_back, reserve, shrink_to_fit
   ```
 - **array:** static contiguous array
   ```cpp
   #include <array>
-  std::array<T, size> arr{1, 2, 3, 4};
+  std::array<T, size> arr;              // std::array<int, 4> arr{1, 2, 3, 4};
 
-  arr.fill(value)  // assign value to all elements
+  arr.fill(value)                       // assign value to all elements
   // empty, size, data, at(i), clear
   ```
-- **deque:** double-ended queue, basically a two-sided vector with non contiguous mem
+- **deque:** double-ended queue, basically a two-sided vector with non contiguous mem  
+usually implemented as variable size array of fixed size arrays, this makes growing faster than a vector (which requires allocation & copying)
   ```cpp
   #include <deque>
-  std::deque<T> dq{1, 2, 3, 4};
+  std::deque<T> dq;                     // std::deque<int> dq{1, 2, 3, 4};
 
-  dq.push_front(val)  // add element at beginning, popfront()
+  dq.push_front(val)                    // add element at beginning, popfront()
   // empty, size, at(i), clear, push_back, shrink_to_fit
+  // size not provided
   ```
 
 ### associative
-- **associative containers:** sorted data structures that can be quickly searched
-- **pair:**
+- **associative containers:** sorted data structures that can be quickly searched (`O(logn)`)
+- **pair:** provides a way to store two heterogeneous objects as a single unit
   ```cpp
   #include <utility>
-  std::pair<T1, T2> pr;
-  pr = std::make_pair(val1, val2)    // create pair
-  pr.first                           // first element, second
+  std::pair<T1, T2> pr;                 // std::pair<int, string> pr(1, "hello");
+
+  pr       = make_pair(val1, val2);     // create pair
+  pr.first = val3;                      // modify first element, second
+  ```
+- **set:** collection of unique keys which is always sorted
+  ```cpp
+  #include <set>
+  std::set<T> st;                       // std::set<T> st{1, 2, 3, 4};
+
+  <posItr, bool> = st.insert(val);      // insert value if not exists
+  posItr         = st.find(key);        // find element, (posItr == st.end()) if not present
+  if (mp.count(key) > 0)                // number of matching keys (0/1 for set & map)
+  // empty, size, clear
   ```
 - **map:** collection of key-value pairs which is sorted by unique keys  
 anything with a defined less-than operator (`<`) can be used as key
   ```cpp
   #include <map>
-  std::map<keyT, valT> mp;
-  mp[key] = val;                             // insert/assign
-  <posItr, bool> = mp.insert({key, val});    // insert value if not exists
-  posItr = mp.find(key);                     // find element, (posItr == mp.end()) if not present
-  if (mp.count(key) > 0)                     // check if key present, 0/1 for map
-  // empty, size, at(key), clear & iterators
+  std::map<keyT, valT> mp{{1, "hello"}, {2, "world"}};
+
+  mp[key] = val;                        // assign (insert if not present)
+  // empty, size, at(key), clear, insert(pair), find, count
   ```
+- **multiset & multimap:** are same as set & map but keys are not unique (duplicates allowed), so `count(key)` can greater than 1  
+  defined in same headers as set & map
 
 ### unordered associative
-- **unordered associative containers:** unsorted hashed data structures that can be quickly searched
-- **unordered map:** similar to map but unsorted, instead organized into buckets based on hash of its key
+- **unordered associative containers:** unsorted  but hashed data structures that can be quickly searched (average 'O(1)' but worst case `O(n)`)  
+worst case if hash function is producing collision for every insertion into container
+- **unordered set, unordered map, unordered multiset & unordered multimap:** same as ordered associate containers with headers: `#include <unordered_set>` & `#include <unordered_map>`
+
+### container adaptors
+- **container adaptors:** provide a different interface for sequential containers
+- **stack:** deque wrapper with functionality of a LIFO data structure by forcing push/pop on one side only
   ```cpp
-  #include <unordered_map>
-  std::unordered_map<keyT, valT> ump;
-  // [key], at(key), insert, find, count, empty, size, clear & iterators
+  #include <stack>
+  std::stack<T> stk;                    // new dequeue created
+  std::stack<T> stk(dq);                // copy existing deque data (copy constructor)
+
+  T t = stk.top();                      // peek top
+  stk.push(val);                        // add value to top of stack, pop()
+                                        // pop() doesn't return value so store top() first
+  // empty, size
+  ```
+- **queue:** deque wrapper with functionality of a FIFO data structure by forcing push one side and pop on other
+  ```cpp
+  #include <queue>
+  std::queue<T> que;                    // new dequeue created
+  std::queue<T> que(dq);                // copy existing deque data (copy constructor)
+
+  T t = que.front();                    // first element, back()
+  stk.push(val);                        // add value at the end, pop()
+                                        // pop() doesn't return value so store front() first
+  // empty, size
+  ```
+- **priority queue:** vector wrapper which provides `O(1)` (top element) lookup at the expense of `O(logn)` insertion & extraction by taking more effort into how to insert new elements in the underlying vector  
+stack & queue based on queue since growing is faster, priority queue uses vector because insertion into sorted vector (data shifts) is faster with contiguous memory (same cache line)
+  ```cpp
+  #include <queue>
+  std::priority_queue<T> pq();          // new vector created & uses less<T> by default
+  std::priority_queue<T> pq(compare, vec);  // copy existing vector data (copy constructor)
+                                        // for compare function: std::less<T> (largest at top) or std::greater<T>
+
+  // empty, size, top, push, pop
+  // push will insert into sorted array
   ```
 
 ## object oriented programming
