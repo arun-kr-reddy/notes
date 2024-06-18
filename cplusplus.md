@@ -37,6 +37,7 @@
 - [MSVC init memory](https://stackoverflow.com/questions/127386/what-are-the-debug-memory-fill-patterns-in-visual-studio-c-and-windows)
 - atomics & memory ordering
 - [templates FAQ](https://isocpp.org/wiki/faq/templates)
+- i++ vs ++i perf
 
 ## todo list  <!-- omit from toc -->
 - Basics and Fundamentals:
@@ -273,57 +274,55 @@ pick at compile-time based on arguments (not return type)
     ```
 
 ## containers
-- **iterator:** used to point at the memory addresses of containers (similar to a pointer), allows quick navigation through containers
+- **iterator:** used to point at the memory addresses of STL containers (similar to a pointer) which allows quick & efficient navigation through any STL container (even unordered ones)  
 ![](./media/cplusplus/iterator.png)
   ```cpp
-  T::iterator
-  *itr           // current element
-  ++itr          // next element
+  T::iterator itr = container.begin();
+
+  T val = *itr;  // current element
+  ++itr;         // increment iterator, now points to next element
   ```  
 
 ### sequence
 - **sequence containers:** data structures that can be accessed sequentially
-- **string:**
+- **string:** sequences of characters, better than C-style arrays (which is faster) because this has dynamic size & useful member functions
   ```cpp
   #include <string>
-  std::string str;
+  std::string str("hello world");
 
-  +                         // concatenate operator
-  pos = str.find(substr)    // find substring pos
-  str.empty()               // check empty
-  str.size()                // size
-  str.data()                // underlying C array
-  str.c_str()               // NULL terminated string
-  str[i]                    // access
-  str.at(i)                 // access with bounds checking
-  str.front()               // first char, back()
-  str.clear()               // clear string
-  str.push_back(val)        // add val (as char) at end, pop_back()
-  str.reserve(size)         // reserve size (prevent frequent mem alloc)
-  str.shrink_to_fit()       // dealloc unused mem
+  +                                     // concatenate operator
+  int pos          = str.find(substr);  // find substring pos
+  bool is_empty    = str.empty();       // check empty
+  int size         = str.size();        // size (doesn't include string end NULL character)
+  const char *data = str.data();        // underlying NULL terminated C array, same as c_str()
+  char c           = str.at(i);         // access with bounds checking, without check [i]
+  str.clear();                          // clear string
+  str.push_back(val);                   // add val char at the end, pop_back()
+  str.reserve(size);                    // reserve size to prevent frequent memory-allocs
+  str.shrink_to_fit();                  // dealloc unused memory
+  ```
+- **vector:** dynamic contiguous (so cache-friendly) array
+  ```cpp
+  #include <vector>
+  std::vector<T> vec{1, 2, 3, 4};
+
+  // empty, size, data, at(i), clear, push_back, reserve, shrink_to_fit
   ```
 - **array:** static contiguous array
   ```cpp
   #include <array>
-  std::array<T, size> arr;
+  std::array<T, size> arr{1, 2, 3, 4};
 
-  arr.fill(value)    // assign value all elements
-  // same as earlier: empty, size, data, c_str() [i], at(i), front, clear & iterators
+  arr.fill(value)  // assign value to all elements
+  // empty, size, data, at(i), clear
   ```
-- **vector:** dynamic contiguous array
-  ```cpp
-  #include <vector>
-  std::vector<T> vec;
-
-  // same as earlier: empty, size, data, c_str(), [i], at(i), front, clear, push_back, reserve, shrink_to_fit & iterators
-  ```l
 - **deque:** double-ended queue, basically a two-sided vector with non contiguous mem
   ```cpp
   #include <deque>
-  std::deque<T> dq;
+  std::deque<T> dq{1, 2, 3, 4};
 
-  dq.push_front(val)    // add val at beginning, popfront()
-  // same as earlier: empty, size, [i], at(i), front, clear, push_back, shrink_to_fit & iterators
+  dq.push_front(val)  // add element at beginning, popfront()
+  // empty, size, at(i), clear, push_back, shrink_to_fit
   ```
 
 ### associative

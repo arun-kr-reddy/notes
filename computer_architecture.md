@@ -48,6 +48,7 @@
 - nvidia denver
 - processing in memory
 - [memory ordering](https://www.google.com/search?q=memory+ordering&rlz=1C1GCEA_enIN1108IN1108&oq=memory&gs_lcrp=EgZjaHJvbWUqBggAEEUYOzIGCAAQRRg7MgwIARBFGDkYsQMYgAQyDQgCEAAYgwEYsQMYgAQyCggDEAAYsQMYgAQyBwgEEAAYgAQyBggFEEUYPDIGCAYQRRg8MgYIBxBFGDzSAQgxNjc2ajBqN6gCALACAA&sourceid=chrome&ie=UTF-8)
+- javed questions: ARM arch (32 vs 64), what happens if interrupts come, buddy allocator, process vs thread descriptor, hard vs soft interrupts
 
 ## introduction
 - **computer architecture:** is the science & art of designing computing platforms (hardware, interface, system SW & programming model)  
