@@ -23,6 +23,7 @@
 - [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
 - [bit manipulation](https://www.hackerearth.com/practice/basic-programming/bit-manipulation/basics-of-bit-manipulation/tutorial/)
 - [why avoid `goto`](https://smartbear.com/blog/goto-still-has-a-place-in-modern-programming-no-re/)
+- [`++i` vs `i++`](https://stackoverflow.com/questions/24901/is-there-a-performance-difference-between-i-and-i-in-c)
 
 ## todo  <!-- omit from toc -->
 - [cpp core guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#main)
@@ -37,7 +38,6 @@
 - [MSVC init memory](https://stackoverflow.com/questions/127386/what-are-the-debug-memory-fill-patterns-in-visual-studio-c-and-windows)
 - atomics & memory ordering
 - [templates FAQ](https://isocpp.org/wiki/faq/templates)
-- i++ vs ++i perf
 
 ## todo list  <!-- omit from toc -->
 - Basics and Fundamentals:
@@ -158,6 +158,9 @@ for a variable placeholder replaced typically by deduction from an initializer
 
   auto a = 0, b = 3.14;  // error: inconsistent types for a and b
   ```
+- **`++i` vs `i++`:** post-increment could be slower since a copy of the old value copy needs to be saved for later use  
+but modern compilers will optimize it if `i` is a basic data type (like `int`)  
+if `i` is  a class then temp will involve calling a copy constructor which can be expensive
 - **bitwise operators:** variants of AND (`&&`), OR (`||`) & NOT (`!`)
   ```
   A      = 0011 1100
@@ -199,13 +202,14 @@ for a variable placeholder replaced typically by deduction from an initializer
   // 1010 & 1001 ⟶ 1000  second place 1 removed
   // 1000 & 0001 ⟶ 0     fourth place 1 removed
   ```
-- **ranged for loop:** more readable equivalent to traditional for loop for iterating over containers (using iterators)  
-there will be no wrong outside memory access since container iterator used
+- use `for` when number of iterations are known else use `while` loop, it easy to form an infinite loop with `while`
+- **ranged for loop:** more readable `for` loop for iterating over standard containers (using iterators internally)  
+avoids mistakes with indices since container iterator used
   ```cpp
   std::vector<int> vec{0, 1, 5};
 
-  // for (type& value : container)
-  for (int n : vec)
+  // for (const type& value : container)
+  for (const int& n : vec)  // for (int n : vec) if you want to modify
   {
       std::cout << n << " ";  // 0 1 5
   }
@@ -233,7 +237,7 @@ a good rule-of-thumb is to only jump forward & to the end of a block
           {
               if (i * j > 1000)
               {
-                  goto done;    // break out of both loops
+                  goto done;  // break out of both loops
               }
           }
       }
@@ -252,7 +256,7 @@ pick at compile-time based on arguments (not return type)
   ```
 - **name mangling:** encoding of function/variable names so linker can separate common names due to overloading/namespaces  
   use `extern "C" { .... }` in C++ when declaring a function that was implemented/compiled in C (name mangling not done)
-- **function argument passing:** use pass-by-reference (pointer or reference) to prevent copying of large objects, use const reference to prevent modification as well  
+- **function argument passing:** use pass-by-reference (pointer or reference) to prevent copying of large objects, use `const` reference to prevent modification as well  
 ![](./media/cplusplus/pass_by_reference_vs_value.gif)
 - **default argument:** is a value provided in a function declaration (after mandatory arguments) that is automatically assigned by the compiler if the calling function doesn’t provide a value
   ```cpp
@@ -361,7 +365,7 @@ anything with a defined less-than operator (`<`) can be used as key
   defined in same headers as set & map
 
 ### unordered associative
-- **unordered associative containers:** unsorted  but hashed data structures that can be quickly searched (average 'O(1)' but worst case `O(n)`)  
+- **unordered associative containers:** unsorted  but hashed data structures that can be quickly searched (average `O(1)` but worst case `O(n)`)  
 worst case if hash function is producing collision for every insertion into container
 - **unordered set, unordered map, unordered multiset & unordered multimap:** same as ordered associate containers with headers: `#include <unordered_set>` & `#include <unordered_map>`
 
@@ -389,7 +393,7 @@ worst case if hash function is producing collision for every insertion into cont
                                         // pop() doesn't return value so store front() first
   // empty, size
   ```
-- **priority queue:** vector wrapper which provides `O(1)` (top element) lookup at the expense of `O(logn)` insertion & extraction by taking more effort into how to insert new elements in the underlying vector  
+- **priority queue:** vector wrapper which provides `O(1)` (top element) lookup at the expense of `O(logn)` insertion/extraction by taking more effort into how to insert new elements in the underlying vector  
 stack & queue based on queue since growing is faster, priority queue uses vector because insertion into sorted vector (data shifts) is faster with contiguous memory (same cache line)
   ```cpp
   #include <queue>
@@ -707,7 +711,8 @@ same function prototype in both base & derived, so need to check which function 
 
 ## memory
 - **type qualifiers:**
-  - **const:** read-only
+  - **const:** object/variable is not modifiable, compiler guards it from any changes  
+  initialize variables with const if you don't expect them to be modified (like in ranged for loop)
   - **volatile:** value might be changed by something beyond the program (so not cached)  
   use `const volatile` for read-only status register
   - **restrict:** optimization hint to compiler that during its lifetime no other pointer will be used to access the same memory  
@@ -827,6 +832,8 @@ can lead to dangling pointer when object shallow copied
 **deep copying:** create new pointers and copy data into it
 
 ## pointers
+- **reference:** is an alias (alternative name) for an existing variable declared using `&`  
+whatever happens to a reference happens to variable & vice-versa, yields performance gain as references avoid copying data
 - **pointer vs reference:**
   - own memory vs alias
   - no init required vs init in declaration

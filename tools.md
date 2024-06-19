@@ -119,3 +119,4 @@
 ![](./media/tools/vlc_filename_title.png)
 - **always on top:** `View` ⟶ `Always on Top`
 - **minimal view default:** `Tools` ⟶ `Preferences` ⟶ `All` ⟶ `Interface` ⟶ `Main interfaces` ⟶ `Qt` ⟶ `Start in minimal view`
+- **always continue playback:** `Tools` ⟶ `Preferences` ⟶ `Interface` ⟶ `Continue Playback` ⟶ `Always`
