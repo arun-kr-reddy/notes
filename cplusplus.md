@@ -20,6 +20,7 @@
 
 ## links  <!-- omit from toc -->
 - [[lectures] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
+- [compiler explorer](https://godbolt.org/)
 - [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
 - [bit manipulation](https://www.hackerearth.com/practice/basic-programming/bit-manipulation/basics-of-bit-manipulation/tutorial/)
 - [why avoid `goto`](https://smartbear.com/blog/goto-still-has-a-place-in-modern-programming-no-re/)
@@ -129,11 +130,13 @@ one input channel: standard input `cin` and two output channels: standard output
   ```
 - **preprocessor:**
   ```cpp
+  #pragma once    // include file only once
+
   __DATE__        // May 16 2022
   __TIME__        // 09:42:38
   __FILE__        // C:\workspace\code\src\main.cpp
   __LINE__        // 23
-  #pragma once    // include file only once
+
   #error message  // preproc error
   ```
   continuation (`\`), stringize (`#`) & token pasting (`##`) operators
@@ -249,14 +252,14 @@ a good rule-of-thumb is to only jump forward & to the end of a block
   }
   ```
 - **function overloading:** two or more functions can have the same name but with different parameters  
-pick at compile-time based on arguments (not return type)
+picked at compile-time based on arguments (return type plays no role)
   ```cpp
   void printSum(int a, int b);
   void printSum(double a, double b);
   ```
 - **name mangling:** encoding of function/variable names so linker can separate common names due to overloading/namespaces  
   use `extern "C" { .... }` in C++ when declaring a function that was implemented/compiled in C (name mangling not done)
-- **function argument passing:** use pass-by-reference (pointer or reference) to prevent copying of large objects, use `const` reference to prevent modification as well  
+- **function argument passing:** use pass-by-reference (pointer or reference) to prevent copying of large objects, use `const` reference in function declaration to prevent modification as well  
 ![](./media/cplusplus/pass_by_reference_vs_value.gif)
 - **default argument:** is a value provided in a function declaration (after mandatory arguments) that is automatically assigned by the compiler if the calling function doesn’t provide a value
   ```cpp
