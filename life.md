@@ -80,3 +80,5 @@ key idea is that lower-level needs must be satisfied before higher-level needs c
 - *just because you can afford it doesn't mean you should buy it*
 - *AI can only replace you if your work is already done and readily accessible over the internet, AI cannot replace novelty*
 - *code clarity trumps micro-optimization most of the time*
+- *if you can make it halfway and one more step, it's longer to go back and shorter to just finish, so you just finish*
+- *an engineer can do for a dime what any damn fool can do for a dollar*

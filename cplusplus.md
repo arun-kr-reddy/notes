@@ -6,6 +6,7 @@
   - [unordered associative](#unordered-associative)
   - [container adaptors](#container-adaptors)
 - [object oriented programming](#object-oriented-programming)
+  - [encapsulation](#encapsulation)
   - [move semantics](#move-semantics)
   - [inheritance](#inheritance)
   - [polymorphism](#polymorphism)
@@ -265,6 +266,9 @@ picked at compile-time based on arguments (return type plays no role)
   ```cpp
   int printSum(int a, int b, int c = 0, int d = 0);
   ```
+- **namespace:** is a declarative region that provides a scope to the identifiers inside it  used to organize code into logical groups and to prevent name collisions  
+all identifiers at namespace scope are visible to one another without qualification  
+don't add `using namespace std;` or `using std::cout;` in headers, if client code has his own `cout` implementation this can lead to wrong function during overload (especially if arguments match)
 - **library:** is a collection of pre-compiled code that can be re-used by programs
   - **static:** is linked directly into the final executable, fast but takes lot of space (`*.a` archive)
     ```sh
@@ -409,52 +413,46 @@ stack & queue based on queue since growing is faster, priority queue uses vector
   ```
 
 ## object oriented programming
-- **namespace:** helps avoid name conflicts and helps group project into logical modules  
-use `using std::cout;` instead of `using namespace std;` especially in headers
-- **nameless namespace:** local to translation unit, like global static but can also take user defined types  
-useful if same variable names reused in multiple files
-  ```cpp
-  namespace
-  {
-  const int SIZE = 100;
-  }
-  ```
-- **encapsulation:** bundle data and methods into easy-to-use units
-- **class:** to encapsulate data along with methods to process them, `this` used as pointer to current object
+- - **object oriented programming:** bind together the data and the functions that operate on them so that no other part of the code can access this data except that function
+- 
+### encapsulation
+- **encapsulation:** binding together the data and the functions that manipulate them
+- **class:** is a user-defined data type which holds its own data & function members which can be accessed & used by creating an instance of that class (object), class is like a blueprint for an object  
+`this` used as pointer to current object  
+if constructor/destructor not defined explicitly then default ones (with no arguments) will be generated
   ```cpp
   class someClass
   {
     public:
-      someClass() {}     // constructor, atleast one
-      ~someClass() {}    // destructor, exactly one
-      // if no constructor/destructor, default one generated
+      someClass() {}   // constructor, atleast one
+      ~someClass() {}  // destructor, exactly one
 
-      someClass(int a, int b) : num_a_(a), num_b_(b) {}    // initializer list, can initialize const members
-      bool operator<(const someClass &other) {}            // operator overload
-      someFunc() const {}                                  // const correctness (should not change object), const reference object needs this
-      someFunc() {}                                        // function overload (because const missing)
-      static void someStaticFunc() {}                      // static member function
-      static int some_num;                                 // static member variable
-      static int getNumA(){};                              // getter/accessor (setter/mutator)
+      someClass(int a, int b) : num_a_(a), num_b_(b) {}  // initializer list, can initialize const members
+      bool operator<(const someClass &other) {}          // operator overload
+      someFunc() const {}                                // const correctness (should not change object), const reference object needs this
+      someFunc() {}                                      // function overload (because const missing)
+      static void someStaticFunc() {}                    // static member function
+      static int some_num;                               // static member variable
+      static int getNumA(){};                            // getter/accessor (setter/mutator)
 
     protected:
       int num_x_ = 0;
 
-    private:    // default access specifier
+    private:  // default access specifier
       int num_a_ = 0;
       int num_b_ = 0;
 
       // friend, give another class/function access to private & protected
-      friend class anotherClass;                  // friend class
-      friend int add(someClass, anotherClass);    // friend function
+      friend class anotherClass;                // friend class
+      friend int add(someClass, anotherClass);  // friend function
   };
   ```
-  `{ }` used instead of `( )` for argument type checking
+- `{ }` used instead of `( )` for argument type checking
   ```cpp
-  someClass var_0;               // default constructor
-  someClass var_1(10, 11);       // custom constructor
-  someClass var_2{10, 11};       // custom constructor with argument type checking
-  someClass var_3 = {10, 11};    // same as var_2
+  someClass var_0;             // default constructor
+  someClass var_1(10, 11);     // custom constructor
+  someClass var_2{10, 11};     // custom constructor with argument type checking
+  someClass var_3 = {10, 11};  // same as var_2
   ```
 - **access specifiers/modifiers:** define how the members (variables & functions/methods) of a class can be accessed
   - **`public`:** accessible outside the class
@@ -476,7 +474,7 @@ example: count number of objects of a class
   // static member function call
   someClass::staticFunc(args);
   ```
-- **struct:** is a `class` where everything is `public`  
+- **struct:** is a `class` where members are `public` by default, use it as a simple data container  
 **braced initialization:** struct members should be uninitialized for this
   ```cpp
   struct someStruct
