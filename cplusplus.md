@@ -427,8 +427,8 @@ if constructor/destructor not defined explicitly then default ones (with no argu
       someClass() {}   // constructor, atleast one
       ~someClass() {}  // destructor, exactly one
 
-      someClass(int a, int b) : num_a_(a), num_b_(b) {}  // initializer list, can initialize const members
-      bool operator<(const someClass &other) {}          // operator overload
+      someClass(int a, int b) : num_a_(a), num_b_(b) {}  // member initializer list to initialize members that cannot be set in body (like const)
+      bool operator<(const someClass &other) {}          // operator overload (compile time polymorphism)
       someFunc() const {}                                // const correctness (should not change object), const reference object needs this
       someFunc() {}                                      // function overload (because const missing)
       static void someStaticFunc() {}                    // static member function
@@ -447,8 +447,13 @@ if constructor/destructor not defined explicitly then default ones (with no argu
       friend int add(someClass, anotherClass);  // friend function
   };
   ```
-- `{ }` used instead of `( )` for argument type checking
+- `{ }` used instead of `( )` for argument type checking, can be used in member initialized list as well
   ```cpp
+  int a = 1;
+  int a(1);
+  int a{1};                    // all three are same but
+  int a{1.2};                  // gives compiler error, other two will accept narrowing
+
   someClass var_0;             // default constructor
   someClass var_1(10, 11);     // custom constructor
   someClass var_2{10, 11};     // custom constructor with argument type checking

@@ -34,6 +34,7 @@
 - [programming groundup extra](https://www.cse.iitb.ac.in/~mythili/os/references/ProgrammingGroundUp.pdf)
 - multi-threading programming using pthread & cpp threads
 - IPC using cpp
+- priority inversion
 
 ## introduction
 - **operating system:** is a middleware that sits between user programs & system hardware and manages hardware for the user programs:
