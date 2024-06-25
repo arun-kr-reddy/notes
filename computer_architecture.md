@@ -36,8 +36,6 @@
 
 ## todo  <!-- omit from toc -->
 - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
-- [future computing architectures](https://www.youtube.com/watch?v=kgiZlSOcGFM)
-- [Hamming speech](https://www.youtube.com/watch?v=a1zDuOPkMSw)
 - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
 - Intel Itanium
