@@ -1312,6 +1312,8 @@ eliminating an isolated miss helps performance more than eliminating a parallel 
 eliminating a higher-latency miss could help performance more than eliminating a lower-latency miss
 ![](./media/computer_architecture/memory_level_parallelism.png)  
 ![](./media/computer_architecture/memory_level_parallelism_example.png)
+- **false sharing:** when a core attempts to periodically access data that is not being altered but it shares a cache block with data that is being altered then caching protocol may force the first participant to reload the whole cache block despite a lack of logical necessity  
+example: if two variables share a cache line then unmodified variable read will be as expensive as modified variable read if there's an intervening write to the other variable since cache line needs to be invalidated then fetched from main memory again
 
 ### multi core caches
 - cache efficiency becomes even more important in a multi-core/threaded systems since memory bandwidth is at premium & cache space is a limited resource across cores/threads

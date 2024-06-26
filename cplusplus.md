@@ -153,7 +153,7 @@ one input channel: standard input `cin` and two output channels: standard output
       return 0;
   }
   ```
-- **auto:** is a placeholder type that will be replaced later by the compiler  
+- **`auto`:** is a placeholder type that will be replaced later by the compiler  
 for a variable placeholder replaced typically by deduction from an initializer
   ```cpp
   auto var = 13;     // int
@@ -218,8 +218,8 @@ avoids mistakes with indices since container iterator used
       std::cout << n << " ";  // 0 1 5
   }
   ```
-- **break:** exit enclosing loop  
-**continue:** skip to next loop iteration
+- **`break`:** exit enclosing loop  
+**`continue`:** skip to next loop iteration
   ```cpp
   do
   {
@@ -230,7 +230,7 @@ avoids mistakes with indices since container iterator used
   ...
   return 0;
   ```
-- **goto:** don't use it unless you want to break out of some complex code without returning because you need to run some cleanup code  
+- **`goto`:** don't use it unless you want to break out of some complex code without returning because you need to run some cleanup code  
 a good rule-of-thumb is to only jump forward & to the end of a block
   ```cpp
   int foo()
@@ -266,9 +266,9 @@ picked at compile-time based on arguments (return type plays no role)
   ```cpp
   int printSum(int a, int b, int c = 0, int d = 0);
   ```
-- **namespace:** is a declarative region that provides a scope to the identifiers inside it  used to organize code into logical groups and to prevent name collisions  
-all identifiers at namespace scope are visible to one another without qualification  
-don't add `using namespace std;` or `using std::cout;` in headers, if client code has his own `cout` implementation this can lead to wrong function during overload (especially if arguments match)
+- **`namespace`:** is a declarative region that provides a scope to the identifiers inside it, used to organize code into logical groups and to prevent name collisions, all identifiers at namespace scope are visible to one another without qualification  
+don't add `using namespace std;` or `using std::cout;` in headers  
+example: if client code has his own `cout` implementation this can lead to wrong function during overload (especially if arguments match)
 - **library:** is a collection of pre-compiled code that can be re-used by programs
   - **static:** is linked directly into the final executable, fast but takes lot of space (`*.a` archive)
     ```sh
@@ -285,7 +285,7 @@ don't add `using namespace std;` or `using std::cout;` in headers, if client cod
     ```
 
 ## containers
-- **iterator:** used to point at the memory addresses of STL containers (similar to a pointer) which allows quick & efficient navigation through any STL container (even unordered ones)  
+- **`iterator`:** used to point at the memory addresses of STL containers (similar to a pointer) which allows quick & efficient navigation through any STL container (even unordered ones)  
 ![](./media/cplusplus/iterator.png)
   ```cpp
   T::iterator itr = container.begin();
@@ -296,7 +296,7 @@ don't add `using namespace std;` or `using std::cout;` in headers, if client cod
 
 ### sequence
 - **sequence containers:** data structures that can be accessed sequentially (`O(n)`)
-- **string:** sequences of characters, better than C-style arrays (which is faster) because this has dynamic size & useful member functions
+- **`string`:** sequences of characters, better than C-style arrays (which is faster) because this has dynamic size & useful member functions
   ```cpp
   #include <string>
   std::string str;                      // std::string str("hello world");
@@ -313,14 +313,14 @@ don't add `using namespace std;` or `using std::cout;` in headers, if client cod
                                         // optional second arg for initializing new elements
   str.shrink_to_fit();                  // dealloc unused memory
   ```
-- **vector:** dynamic contiguous (so cache-friendly) array
+- **`vector`:** dynamic contiguous (so cache-friendly) array
   ```cpp
   #include <vector>
   std::vector<T> vec;                   // std::vector<int> vec{1, 2, 3, 4};
 
   // empty, size, data, at(i), clear, push_back, reserve, shrink_to_fit
   ```
-- **array:** static contiguous array
+- **`array`:** static contiguous array
   ```cpp
   #include <array>
   std::array<T, size> arr;              // std::array<int, 4> arr{1, 2, 3, 4};
@@ -328,7 +328,7 @@ don't add `using namespace std;` or `using std::cout;` in headers, if client cod
   arr.fill(value)                       // assign value to all elements
   // empty, size, data, at(i), clear
   ```
-- **deque:** double-ended queue, basically a two-sided vector with non contiguous mem  
+- **`deque`:** double-ended queue, basically a two-sided vector with non contiguous mem  
 usually implemented as variable size array of fixed size arrays, this makes growing faster than a vector (which requires allocation & copying)
   ```cpp
   #include <deque>
@@ -341,7 +341,7 @@ usually implemented as variable size array of fixed size arrays, this makes grow
 
 ### associative
 - **associative containers:** sorted data structures that can be quickly searched (`O(logn)`)
-- **pair:** provides a way to store two heterogeneous objects as a single unit
+- **`pair`:** provides a way to store two heterogeneous objects as a single unit
   ```cpp
   #include <utility>
   std::pair<T1, T2> pr;                 // std::pair<int, string> pr(1, "hello");
@@ -359,7 +359,7 @@ usually implemented as variable size array of fixed size arrays, this makes grow
   if (mp.count(key) > 0)                // number of matching keys (0/1 for set & map)
   // empty, size, clear
   ```
-- **map:** collection of key-value pairs which is sorted by unique keys  
+- **`map`:** collection of key-value pairs which is sorted by unique keys  
 anything with a defined less-than operator (`<`) can be used as key
   ```cpp
   #include <map>
@@ -368,17 +368,17 @@ anything with a defined less-than operator (`<`) can be used as key
   mp[key] = val;                        // assign (insert if not present)
   // empty, size, at(key), clear, insert(pair), find, count
   ```
-- **multiset & multimap:** are same as set & map but keys are not unique (duplicates allowed), so `count(key)` can greater than 1  
+- **`multiset` & `multimap`:** are same as set & map but keys are not unique (duplicates allowed), so `count(key)` can greater than 1  
   defined in same headers as set & map
 
 ### unordered associative
 - **unordered associative containers:** unsorted  but hashed data structures that can be quickly searched (average `O(1)` but worst case `O(n)`)  
 worst case if hash function is producing collision for every insertion into container
-- **unordered set, unordered map, unordered multiset & unordered multimap:** same as ordered associate containers with headers: `#include <unordered_set>` & `#include <unordered_map>`
+- **`unordered_set`, `unordered_map`, `unordered_multiset` & `unordered_multimap`:** same as ordered associate containers with headers: `#include <unordered_set>` & `#include <unordered_map>`
 
 ### container adaptors
 - **container adaptors:** provide a different interface for sequential containers
-- **stack:** deque wrapper with functionality of a LIFO data structure by forcing push/pop on one side only
+- **`stack`:** deque wrapper with functionality of a LIFO data structure by forcing push/pop on one side only
   ```cpp
   #include <stack>
   std::stack<T> stk;                    // new dequeue created
@@ -389,7 +389,7 @@ worst case if hash function is producing collision for every insertion into cont
                                         // pop() doesn't return value so store top() first
   // empty, size
   ```
-- **queue:** deque wrapper with functionality of a FIFO data structure by forcing push one side and pop on other
+- **`queue`:** deque wrapper with functionality of a FIFO data structure by forcing push one side and pop on other
   ```cpp
   #include <queue>
   std::queue<T> que;                    // new dequeue created
@@ -400,7 +400,7 @@ worst case if hash function is producing collision for every insertion into cont
                                         // pop() doesn't return value so store front() first
   // empty, size
   ```
-- **priority queue:** vector wrapper which provides `O(1)` (top element) lookup at the expense of `O(logn)` insertion/extraction by taking more effort into how to insert new elements in the underlying vector  
+- **`priority_queue`:** vector wrapper which provides `O(1)` (top element) lookup at the expense of `O(logn)` insertion/extraction by taking more effort into how to insert new elements in the underlying vector  
 stack & queue based on queue since growing is faster, priority queue uses vector because insertion into sorted vector (data shifts) is faster with contiguous memory (same cache line)
   ```cpp
   #include <queue>
@@ -414,29 +414,27 @@ stack & queue based on queue since growing is faster, priority queue uses vector
 
 ## object oriented programming
 - - **object oriented programming:** bind together the data and the functions that operate on them so that no other part of the code can access this data except that function
-- 
+
 ### encapsulation
 - **encapsulation:** binding together the data and the functions that manipulate them
-- **class:** is a user-defined data type which holds its own data & function members which can be accessed & used by creating an instance of that class (object), class is like a blueprint for an object  
+- **`class`:** is a user-defined data type which holds its own data & function members which can be accessed & used by creating an instance of that class (object), class is like a blueprint for an object  
 `this` used as pointer to current object  
-if constructor/destructor not defined explicitly then default ones (with no arguments) will be generated
+if constructor/destructor not defined explicitly then default ones (with no arguments) will be generated  
+in a parametrized constructor pass arguments to constructor to help initialize the object
   ```cpp
   class someClass
   {
     public:
-      someClass() {}   // constructor, atleast one
-      ~someClass() {}  // destructor, exactly one
+      someClass() {}   // constructor, atleast one, called upon object creation
+      ~someClass() {}  // destructor, exactly one, called upon object destruction
 
-      someClass(int a, int b) : num_a_(a), num_b_(b) {}  // member initializer list to initialize members that cannot be set in body (like const)
-      bool operator<(const someClass &other) {}          // operator overload (compile time polymorphism)
+      someClass(int a, int b) : num_a_(a), num_b_(b) {}  // member initializer list
+      bool operator<(const someClass &other) {}          // operator overload
       someFunc() const {}                                // const correctness (should not change object), const reference object needs this
       someFunc() {}                                      // function overload (because const missing)
       static void someStaticFunc() {}                    // static member function
       static int some_num;                               // static member variable
       static int getNumA(){};                            // getter/accessor (setter/mutator)
-
-    protected:
-      int num_x_ = 0;
 
     private:  // default access specifier
       int num_a_ = 0;
@@ -447,23 +445,29 @@ if constructor/destructor not defined explicitly then default ones (with no argu
       friend int add(someClass, anotherClass);  // friend function
   };
   ```
-- `{ }` used instead of `( )` for argument type checking, can be used in member initialized list as well
+- **member initializer list:** to initialize members that cannot be set in body (like `const`) or to call non-default constructor for object members
   ```cpp
-  int a = 1;
-  int a(1);
-  int a{1};                    // all three are same but
-  int a{1.2};                  // gives compiler error, other two will accept narrowing
+  class A
+  {
+    public:
+      A() { x = 0; }
+      A(int x_) { x = x_; }
+      int x;
+  };
 
-  someClass var_0;             // default constructor
-  someClass var_1(10, 11);     // custom constructor
-  someClass var_2{10, 11};     // custom constructor with argument type checking
-  someClass var_3 = {10, 11};  // same as var_2
+  class B
+  {
+    public:
+      B() { a.x = 3; }  // A() called first (initialization) then x set (assignment), easier to call a(3) directly
+                        // what if default constructor allocated memory or opened files that you don't need
+    private:
+      A a;
+  };
   ```
-- **access specifiers/modifiers:** define how the members (variables & functions/methods) of a class can be accessed
-  - **`public`:** accessible outside the class
-  - **`protected`:** inaccessible outside the class
-  - **`private`:** inaccessible outside the class but can be accessed in inherited classes
-- **static variable:** exists once per class (not per object) and shared across all (base & derived class) objects, must be defined in source (not header) file  
+- **operator overloading:** provides the operator with a special meaning for a data type (like class), compile-time polymorphism (similar to function overloading)  
+example: overload `+` operator in string class so that we can concatenate two strings by just using `+`  
+example: overload arithmetic operators for complex numbers
+- **`static` variable:** exists once per class (not per object) and shared across all (base & derived class) objects, must be defined in source (not header) file  
 example: count number of objects of a class
   ```cpp
   class countedClass
@@ -474,35 +478,20 @@ example: count number of objects of a class
       static int count;
   }
   ```
-  **static function:** doesn't need an object to call, object required only when private members accessed, must be defined in source file
+  **`static` function:** doesn't need an object to call, object required only when private members accessed, must be defined in source file
   ```cpp
   // static member function call
   someClass::staticFunc(args);
   ```
-- **struct:** is a `class` where members are `public` by default, use it as a simple data container  
-**braced initialization:** struct members should be uninitialized for this
-  ```cpp
-  struct someStruct
-  {
-      int a;
-      string b;
-  };
-
-  void printStruct(someStruct& s)
-  {
-      cout << s.a << s.b << endl;
-  }
-
-  int main()
-  {
-      printStruct({10, "world"});    // braced initialization
-      return 0;
-  }
-  ```
-  **padding:** align members to natural address boundaries (usually processor word size)  
-  **packing:** prevent padding  
-  **bitfields:** specify the size (in bits) of the structure and union members  
-  if bitfields used then pointer not possible since member sizes are (typically) smaller than granularity allowed by pointers (`char`)
+- **`struct`:** is a `class` where members are `public` by default (default `private` in class), use it as a simple data container  
+**padding:** adds some empty bytes of memory to aligns members to natural (processor word size) address boundaries  
+example: for accessing an entire word in a single cycle 32 bit processor's memory will be split into 4 banks  
+if a struct has three `char`s followed by an `int` then without padding `int` would be split into two rows of the banks and processor needs 2 cycles to read it  
+![](./media/cplusplus/padding_example.png)  
+padding of larger structs also eliminates false sharing by putting each structure on its own cache line  
+**packing:** prevent padding (`#pragma pack`), used when CPUs of different architecture need to access the same structure in memory or binary dump  
+**bitfields:** specify the size (in bits) of the structure/union members, pointer is not possible since member sizes are (typically) smaller than granularity allowed by pointers (byte addressable)  
+used to map hardware registers exposed to memory bit-by-bit
   ```cpp
   typedef struct
   {
@@ -514,6 +503,39 @@ example: count number of objects of a class
   temp.a = 5;
   temp.b = 17;
   printf("%u %u %u\n", sizeof(temp), temp.a, temp.b);    // 1 5 1 (b overflowed)
+  ```
+- **uniform initialization:** allows usage of a consistent syntax to initialize variables/objects ranging from primitive (built-in) types to aggregates (made up of primitives) by using `{}` to enclose initializer values  
+doesn't allow narrowing as well `int i{1.2};` (throws error/warning) so can be used in member initializer list for argument type checking
+  ```cpp
+  int i;                  // uninitialized built-in type
+  int j = 10;             // initialized built-in type
+  int k(10);              // initialized built-in type
+  int a[] = {1, 2, 3, 4}  // aggregate initialization
+  someClass x1;           // default constructor
+  someClass x2(1);        // parameterized constructor
+  someClass x3 = 3;       // parameterized constructor with single argument
+  someClass x4 = x3;      // copy constructor
+
+  // uniform initialization
+  int i{};             // initialized built-in type, equals to int i{0};
+  int j{10};           // initialized built-in type
+  int a[]{1, 2, 3, 4}  // aggregate initialization
+  someClass x1{};      // default constructor
+  someClass x2{1};     // parameterized constructor;
+  someClass x4{x3};    // copy-constructor
+  ```
+  **braced initialization:** it isn't always necessary to define a constructor for a simple class/struct so objects can be initialized using uniform initialization
+  ```cpp
+  struct classA
+  {
+      int station_id;
+      time_t time_set;
+      double current_temp;
+  };
+
+  time_t time_to_set;
+  classA cla{45978, time(&time_to_set), 28.9};  // member initialization in order of declaration
+                                                // an empty brace initializer does value initialization = {0,0,0}
   ```
 - **resource acquisition is initialization (RAII):** resource allocation/acquisition/initialization is done by the constructor, while resource deallocation/release/deinitialization is done by the destructor
 - **forward declaration:**
@@ -575,6 +597,10 @@ if none defined `default` functions used, for something that cannot be moved (li
   ```
 
 ### inheritance
+- **access specifiers/modifiers:** define how the members (variables & functions/methods) of a class can be accessed
+  - **`public`:** accessible outside the class
+  - **`protected`:** inaccessible outside the class
+  - **`private`:** inaccessible outside the class but can be accessed in inherited classes
 - **inheritance:** inherit public & protected data & functions from another class  
 separate 6 special functions & private members
   ```cpp
@@ -795,10 +821,18 @@ same function prototype in both base & derived, so need to check which function 
 - **endianness:** order in which a sequence of bytes is stored in computer memory
   ```cpp
   value:          0x12345678
-  big endian:     12, 34, 56, 78  // most significant byte at smallest memory address
-  little endian:  78, 56, 34, 12  // least significant byte at smallest memory address
+  big endian:     12, 34, 56, 78  // big end (most significant byte) data first (smallest address)
+  little endian:  78, 56, 34, 12  // little end (least significant byte) data first (smallest address)
   ```
-- **swap endianness:**
+  **find endianness of system:**
+  ```cpp
+  int n = 1;
+  if (*(char *)&n == 1)  // check most significant byte set
+  {
+      std::cout << "little endian" << std::endl;
+  }
+  ```
+  **swap endianness:**
   ```cpp
   uint32_t num = 9;
   uint32_t b0, b1, b2, b3;
