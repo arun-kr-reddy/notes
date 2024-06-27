@@ -416,11 +416,11 @@ stack & queue based on queue since growing is faster, priority queue uses vector
 - - **object oriented programming:** bind together the data and the functions that operate on them so that no other part of the code can access this data except that function
 
 ### encapsulation
-- **encapsulation:** binding together the data and the functions that manipulate them
-- **`class`:** is a user-defined data type which holds its own data & function members which can be accessed & used by creating an instance of that class (object), class is like a blueprint for an object  
+- **encapsulation:** binding together the data and the functions that manipulate them  
+- **`class`:** is a user-defined data type which holds its own data & function members which can be accessed by creating an instance of that class (object), class is like a blueprint for an object  
 `this` used as pointer to current object  
-if constructor/destructor not defined explicitly then default ones (with no arguments) will be generated  
-in a parametrized constructor pass arguments to constructor to help initialize the object
+pass arguments to parametrized constructor to help initialize the object, if constructor/destructor not defined explicitly then default ones (with no arguments) will be generated  
+avoid setters instead set data in constructor
   ```cpp
   class someClass
   {
@@ -430,7 +430,7 @@ in a parametrized constructor pass arguments to constructor to help initialize t
 
       someClass(int a, int b) : num_a_(a), num_b_(b) {}  // member initializer list
       bool operator<(const someClass &other) {}          // operator overload
-      someFunc() const {}                                // const correctness (should not change object), const reference object needs this
+      someFunc() const {}                                // const correctness
       someFunc() {}                                      // function overload (because const missing)
       static void someStaticFunc() {}                    // static member function
       static int some_num;                               // static member variable
@@ -440,11 +440,14 @@ in a parametrized constructor pass arguments to constructor to help initialize t
       int num_a_ = 0;
       int num_b_ = 0;
 
-      // friend, give another class/function access to private & protected
       friend class anotherClass;                // friend class
       friend int add(someClass, anotherClass);  // friend function
   };
   ```
+- **why private default:** *it's better to be properly encapsulated and only open up the things that are needed, as opposed to having everything open by default and having to close it*  
+keep data members hidden (private), user should be able to modify data only through provided public interfaces (functions)
+- **resource acquisition is initialization (RAII):** resource acquisition (allocation) is done by the constructor while resource release (deallocation) is done by the destructor, holding a resource should be class-invariant and tied to object lifetime  
+also known as scope-bound resource management
 - **member initializer list:** to initialize members that cannot be set in body (like `const`) or to call non-default constructor for object members
   ```cpp
   class A
@@ -467,7 +470,10 @@ in a parametrized constructor pass arguments to constructor to help initialize t
 - **operator overloading:** provides the operator with a special meaning for a data type (like class), compile-time polymorphism (similar to function overloading)  
 example: overload `+` operator in string class so that we can concatenate two strings by just using `+`  
 example: overload arithmetic operators for complex numbers
-- **`static` variable:** exists once per class (not per object) and shared across all (base & derived class) objects, must be defined in source (not header) file  
+- **const correctness:** prevent const objects from getting mutated  
+a const member function cannot modify the object (else compiler error), declare getters as const functions  
+also helps compiler generate more efficient code since it knows the full intent and use of the variable/function
+- **TODO:`static` variable:** exists once per class (not per object) and shared across all (base & derived class) objects, must be defined in source (not header) file  
 example: count number of objects of a class
   ```cpp
   class countedClass
@@ -482,6 +488,23 @@ example: count number of objects of a class
   ```cpp
   // static member function call
   someClass::staticFunc(args);
+  ```
+- **TODO: `friend` class:** can access private and protected members of other classes in which it is declared as a friend  
+used when you don't want to expose getter/setters to everyone but just to a single class permitting the encapsulation to be wider than own class (private members) or derived class (protected members)  
+**forward declaration:**
+  ```cpp
+  class someClass1;    // forward declaration
+  class someClass2;    // forward declaration
+
+  class someClass1
+  {
+      friend int sum(someClass1, someClass2);    //  error without forward declaration (someClass2 undefined)
+  };
+
+  class someClass2
+  {
+      friend int sum(someClass1, someClass2);
+  };
   ```
 - **`struct`:** is a `class` where members are `public` by default (default `private` in class), use it as a simple data container  
 **padding:** adds some empty bytes of memory to aligns members to natural (processor word size) address boundaries  
@@ -536,22 +559,6 @@ doesn't allow narrowing as well `int i{1.2};` (throws error/warning) so can be u
   time_t time_to_set;
   classA cla{45978, time(&time_to_set), 28.9};  // member initialization in order of declaration
                                                 // an empty brace initializer does value initialization = {0,0,0}
-  ```
-- **resource acquisition is initialization (RAII):** resource allocation/acquisition/initialization is done by the constructor, while resource deallocation/release/deinitialization is done by the destructor
-- **forward declaration:**
-  ```cpp
-  class someClass1;    // forward declaration
-  class someClass2;    // forward declaration
-
-  class someClass1
-  {
-      friend int sum(someClass1, someClass2);    //  error without forward declaration (someClass2 undefined)
-  };
-
-  class someClass2
-  {
-      friend int sum(someClass1, someClass2);
-  };
   ```
 
 ### move semantics
