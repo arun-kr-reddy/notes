@@ -431,7 +431,8 @@ avoid setters instead set data in constructor
       someClass(int a, int b) : num_a_(a), num_b_(b) {}  // member initializer list
       bool operator<(const someClass &other) {}          // operator overload
       someFunc() const {}                                // const correctness
-      someFunc() {}                                      // function overload (because const missing)
+      someFunc() {}                                      // function overload because const missing
+                                                         // but const object reference will call const one
       static void someStaticFunc() {}                    // static member function
       static int some_num;                               // static member variable
       static int getNumA(){};                            // getter/accessor (setter/mutator)
@@ -473,7 +474,8 @@ example: overload arithmetic operators for complex numbers
 - **const correctness:** prevent const objects from getting mutated  
 a const member function cannot modify the object (else compiler error), declare getters as const functions  
 also helps compiler generate more efficient code since it knows the full intent and use of the variable/function
-- **TODO:`static` variable:** exists once per class (not per object) and shared across all (base & derived class) objects, must be defined in source (not header) file  
+- **TODO: `static` variable:** exists once per class (not per object) and shared across all (base & derived class) objects, must be defined in source (not header) file  
+static members act more like global objects access using class name, once it is defined it will exist even if no objects of that class have been created
 example: count number of objects of a class
   ```cpp
   class countedClass
@@ -489,21 +491,25 @@ example: count number of objects of a class
   // static member function call
   someClass::staticFunc(args);
   ```
-- **TODO: `friend` class:** can access private and protected members of other classes in which it is declared as a friend  
+- **`friend` class:** can access private and protected members of other classes in which it is declared as a friend  
 used when you don't want to expose getter/setters to everyone but just to a single class permitting the encapsulation to be wider than own class (private members) or derived class (protected members)  
-**forward declaration:**
   ```cpp
-  class someClass1;    // forward declaration
-  class someClass2;    // forward declaration
+  class classB;  // forward declaration 
 
-  class someClass1
+  class classA
   {
-      friend int sum(someClass1, someClass2);    //  error without forward declaration (someClass2 undefined)
+      friend class classB;  // error without forward declaration (classB undefined)
+
+    private:
+      int a;
   };
 
-  class someClass2
+  class classB
   {
-      friend int sum(someClass1, someClass2);
+      int add(classA &x, classB &y) { return x.a + y.a; }
+
+    private:
+      int a;
   };
   ```
 - **`struct`:** is a `class` where members are `public` by default (default `private` in class), use it as a simple data container  
