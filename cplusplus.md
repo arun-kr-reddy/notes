@@ -40,6 +40,9 @@
 - [MSVC init memory](https://stackoverflow.com/questions/127386/what-are-the-debug-memory-fill-patterns-in-visual-studio-c-and-windows)
 - atomics & memory ordering
 - [templates FAQ](https://isocpp.org/wiki/faq/templates)
+- why static initialized to 0
+- double pointer access
+- stack canary
 
 ## todo list  <!-- omit from toc -->
 - Basics and Fundamentals:
@@ -442,7 +445,6 @@ avoid setters instead set data in constructor
       int num_b_ = 0;
 
       friend class anotherClass;                // friend class
-      friend int add(someClass, anotherClass);  // friend function
   };
   ```
 - **why private default:** *it's better to be properly encapsulated and only open up the things that are needed, as opposed to having everything open by default and having to close it*  
@@ -474,22 +476,39 @@ example: overload arithmetic operators for complex numbers
 - **const correctness:** prevent const objects from getting mutated  
 a const member function cannot modify the object (else compiler error), declare getters as const functions  
 also helps compiler generate more efficient code since it knows the full intent and use of the variable/function
-- **TODO: `static` variable:** exists once per class (not per object) and shared across all (base & derived class) objects, must be defined in source (not header) file  
-static members act more like global objects access using class name, once it is defined it will exist even if no objects of that class have been created
+- **`static` variable:** exists once per class (not per object) and shared across all (base & derived class) objects, data allocated in class not in instances  
+**`static` function:** doesn't need an object to call, pass object if you need to access private members  
+both are only declared in class declaration so must be explicitly defined outside the class (in source file) using the scope resolution operator (`::`)  
 example: count number of objects of a class
   ```cpp
-  class countedClass
+  // header file declaration
+  class someClass
   {
-      countedClass() { countedClass::count++; }
-      ~countedClass() { countedClass::count--; }
+    public:
+      someClass() { this->numInstances++; }
+      static int numInstances;
+      static void printInstances(void);
+  };
 
-      static int count;
+  // source file definition
+  int someClass::numInstances = 0;
+
+  void someClass::printInstances(void)
+  {
+      std::cout << someClass::numInstances << std::endl;
   }
-  ```
-  **`static` function:** doesn't need an object to call, object required only when private members accessed, must be defined in source file
-  ```cpp
-  // static member function call
-  someClass::staticFunc(args);
+
+  // source file usage
+  int main()
+  {
+      someClass a;
+      someClass::printInstances();  // 1
+
+      someClass b;
+      someClass::printInstances();  // 2
+
+      return 0;
+  }
   ```
 - **`friend` class:** can access private and protected members of other classes in which it is declared as a friend  
 used when you don't want to expose getter/setters to everyone but just to a single class permitting the encapsulation to be wider than own class (private members) or derived class (protected members)  
@@ -501,15 +520,15 @@ used when you don't want to expose getter/setters to everyone but just to a sing
       friend class classB;  // error without forward declaration (classB undefined)
 
     private:
-      int a;
+      int foo_;
   };
 
   class classB
   {
-      int add(classA &x, classB &y) { return x.a + y.a; }
+      int add(classA &a, classB &b) { return a.foo_ + b.bla_; }  // access classA private member
 
     private:
-      int a;
+      int bla_;
   };
   ```
 - **`struct`:** is a `class` where members are `public` by default (default `private` in class), use it as a simple data container  
