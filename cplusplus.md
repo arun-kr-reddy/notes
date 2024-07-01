@@ -7,7 +7,6 @@
   - [container adaptors](#container-adaptors)
 - [object oriented programming](#object-oriented-programming)
   - [encapsulation](#encapsulation)
-  - [move semantics](#move-semantics)
   - [inheritance](#inheritance)
   - [polymorphism](#polymorphism)
 - [file \& string stream](#file--string-stream)
@@ -586,13 +585,25 @@ doesn't allow narrowing as well `int i{1.2};` (throws error/warning) so can be u
                                                 // an empty brace initializer does value initialization = {0,0,0}
   ```
 
-### move semantics
-- **lvalue:** occupies memory  
-**rvalue:** everything else, defined using `&&`
-- `std::move` converts lvalue to rvalue by transfering ownership so don't access a moved variable (undefined by cpp standard)  
-performance better than copying but worse than passing by reference
+- **move semantics:** every expression is a lvalue (occupies memory so can be written on left of `=`) or a rvalue (everything else, explicitly defined using `&&`)  
+rvalues denote temporary objects which are destroyed at the next semicolon  
+**`std::move`:** converts lvalue to rvalue by moving resources (transferring ownership) from one object to another (instead of copying them) so don't access an already moved variable (undefined by cpp standard)
   ```cpp
-  int b = std::move(a);    // memory transferred to b
+    int a;                      // a lvalue
+    int &a_ref = a;             // a_ref lvalue
+    a          = 2 + 2;         // 2 + 2 rvalue
+    int b      = a + 2;         // a + 2 rvalue
+    int &&c    = std::move(a);  // c rvalue
+    a          = 3;             // undefined
+  ```
+  for primitive types move is same as copy, for aggregates (like vector) performance will be better than copying but worse than passing by reference since move is just equivalent to assigning some pointers
+  ```cpp
+  std::vector<std::string> vec;
+  std::string str = "hello";      // temp variable
+  vec.push_back(str);             // copy
+  vec.push_back(std::move(str));  // move
+
+  std::cout << str << std::endl;  // undefined
   ```
 - **copy/move constructor/assignment operator:** move constructor/assignment operator used to take ownership of another object
   ```cpp
