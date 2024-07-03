@@ -44,6 +44,7 @@
 - stack canary
 - [copy-and-swap idiom](https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom) ([video](https://www.youtube.com/watch?v=7LxepUEcXA4))
 - friend functions
+- [zero overhead principle](https://github.com/baderouaich/the-zero-overhead-principle)
 
 ## todo list  <!-- omit from toc -->
 - Basics and Fundamentals:
@@ -418,7 +419,7 @@ stack & queue based on queue since growing is faster, priority queue uses vector
   ```
 
 ## object oriented programming
-- - **object oriented programming:** bind together the data and the functions that operate on them so that no other part of the code can access this data except that function
+- **object oriented programming:** bind together the data and the functions that operate on them so that no other part of the code can access this data except that function
 
 ### encapsulation
 - **encapsulation:** binding together the data and the functions that manipulate them  
@@ -663,7 +664,7 @@ if none defined then compiler generated `default` functions will be used (they m
 
 ### inheritance
 - **inheritance:** is the capability of a class (child) to inherit/derive data & functions from other classes (parent)  
-six special functions & private members are not inherited from base/parent class
+six special functions & private members will not be inherited from base class
   ```cpp
   class rectangleClass
   {
@@ -685,9 +686,11 @@ six special functions & private members are not inherited from base/parent class
   - **`public`:** both (base public & protected members) maintain their access specifier
   - **`protected`:** both will be protected in derived class
   - **`private`:** both will be private in derived class
-- **composition:** combining simpler objects to make more complex ones  
+- **composition/containment:** implementing complex objects using simpler or smaller ones  
 inheritance is `is a` relationship, example: square is a rectangle  
 composition is `has a` relationship, example: car has a wheel (& other objects)
+- prefer shallow hierarchies or use composition instead which makes it easier to hide data that is not required in derived class  
+example: include an object of another class as a class member instead of polluting your class by adding (inheriting) all that data & functions
 
 ### polymorphism
 - **function overriding:** if a function (not data) is `virtual` in base class then it can be overridden in derived class  
@@ -696,7 +699,7 @@ basically base class member function shadowing
   ```cpp
   class baseClass
   {
-  public:
+    public:
       void print1()
       {
           std::cout << "print1 baseClass" << std::endl;
@@ -708,7 +711,7 @@ basically base class member function shadowing
 
   class derivedClass : public baseClass
   {
-  public:
+    public:
       void print2() override { std::cout << "print2 derivedClass" << std::endl; }
       // c11:     void print2() override {}
       // older:   virtual void print2() {}
@@ -717,27 +720,28 @@ basically base class member function shadowing
   int main()
   {
       derivedClass b;
-      b.print1();    // print1 baseClass
-      b.print2();    // print2 derivedClass
-                     // but without virtual: print2 baseClass
+      b.print1();  // print1 baseClass
+      b.print2();  // print2 derivedClass
+                  // but without virtual: print2 baseClass
       return 0;
   }
   ```
-  **pure virtual function:** base class (with no function implementation) can force all derived classes to override a function by making it pure virtual
+  **pure virtual function:** in a base class (with function not implemented) can force all derived classes to override that function
   ```cpp
   virtual myFunc() = 0;
   ```
-  **abstract class:** class that has at-least one pure virtual function, cannot create object of this class  
+  **abstract class:** class that has at-least one pure virtual function, object of this class cannot be created  
   **interface:** special abstract class with only pure virtual functions & no data members
 - **overloading vs overriding:** overloading is picking from all function with same name but different arguments at compile-time  
 overriding is picking from functions with the same name & arguments in different class of same class hierarchy at run-time
-- **polymorphism:** ability to present same interface for differing underlying implementations, inherited classes may have different functionality but share a common interface
+- **polymorphism:** ability of a function/object to perform in different ways depending on how it is being used
   - **compile-time:** function & operator overloading
-  - **run-time:** function overriding, used for generic class references
+  - **run-time:** function overriding  
+  example: generic class references that can work with all children
     ```cpp
     derivedClass1 a;
     derivedClass2 b;
-    baseClass& c = a;    // can be generic reference for derivedClass1 or derivedClass2
+    baseClass &c = a;  // can be generic reference for derivedClass1 or derivedClass2
     ```
 
 ## file & string stream
