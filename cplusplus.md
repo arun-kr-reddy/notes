@@ -42,6 +42,8 @@
 - why static initialized to 0
 - double pointer access
 - stack canary
+- [copy-and-swap idiom](https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom) ([video](https://www.youtube.com/watch?v=7LxepUEcXA4))
+- friend functions
 
 ## todo list  <!-- omit from toc -->
 - Basics and Fundamentals:
@@ -155,6 +157,7 @@ one input channel: standard input `cin` and two output channels: standard output
       return 0;
   }
   ```
+- **variable shadowing:** a variable declared in some specific scope takes precedence over a variable with the same name declared in an outer scope
 - **`auto`:** is a placeholder type that will be replaced later by the compiler  
 for a variable placeholder replaced typically by deduction from an initializer
   ```cpp
@@ -420,7 +423,7 @@ stack & queue based on queue since growing is faster, priority queue uses vector
 ### encapsulation
 - **encapsulation:** binding together the data and the functions that manipulate them  
 - **`class`:** is a user-defined data type which holds its own data & function members which can be accessed by creating an instance of that class (object), class is like a blueprint for an object  
-`this` used as pointer to current object  
+use `this` as pointer to current object in class member functions  
 pass arguments to parametrized constructor to help initialize the object, if constructor/destructor not defined explicitly then default ones (with no arguments) will be generated  
 avoid setters instead set data in constructor
   ```cpp
@@ -431,7 +434,7 @@ avoid setters instead set data in constructor
       ~someClass() {}  // destructor, exactly one, called upon object destruction
 
       someClass(int a, int b) : num_a_(a), num_b_(b) {}  // member initializer list
-      bool operator<(const someClass &other) {}          // operator overload
+      bool operator<(const someClass &other) {}          // operator overload (no space after operator keyword)
       someFunc() const {}                                // const correctness
       someFunc() {}                                      // function overload because const missing
                                                          // but const object reference will call const one
@@ -446,11 +449,16 @@ avoid setters instead set data in constructor
       friend class anotherClass;                // friend class
   };
   ```
+- **class access specifiers/modifiers:** defines how the members (variables & functions/methods) of a class can be accessed
+  - **`public`:** accessible outside the class
+  - **`private`:** inaccessible outside the class
+  - **`protected`:** inaccessible outside the class but can be accessed in inherited classes
 - **why private default:** *it's better to be properly encapsulated and only open up the things that are needed, as opposed to having everything open by default and having to close it*  
 keep data members hidden (private), user should be able to modify data only through provided public interfaces (functions)
 - **resource acquisition is initialization (RAII):** resource acquisition (allocation) is done by the constructor while resource release (deallocation) is done by the destructor, holding a resource should be class-invariant and tied to object lifetime  
 also known as scope-bound resource management
-- **member initializer list:** to initialize members that cannot be set in body (like `const`) or to call non-default constructor for object members
+- **member initializer list:** to initialize members that cannot be set in body (like `const`) or to call non-default constructor for object members  
+const members will be created by the time we reach the scope of the constructor(`{`)
   ```cpp
   class A
   {
@@ -471,7 +479,8 @@ also known as scope-bound resource management
   ```
 - **operator overloading:** provides the operator with a special meaning for a data type (like class), compile-time polymorphism (similar to function overloading)  
 example: overload `+` operator in string class so that we can concatenate two strings by just using `+`  
-example: overload arithmetic operators for complex numbers
+example: overload arithmetic operators for complex numbers  
+example: implement `<` operator to sort user defined aggregate types using `std::sort`
 - **const correctness:** prevent const objects from getting mutated  
 a const member function cannot modify the object (else compiler error), declare getters as const functions  
 also helps compiler generate more efficient code since it knows the full intent and use of the variable/function
@@ -584,7 +593,6 @@ doesn't allow narrowing as well `int i{1.2};` (throws error/warning) so can be u
   classA cla{45978, time(&time_to_set), 28.9};  // member initialization in order of declaration
                                                 // an empty brace initializer does value initialization = {0,0,0}
   ```
-
 - **move semantics:** every expression is a lvalue (occupies memory so can be written on left of `=`) or a rvalue (everything else, explicitly defined using `&&`)  
 rvalues denote temporary objects which are destroyed at the next semicolon  
 **`std::move`:** converts lvalue to rvalue by moving resources (transferring ownership) from one object to another (instead of copying them) so don't access an already moved variable (undefined by cpp standard)
@@ -594,93 +602,97 @@ rvalues denote temporary objects which are destroyed at the next semicolon
     a          = 2 + 2;         // 2 + 2 rvalue
     int b      = a + 2;         // a + 2 rvalue
     int &&c    = std::move(a);  // c rvalue
-    a          = 3;             // undefined
   ```
-  for primitive types move is same as copy, for aggregates (like vector) performance will be better than copying but worse than passing by reference since move is just equivalent to assigning some pointers
+  for primitive types move is implemented as a copy, for aggregates performance will be better than copying but worse than passing by reference  
+  for a vector move is just equivalent to assigning some internal pointers
   ```cpp
   std::vector<std::string> vec;
   std::string str = "hello";      // temp variable
   vec.push_back(str);             // copy
   vec.push_back(std::move(str));  // move
 
-  std::cout << str << std::endl;  // undefined
+  std::cout << str << std::endl;  // undefined, prints empty string in MSVC
   ```
-- **copy/move constructor/assignment operator:** move constructor/assignment operator used to take ownership of another object
+- **copy constructor & assignment operator:** constructor called automatically when the object is copied and assignment operator when the object is assigned a new value from a lvalue  
+assignment operator return reference to changed object
   ```cpp
-  myClass(myClass &other) {}                // copy constructor
-  myClass &operator=(myClass &other) {}     // copy assignment operator
+  myClass(myClass &other) {}             // copy constructor
+  myClass &operator=(myClass &other) {}  // copy assignment operator
 
-  myClass(myClass &&other) {}               // move constructor
-  myClass &operator=(myClass &&other) {}    // move assignment operator
+  myClass a;      // default constructor
+  myClass b(a);   // copy constructor
+  myClass c = a;  // copy constructor
+  a         = b;  // copy assignment operator
   ```
+  **move constructor & assignment operator:** constructor called automatically when the object is moved and assignment operator when the object is assigned a new value from a rvalue  
+  both are used to take ownership of another object's resources
   ```cpp
-  myClass a;                   // default constructor
-  myClass b(a);                // copy constructor
-  myClass c = a;               // copy constructor
-  a = b;                       // copy assign operator
+  myClass(myClass &&other) {}             // move constructor
+  myClass &operator=(myClass &&other) {}  // move assignment operator
 
-  myClass b(std::move(a));     // move constructor
-  myClass c = std::move(b);    // move constructor
-  a = std::move(b);            // move assign operator
+  myClass a;                 // default constructor
+  myClass b(std::move(a));   // move constructor
+  myClass c = std::move(b);  // move constructor
+  a         = std::move(b);  // move assign operator
   ```
-- **`delete`:** to disallow certain functions
+- **rule of all or nothing:** try to define none of the six special functions (destructor + constructor + copy/move constr/assignment op), if you must define one of them then define all  
+if none defined then compiler generated `default` functions will be used (they may use shallow copy)
+  ```cpp
+  class myClass
+  {
+    public:
+      myClass()                         = default;
+      ~myClass()                        = default;
+      myClass(myClass &&var)            = default;
+      myClass(const myClass &var)       = default;
+      myClass &operator=(myClass &&var) = default;
+      myClass &operator=(myClass &var)  = default;
+  };
+  ```
+- **`delete`:** to disable the usage of a class member function (mentioned in class declaration itself), calling such functions lead to compilation error
   ```cpp
   class someClass
   {
-  public:
+    public:
       int someFunc(int num) {}
-      int someFunc(double size) = delete;
-  }
+      int someFunc(double num) = delete;  // without this, someFunc accepts double by converting it to int
+  };
   ```
-- **rule of all or nothing:** define all 6 special functions (destructor + constructor + above 4) or define none  
-if none defined `default` functions used, for something that cannot be moved (like `const`), move falls back to a copy and move marked as `delete`
-  ```cpp
-  myClass() = default;                 // autogenerated functions, may use shallow copy
-  myClass(myClass &other) = delete;    // compilation error if called
-  ```
+  example: disable copy constructors when only ones instance of the class must be guaranteed  
+  example: if a class has a constant data member then compiler marks copy/move constructor/assignment operator as deleted
 
 ### inheritance
-- **access specifiers/modifiers:** define how the members (variables & functions/methods) of a class can be accessed
-  - **`public`:** accessible outside the class
-  - **`protected`:** inaccessible outside the class
-  - **`private`:** inaccessible outside the class but can be accessed in inherited classes
-- **inheritance:** inherit public & protected data & functions from another class  
-separate 6 special functions & private members
+- **inheritance:** is the capability of a class (child) to inherit/derive data & functions from other classes (parent)  
+six special functions & private members are not inherited from base/parent class
   ```cpp
   class rectangleClass
   {
-  public:
+    public:
       rectangleClass(int w, int h) : width_(w), height_(h) {}
 
-  protected:
+    protected:
       int width_;
       int height_;
   };
 
-  class squareClass : public rectangleClass    // default private
+  class squareClass : public rectangleClass  // default private
   {
-  public:
-      squareClass(size) : rectangleClass(size, size) {}
+    public:
+      squareClass(int size) : rectangleClass(size, size) {}
   };
   ```
-  - **`public`:** public & protected from base maintain their access specifier
-  - **`protected`:** both will be  protected in derived class
-  -  **`private`:** both will be private in derived class
+- **inheritance modes:**
+  - **`public`:** both (base public & protected members) maintain their access specifier
+  - **`protected`:** both will be protected in derived class
+  - **`private`:** both will be private in derived class
 - **composition:** combining simpler objects to make more complex ones  
 inheritance is `is a` relationship, example: square is a rectangle  
 composition is `has a` relationship, example: car has a wheel (& other objects)
 
 ### polymorphism
-- **polymorphism:** ability to present same interface for differing underlying implementations, inherited classes may have different functionality but share a common interface
-  - **compile-time:** function & operator overloading
-  - **run-time:** function overriding, used for generic class references
-    ```cpp
-    derivedClass1 a;
-    derivedClass2 b;
-    baseClass& c = a;    // can be generic reference for derivedClass1 or derivedClass2
-    ```
-- **function overriding:** `virtual` function in base class can be overridden in derived class  
-same function prototype in both base & derived, so need to check which function needs to be called in virtual table (extra cycles)
+- **function overriding:** if a function (not data) is `virtual` in base class then it can be overridden in derived class  
+same function prototype in both base & derived classes, so compiler needs to check which function needs to be called in a virtual table (costs extra cycles)  
+basically base class member function shadowing
   ```cpp
   class baseClass
   {
@@ -711,12 +723,22 @@ same function prototype in both base & derived, so need to check which function 
       return 0;
   }
   ```
-- **pure virtual function:** no base implementation, used to force all derived classes to override the function
+  **pure virtual function:** base class (with no function implementation) can force all derived classes to override a function by making it pure virtual
   ```cpp
   virtual myFunc() = 0;
   ```
-  **abstract class:** class with atleast one pure virtual function, cannot create object of this class  
-**interface:** class with only pure virtual functions & no data members
+  **abstract class:** class that has at-least one pure virtual function, cannot create object of this class  
+  **interface:** special abstract class with only pure virtual functions & no data members
+- **overloading vs overriding:** overloading is picking from all function with same name but different arguments at compile-time  
+overriding is picking from functions with the same name & arguments in different class of same class hierarchy at run-time
+- **polymorphism:** ability to present same interface for differing underlying implementations, inherited classes may have different functionality but share a common interface
+  - **compile-time:** function & operator overloading
+  - **run-time:** function overriding, used for generic class references
+    ```cpp
+    derivedClass1 a;
+    derivedClass2 b;
+    baseClass& c = a;    // can be generic reference for derivedClass1 or derivedClass2
+    ```
 
 ## file & string stream
 - **fstream:** read/write file
