@@ -25,6 +25,11 @@
 - [bit manipulation](https://www.hackerearth.com/practice/basic-programming/bit-manipulation/basics-of-bit-manipulation/tutorial/)
 - [why avoid `goto`](https://smartbear.com/blog/goto-still-has-a-place-in-modern-programming-no-re/)
 - [`++i` vs `i++`](https://stackoverflow.com/questions/24901/is-there-a-performance-difference-between-i-and-i-in-c)
+- [`std::move` for primitives](https://stackoverflow.com/questions/27888873/copy-vs-stdmove-for-ints)
+- [`std::move` without assignment](https://stackoverflow.com/questions/62642804/what-happens-when-stdmove-is-called-without-assignment)
+- [why `virtual` (early vs late binding)](https://stackoverflow.com/questions/2391679/why-do-we-need-virtual-functions-in-c)
+- [why `override`](https://stackoverflow.com/questions/18198314/what-is-the-override-keyword-in-c-used-for)
+- [IEEE754 conversion](https://www.youtube.com/watch?v=8afbTaA-gOQ&pp=ygUIaWVlZSA3NTQ%3D)
 
 ## todo  <!-- omit from toc -->
 - [cpp core guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#main)
@@ -168,6 +173,8 @@ for a variable placeholder replaced typically by deduction from an initializer
 
   auto a = 0, b = 3.14;  // error: inconsistent types for a and b
   ```
+- **reference:** is an alias (alternative name) for an existing variable declared using `&`  
+whatever happens to a reference happens to variable & vice-versa, yields performance gain as references avoid copying data
 - **`++i` vs `i++`:** post-increment could be slower since a copy of the old value copy needs to be saved for later use  
 but modern compilers will optimize it if `i` is a basic data type (like `int`)  
 if `i` is  a class then temp will involve calling a copy constructor which can be expensive
@@ -485,7 +492,7 @@ example: implement `<` operator to sort user defined aggregate types using `std:
 - **const correctness:** prevent const objects from getting mutated  
 a const member function cannot modify the object (else compiler error), declare getters as const functions  
 also helps compiler generate more efficient code since it knows the full intent and use of the variable/function
-- **`static` variable:** exists once per class (not per object) and shared across all (base & derived class) objects, data allocated in class not in instances  
+- **`static` variable:** exists once per class (not per object) and shared across all (base & derived class) objects, data allocated in class not in instances so more like a global variable  
 **`static` function:** doesn't need an object to call, pass object if you need to access private members  
 both are only declared in class declaration so must be explicitly defined outside the class (in source file) using the scope resolution operator (`::`)  
 example: count number of objects of a class
@@ -494,7 +501,8 @@ example: count number of objects of a class
   class someClass
   {
     public:
-      someClass() { this->numInstances++; }
+      someClass() { someClass::numInstances++; }
+      ~someClass() { someClass::numInstances--; }
       static int numInstances;
       static void printInstances(void);
   };
@@ -513,8 +521,12 @@ example: count number of objects of a class
       someClass a;
       someClass::printInstances();  // 1
 
-      someClass b;
-      someClass::printInstances();  // 2
+      {
+          someClass b;
+          someClass::printInstances();  // 2
+      }
+
+      someClass::printInstances();  // 1
 
       return 0;
   }
@@ -603,6 +615,12 @@ rvalues denote temporary objects which are destroyed at the next semicolon
     a          = 2 + 2;         // 2 + 2 rvalue
     int b      = a + 2;         // a + 2 rvalue
     int &&c    = std::move(a);  // c rvalue
+  ```
+  internally `std::move` doesn't move the passed object by itself, it consists of a cast whose result is used by move assignment operator  
+  example: `s` casted to rvalue reference (`std::string &&`) but that result is unused so the object is not actually moved
+  ```
+  std::string s = "Moving";
+  std::move(s);
   ```
   for primitive types move is implemented as a copy, for aggregates performance will be better than copying but worse than passing by reference  
   for a vector move is just equivalent to assigning some internal pointers
@@ -847,7 +865,7 @@ example: if two classes in a hierarchy have the same function defined, without `
       std::cout << a << b << c << std::endl;  // print values in same order
   }
   ```
-- **sstream:** allows a string to be treated like a stream, used to combine different types into a string or vice-versa (break string)
+- **sstream:** allows a string to be treated like a stream, used to combine different types into a string or vice-versa (break/parse string)
   ```cpp
   #include <sstream>
 
@@ -859,7 +877,7 @@ example: if two classes in a hierarchy have the same function defined, without `
 
     out_sstream.str("");  // reset sstream string
 
-    // break/parse string
+    // parse string
     std::stringstream in_sstream(str_out);
     std::string str;
     float val;
@@ -908,27 +926,27 @@ example: if two classes in a hierarchy have the same function defined, without `
     ```
   - **mutable:** C++ only, to allow a particular data member of const object to be modified, example: mutexes
 - **1s complement:** invert all bits  
-**2s complement:** add 1 to 1s complement
+**2s complement:** add one to 1s complement
   ```cpp
-  00011001    //  25
-  11100110    //     (1s complement)
-  11100111    // -25 (2s complement)
+  00011001  //  25
+  11100110  //     (1s complement)
+  11100111  // -25 (2s complement)
   ```
-- **integer representation:** negative numbers stored as 2s complement  
-**signed:** `-2^(n-1)` to `2^(n-1) - 1`  
-**unsigned:** `0` to `2^(n) - 1`  
-**integer promotion:** `signed` promoted to `unsigned` when mixed
-  ```cpp
-  unsigned int a = 6;
-  int b = -20;
-  (a + b > 6) ? printf(">6") : printf("<=6");    // >6
-  ```
-  **sign extension:** preserving sign while increasing number of bits of a binary number
+- **integer representation:** negative numbers stored as 2s complement
+  - **`signed`:** `-2^(n-1)` to `2^(n-1) - 1`
+  - **`unsigned`:** `0` to `2^(n) - 1` 
+- **sign extension:** preserving sign while increasing number of bits of a binary number
   ```cpp
   1001 0110              //  8 bit (-106)
   1111 1111 1001 0110    // 16 bit (-106)
   ```
   both `128` & `-128` have same 8-bit 2s complement (`10000000`), so `-128` assumed since all bit-patterns with MSB (sign bit) set are negative
+- **integer promotion:** `signed` promoted to `unsigned` when mixed
+  ```cpp
+  unsigned int a = 6;
+  int b = -20;
+  (a + b > 6) ? printf(">6") : printf("<=6");    // >6
+  ```
 - **float representation (IEEE 754):** single precision `1 + 8 + 23`, double precision `1 + 1 + 53`  
 ![](./media/cplusplus/IEEE754.png)
   ```cpp
@@ -997,8 +1015,6 @@ can lead to dangling pointer when object shallow copied
 **deep copying:** create new pointers and copy data into it
 
 ## pointers
-- **reference:** is an alias (alternative name) for an existing variable declared using `&`  
-whatever happens to a reference happens to variable & vice-versa, yields performance gain as references avoid copying data
 - **pointer vs reference:**
   - own memory vs alias
   - no init required vs init in declaration
