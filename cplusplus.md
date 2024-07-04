@@ -689,13 +689,14 @@ six special functions & private members will not be inherited from base class
 - **composition/containment:** implementing complex objects using simpler or smaller ones  
 inheritance is `is a` relationship, example: square is a rectangle  
 composition is `has a` relationship, example: car has a wheel (& other objects)
-- prefer shallow hierarchies or use composition instead which makes it easier to hide data that is not required in derived class  
+- prefer shallow hierarchies so it is easier to track where a particular member is inherited from  
+or use composition instead which makes it easier to hide data that is not required in derived class  
 example: include an object of another class as a class member instead of polluting your class by adding (inheriting) all that data & functions
 
 ### polymorphism
-- **function overriding:** if a function (not data) is `virtual` in base class then it can be overridden in derived class  
+- **function overriding:** if a function (not data) is `virtual` in base class then it can be overridden in derived class (base class member function shadowing)  
 same function prototype in both base & derived classes, so compiler needs to check which function needs to be called in a virtual table (costs extra cycles)  
-basically base class member function shadowing
+
   ```cpp
   class baseClass
   {
@@ -713,8 +714,7 @@ basically base class member function shadowing
   {
     public:
       void print2() override { std::cout << "print2 derivedClass" << std::endl; }
-      // c11:     void print2() override {}
-      // older:   virtual void print2() {}
+      // pre-cpp11:   virtual void print2() {}
   };
 
   int main()
@@ -722,56 +722,113 @@ basically base class member function shadowing
       derivedClass b;
       b.print1();  // print1 baseClass
       b.print2();  // print2 derivedClass
-                  // but without virtual: print2 baseClass
+                   // but without virtual: print2 baseClass
       return 0;
   }
   ```
-  **pure virtual function:** in a base class (with function not implemented) can force all derived classes to override that function
+- **`override`:** keyword shows the reader that a particular function is overriding a virtual method of a base class  
+compiler also can make sure that you are not altering (redefinition) or adding new methods (overloading) that you think are overrides
   ```cpp
-  virtual myFunc() = 0;
+  class base
+  {
+    public:
+      virtual int foo(float x) = 0;
+  };
+
+  class derived : public base
+  {
+    public:
+      int foo(float x) override {}  // okay
+  };
+
+  class derived2 : public base
+  {
+    public:
+      int foo(int x) override {}  // error: does not override a base class member
+  };
   ```
-  **abstract class:** class that has at-least one pure virtual function, object of this class cannot be created  
-  **interface:** special abstract class with only pure virtual functions & no data members
-- **overloading vs overriding:** overloading is picking from all function with same name but different arguments at compile-time  
-overriding is picking from functions with the same name & arguments in different class of same class hierarchy at run-time
+- **overloading vs overriding:** overloading is picking one from all methods with same name but different arguments at compile-time  
+overriding is picking from methods with the same name & arguments in different class of same class hierarchy at run-time
+- **early binding:** which implementation of the method is used gets decided at compile-time based on the type of the pointer that you call through  
+**late binding:** which implementation of the method is used gets decided at run-time based on the type of the pointed-to object (what it was originally constructed as) which might not necessarily be same as the type of the pointer that points to that object  
+example: if two classes in a hierarchy have the same function defined, without `virtual` early binding and with `virtual` late binding
+  ```cpp
+  class baseClass
+  {
+    public:
+      void func1() { std::cout << "baseClass::func1" << std::endl; }
+      virtual void func2() { std::cout << "baseClass::func2" << std::endl; }
+  };
+
+  class derivedClass : public baseClass
+  {
+    public:
+      void func1() { std::cout << "derivedClass::func1" << std::endl; }  // adding override would result in an error
+      void func2() override { std::cout << "derivedClass::func2" << std::endl; }
+  };
+
+  int main()
+  {
+
+      baseClass *basePtr = new derivedClass();  // constructed as derivedClass but stored as baseClass*
+
+      basePtr->func1();  // baseClass::func1     --> early binding
+      basePtr->func2();  // derivedClass::func2  --> late binding
+
+      return 0;
+  }
+  ```
 - **polymorphism:** ability of a function/object to perform in different ways depending on how it is being used
-  - **compile-time:** function & operator overloading
-  - **run-time:** function overriding  
+  - **compile-time:** function & operator overloading, early binding
+  - **run-time:** function overriding, late binding  
   example: generic class references that can work with all children
     ```cpp
+
     derivedClass1 a;
     derivedClass2 b;
     baseClass &c = a;  // can be generic reference for derivedClass1 or derivedClass2
     ```
+- **pure virtual function:** in a base class (with function not implemented) can force all derived classes to override that function
+  ```cpp
+  virtual myFunc() = 0;
+  ```
+  **abstract class:** are a class which has at-least one pure virtual function, object of this class cannot be created  
+  **interface:** special abstract class with only pure virtual functions & no data members
 
 ## file & string stream
 - **fstream:** read/write file
   ```cpp
   #include <fstream>
-  std::fstream file(string& filename, Mode std::ios_base::mode);
+  std::fstream file(string &filename, Mode std::ios_base::mode);
   ```
   ```cpp
   // modes
-  in        // for reading
-  out       // for writing
-  binary    // in binary mode
-  app       // append output
-  ate       // seek to EOF when opened
-  trunc     // overwrite existing file
+  in      // for reading
+  out     // for writing
+  binary  // in binary mode
+  app     // append output
+  ate     // seek to EOF when opened
+  trunc   // overwrite existing file
   ```
-  **`ifstream`:** file stream with default mode `in`  
-**`ofstream`:** file stream with default mode `out`
+  **`ifstream`:** fstream with default mode `in`  
+**`ofstream`:** fstream with default mode `out`
 - **example: read line by line:**
   ```cpp
-  while (getline(ifstream, string))
+  std::ifstream input("dummy.txt");  // default mode used
+
+  if (input.is_open())  // check if opening failed
   {
-      // process line
+      std::string line;
+      while (std::getline(input, line))
+      {
+          // process line
+      }
   }
   ```
 - **example: write binary data:**
   ```cpp
-  std::ofstream output_file("output.bin", ios_base::out | ios_base::binary);
-  output_file.write(reinterpret_cast<char*>(data), sizeof(data));
+  std::ofstream output_file("output.bin", std::ios_base::out | std::ios_base::binary);  // default mode overridden
+  output_file.write(reinterpret_cast<char *>(data), sizeof(data));
   ```
 - **example: read regular columns:** every line should have same number of columns
   ```cpp
@@ -780,34 +837,33 @@ overriding is picking from functions with the same name & arguments in different
   // 3   three   0.3
 
   int a;
-  string b;
+  std::string b;
   float c;
 
-  std::ifstream input_file("input_data.txt", ios_base::in);
+  std::ifstream input_file("input_data.txt");
 
-  while (input_file >> a >> b >> c)    // read values
+  while (input_file >> a >> b >> c)  // read values
   {
-      std::cout << a << b << c << std::endl;    // print values in same order
+      std::cout << a << b << c << std::endl;  // print values in same order
   }
   ```
-- **sstream:** allows a string to be treated like a stream
+- **sstream:** allows a string to be treated like a stream, used to combine different types into a string or vice-versa (break string)
   ```cpp
   #include <sstream>
 
-  // create string
-  std::stringstream out_sstream;
-  out_sstream << "pi " << 3.14;
-  std::string str_out = out_sstream.str();
-  std::cout << str_out << std::endl;    // pi 3.14
+    // combine into string
+    std::stringstream out_sstream;
+    out_sstream << "pi " << 3.14;
+    std::string str_out = out_sstream.str();
+    std::cout << str_out << std::endl;  // pi 3.14
 
-  // reset sstream string
-  out_sstream.str("");
+    out_sstream.str("");  // reset sstream string
 
-  // parse string
-  std::stringstream in_sstream(str_out);
-  std::string str;
-  float val;
-  in_sstream >> str >> val;    // str: "pi" & val: 3.14
+    // break/parse string
+    std::stringstream in_sstream(str_out);
+    std::string str;
+    float val;
+    in_sstream >> str >> val;  // str: "pi", val: 3.14
   ```
 
 ## memory
