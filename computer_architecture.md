@@ -66,7 +66,7 @@ a simple hardware failure mechanism is creating a widespread system security vul
 - **DRAM refresh:** a DRAM cell consists of a capacitor & an access transistor, applying high voltage to wordline (row enable) allows us to read data (capacitor charge as a bit) in the bitline, but capacitor charge leaks over time, memory controller needs to refresh each row periodically to restore charge, increases energy consumption & DRAM bank unavailable while refreshing, but only small % have low retention time (manufacturing process variation) so don't need to refresh every row frequently, once profiling (retention time of all DRAM rows) is done check (Bloom filters) bins to determine refresh rate of a row  
 ![](./media/computer_architecture/dram_cell.png)
   - **Bloom filter:** memory efficient probabilistic data structure that compactly represents set membership, test set membership using hash functions (unique identifier generator), no false negatives & never overflows (but `num elements ∝ false positives rate`), three supported operations: insert, test & remove all elements, removing one particular element is not easy (can lead to removal of other elements)
-- **Hamming code:** powers-of-2 bits are regular parity bits used to track the parity of the other bits whose position have a 1 in the same place, 0th message bit used as overall parity (including regular parity bits), can correct 1-bit errors (regular parity incorrect & overall parity incorrect) & detect 2-bit errors (regular parity incorrect & overall parity correct)  
+- **Hamming code:** powers-of-2 bits are regular parity bits used to track the parity of the other bits whose position have a 1 in the same place, 0th message bit used as overall parity (including regular parity bits), can correct one-bit errors (regular parity incorrect & overall parity incorrect) & detect two-bit errors (regular parity incorrect & overall parity correct)  
 **Hamming distance:** number of locations at which two equal-length strings are different  
 ![](./media/computer_architecture/hamming_code.png)
 - **field programable gate array (FPGA):** is a software-reconfigurable hardware substrate (reconfigurable functions, interconnections & I/O), an algorithms can be implemented directly in hardware, faster than general purpose computer & more flexible than application specific integrated chips (ASICs), programmed using hardware description language (HDL) like Verilog & VHDL  
@@ -140,7 +140,7 @@ multiplexer can be used as lookup table to perform logic functions
 ![](./media/computer_architecture/multiplexer_usecase.png)
 - **programmable logic array (PLA):** an array of AND gates followed by OR gates, used to implement combinational logic circuits by connecting output of an AND gate to input of an OR gate if the corresponding minterm is included in SOP, used in FPGAs  
 ![](./media/computer_architecture/programmable_logic_array.png)
-- **example: 1-bit addition (full adder):**  
+- **example: one-bit addition (full adder):**  
 ![](./media/computer_architecture/full_adder.png)
 - **arithmetic logic unit (ALU):** combines a variety of arithmetic & logical operations into a single unit that performs only one function at a time (using function select lines)  
 ![](./media/computer_architecture/arithmetic_logic_unit.png)
@@ -752,7 +752,7 @@ example: remove branch using conditional move (`CMOV`)
   CMOV !condition, b, 3
   ```
 - **example: predicated execution in Intel Itanium:** each instruction can be separately predicated using 64 one-bit predicate registers  
-each instruction carries predicate register field (6-bit) so an instruction is effectively a `NOP` if its predicate is false  
+each instruction carries predicate register field (6bit) so an instruction is effectively a `NOP` if its predicate is false  
 ![](media/computer_architecture/predicated_execution_itanium.png)
 - **multipath execution:** execute both paths (if you know the addresses) after a conditional branch  
 useful for a hard-to-predict branches (prediction confidence is already low)  
@@ -1081,7 +1081,7 @@ a larger level of storage is needed to manage a small amount of physical memory 
 - **array organization of memories:** to efficiently store large amounts of data we need:
 - **memory array:** store data  
   an `M` bit value can be read/written at each unique `N` bit address and the array will have `2^N` rows and `M` columns, all values can be accessed but only `M` bits at a time  
-  example: 2-bit address with 3-bit data  
+  example: two-bit address with three-bit data  
   ![](./media/computer_architecture/memory_array.png)
 - **address selection logic:** select one row of data  
   storage nodes in one column connected to one bitline, address decoder activates only one wordline, content of one line of storage available at output  

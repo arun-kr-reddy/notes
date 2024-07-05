@@ -301,3 +301,4 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
   - **conditional:** used if the task consists of doing one of two subtasks but not both
   - **iterative:** used if the task consists of doing a subtask a number of times but only as long as some condition is true
   ![](./media/programming/programming_constructs.png)
+- **reentrancy:** a function/subroutine can be interrupted and then resumed before it finishes executing, this also means that the function can be called again before it completes its previous execution, so reentrant code needs to be safe & predictable when multiple instances of the same function are called simultaneously or in quick succession

@@ -29,7 +29,9 @@
 - [`std::move` without assignment](https://stackoverflow.com/questions/62642804/what-happens-when-stdmove-is-called-without-assignment)
 - [why `virtual` (early vs late binding)](https://stackoverflow.com/questions/2391679/why-do-we-need-virtual-functions-in-c)
 - [why `override`](https://stackoverflow.com/questions/18198314/what-is-the-override-keyword-in-c-used-for)
+- [mixing `signed` & `unsigned`](https://stackoverflow.com/questions/19446888/adding-signed-and-unsigned-int)
 - [IEEE754 conversion](https://www.youtube.com/watch?v=8afbTaA-gOQ&pp=ygUIaWVlZSA3NTQ%3D)
+- [storage specifiers, linkage, storage duration](https://en.cppreference.com/w/cpp/language/storage_duration)
 
 ## todo  <!-- omit from toc -->
 - [cpp core guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#main)
@@ -162,6 +164,23 @@ one input channel: standard input `cin` and two output channels: standard output
       macroFunc(2, 1);  // val2 : 30, val1 : 40
       return 0;
   }
+  ```
+- **declaration:** introduces an identifier and describes its type, this is what the compiler needs to accept references to that identifier  
+**definition:** actually instantiates/implements this identifier, this is what the linker needs in order to link references to those entities
+  ```cpp
+  // declaration
+  extern int bar;
+  extern int g(int, int);
+  double f(int, double);
+  class foo;
+
+  // definition
+  int bar;
+  int g(int lhs, int rhs) { return lhs * rhs; }
+  double f(int i, double d) { return i + d; }
+  class foo
+  {
+  };
   ```
 - **variable shadowing:** a variable declared in some specific scope takes precedence over a variable with the same name declared in an outer scope
 - **`auto`:** is a placeholder type that will be replaced later by the compiler  
@@ -885,30 +904,91 @@ example: if two classes in a hierarchy have the same function defined, without `
   ```
 
 ## memory
-- **type qualifiers:**
-  - **const:** object/variable is not modifiable, compiler guards it from any changes  
-  initialize variables with const if you don't expect them to be modified (like in ranged for loop)
-  - **volatile:** value might be changed by something beyond the program (so not cached)  
-  use `const volatile` for read-only status register
-  - **restrict:** optimization hint to compiler that during its lifetime no other pointer will be used to access the same memory  
-  not part of C++ standard but most compilers support it
-  - **atomic:** read-modify-write operators guaranteed in single instruction, free from data races
-    ```cpp
-    #include <iostream>
-    #include <sstream>
-    #ifdef __STDC_NO_ATOMICS__
-        #error no atomics
-    #endif
+- **1s complement:** invert all bits  
+**2s complement:** add one to 1s complement
+  ```cpp
+  00011001  //  25
+  11100110  //     (1s complement)
+  11100111  // -25 (2s complement)
+  ```
+- **integer representation:** for signed numbers one possible implementation is to use MSB for sign but this permits `+0` & `-0` which is undesirable, so negative numbers stored as 2s complement  
+both `128` & `-128` have same 8bit 2s complement (`10000000`), but since all negative numbers have MSB set assume bit-pattern as `-128`  
+use fixed-width integer types (like `uint32_t`) from `<stdint.h>`
+  - **`signed`:** `-2^(n-1)` to `2^(n-1) - 1`
+  - **`unsigned`:** `0` to `2^(n) - 1`
+- **sign extension:** increasing number of bits of a binary number while preserving the number's sign & value
+  ```cpp
+            0000 1010  // uint8_t   (10)
+            1111 0110  // uint8_t  (-10)
+  1111 1111 1111 1111  // uint16_t (-10)
+  ```
+- **integer promotion:** is the implicit conversion of a type smaller (lower rank) than integer to `signed int` if it can represent all values of the original type else converted to an `unsigned int`  
+example: `0x 80` is first promoted to `0x 80 00 00 00` signed integer (only MSB set) then automatically sign extended (for 64bit) to `0x ff ff ff ff 80 00 00`
+  ```cpp
+  uint8_t val = 0x80;
+  printf("%x \n", val);        // 80
 
-    _Atomic const int *p1;     // pointer to atomic const int
-    const atomic_int *p2;      // same
-    const _Atomic(int) *p3;    // same
+  // incorrect
+  uint64_t result1 = val << 24;
+  printf("%llx \n", result1);  // ffffffff80000000
+
+  // fixed
+  uint64_t result2 = (uint64_t)val << 24;
+  printf("%llx \n", result2);  // 80000000
+  ```
+  same rank signed integer is converted to unsigned when mixed
+  ```cpp
+  uint32_t a = 6;
+  int32_t b  = -20;
+  (a + b > 6) ? printf(">6\n") : printf("<=6\n");           // >6
+  ((int32_t)a + b > 6) ? printf(">6\n") : printf("<=6\n");  // <=6
+  ```
+- **float representation (IEEE 754):** single precision `1 + 8 + 23`, double precision `1 + 1 + 53`  
+![](./media/cplusplus/IEEE754.png)
+  ```cpp
+  263.3                           // floating number
+  100000111.0100110011...         // binary
+  1.000001110100110011... x 2^8   // scientific notation, true_exponent = 8
+                                  // 1 is invisible leading bit
+  sign = 0
+  exp = 8 + 127 = 10000111        // exponent = true_exponent + bias
+                                  // bias = 2^(exp_bits - 1) - 1
+  frac = 00000111010011001100110  // bits after leading bit (also known as mantissa)
+
+  0 10000111 00000111010011001100110
+  ```
+- **type qualifiers:** `restrict` not part of C++ standard but most compilers support it, `_Atomic` added in C11, `mutable` C++ only
+  - **`const`:** variable (or object) cannot be modified after initialization, compilation error if modification attempted
+  - **`volatile`:** variable may be changed by something external to the program at any time so must be re-read from memory every time (don't keep in cache) it is accessed, `const volatile` used for read-only status registers
+  - **`restrict`:** is an optimization hint to compiler that during a pointer's lifetime no other pointer will access the same memory  
+  - **`_Atomic`:** variable have guaranteed read-modify-write operation in single instruction  
+  free from data races so can be used in reentrant functions & in ISR that interrupt it
+    ```cpp
+    #include <stdatomic.h>
+
+    _Atomic int a;  // or _Atomic(int) a;
     ```
+  - **`mutable`:** permits modification of the class member (like mutexes) even if the containing object is declared const  
+  used to specify that the member does not affect the externally-visible state of the class  
+  C++ language grammar treats mutable as a storage-class-specifier but it does not affect storage class or linkage
+    ```cpp
+    mutable std::mutex m;
+    ```
+- **linkage:** specifies till where is the visibility of a variable/function name
+  - **no linkage:** can be referred only in scope it is in
+  - **internal linkage:** all scopes in the current translation unit
+  - **external linkage:** scopes in the other translation units (accessible through the whole program)
+- **storage duration:** is the object's property that defines the rules according to which it is created and destroyed
+  - **automatic:** allocated at the beginning of the enclosing code block and de-allocated at the end
+  - **static:** allocated when the program begins and deallocated when the program ends
+  - **thread:** allocated when the thread begins and deallocated when the thread ends
+  - **dynamic:** allocated and de-allocated upon request (like dynamic memory allocation)
 - **storage class specifier:**
-  - **auto:** default
-  - **register:** hint to compiler to place it in processor's register
-  - **static:** local static variable keeps its value between invocations, global static variable/function local to translation unit (but prefer)
-  - **extern:** used for external linkages, only mention specifier for declaration & keep it in a header, cross checking takes place between translation units
+  - **no specifier or `auto`:** objects declared at block scope or in function parameter lists with (default) automatic storage duration
+  - **`register`:** auto variable with hints to the compiler to place the variable in the processor's register
+  - **`static`:** static duration with internal linkage at file scope (global static) and no linkage at block scope (local static)
+  - **`extern`:** function/variable is assumed to be available somewhere else (external linkage) and the resolving is deferred to the linker  
+  use a header file to contain an extern declaration of the variable then that header is included by the one source file that defines the variable and by all the source files that reference it
     ```cpp
     // header.h
     extern int g_val;
@@ -921,46 +1001,10 @@ example: if two classes in a hierarchy have the same function defined, without `
 
     // source2.c
     #include "header.h"
-    printf("%d\n", g_val);          // 77
-    printf("%d\n", increment());    // 78
+    printf("%d\n", g_val);        // 77
+    printf("%d\n", increment());  // 78
     ```
-  - **mutable:** C++ only, to allow a particular data member of const object to be modified, example: mutexes
-- **1s complement:** invert all bits  
-**2s complement:** add one to 1s complement
-  ```cpp
-  00011001  //  25
-  11100110  //     (1s complement)
-  11100111  // -25 (2s complement)
-  ```
-- **integer representation:** negative numbers stored as 2s complement
-  - **`signed`:** `-2^(n-1)` to `2^(n-1) - 1`
-  - **`unsigned`:** `0` to `2^(n) - 1` 
-- **sign extension:** preserving sign while increasing number of bits of a binary number
-  ```cpp
-  1001 0110              //  8 bit (-106)
-  1111 1111 1001 0110    // 16 bit (-106)
-  ```
-  both `128` & `-128` have same 8-bit 2s complement (`10000000`), so `-128` assumed since all bit-patterns with MSB (sign bit) set are negative
-- **integer promotion:** `signed` promoted to `unsigned` when mixed
-  ```cpp
-  unsigned int a = 6;
-  int b = -20;
-  (a + b > 6) ? printf(">6") : printf("<=6");    // >6
-  ```
-- **float representation (IEEE 754):** single precision `1 + 8 + 23`, double precision `1 + 1 + 53`  
-![](./media/cplusplus/IEEE754.png)
-  ```cpp
-  263.3                             // floating number
-  100000111.0100110011...           // binary
-  1.000001110100110011... x 2^8     // scientific notation, true_exponent = 8
-                                    // 1 is invisible leading bit
-  sign = 0
-  exp = 8 + 127 = 10000111          // exponent = true_exponent + bias
-                                    // bias = 2^(exp_bits-1)-1
-  mant = 00000111010011001100110    // bits after leading bit
-
-  0 10000111 00000111010011001100110
-  ```
+  - **`thread_local`:** indicates that the object has thread storage duration, can be combined with static/extern to specify internal/external linkage, static is implied when thread_local applied to a block scope variable
 - **endianness:** order in which a sequence of bytes is stored in computer memory
   ```cpp
   value:          0x12345678
