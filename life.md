@@ -83,3 +83,4 @@ key idea is that lower-level needs must be satisfied before higher-level needs c
 - *if you can make it halfway and one more step, it's longer to go back and shorter to just finish, so you just finish*
 - *an engineer can do for a dime what any damn fool can do for a dollar*
 - *code is read more than it is written*
+- *temporary solutions often become permanent problems*
