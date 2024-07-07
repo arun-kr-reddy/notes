@@ -35,6 +35,8 @@
 - multi-threading programming using pthread & cpp threads
 - IPC using cpp
 - priority inversion
+- [`brk` & `sbrk`](https://stackoverflow.com/questions/6988487/what-does-the-brk-system-call-do)
+- `mmap` system class
 
 ## introduction
 - **operating system:** is a middleware that sits between user programs & system hardware and manages hardware for the user programs:
