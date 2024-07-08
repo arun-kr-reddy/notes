@@ -322,7 +322,7 @@ example: if client code has his own `cout` implementation this can lead to wrong
 - **`iterator`:** used to point at the memory addresses of STL containers (similar to a pointer) which allows quick & efficient navigation through any STL container (even unordered ones)  
 ![](./media/cplusplus/iterator.png)
   ```cpp
-  T::iterator itr = container.begin();
+  T::iterator itr = container.begin();  // vector<double>::iterator itr;
 
   T val = *itr;  // current element
   ++itr;         // increment iterator, now points to next element
@@ -1328,7 +1328,7 @@ just create a standard raw pointer then pass that to the smart pointer immediate
     uint32_t b = a;               // decimal dropped
     std::cout << b << std::endl;  // 10
     ```
-  - **explicit:** force type conversion
+  - **explicit:** deliberate modification of a variable's data type by the programmer
     - **assignment operator:** also known as forced casting
       ```cpp
       float a = 1.2;
@@ -1355,48 +1355,65 @@ just create a standard raw pointer then pass that to the smart pointer immediate
         ```
 
 ## templates
-- **generic programming:** separate algorithms from data type
-- **templates:** compile-time type-independent/generic algorithms (`<T>` macro expanded), no definition till expansion is done (else linker error)  
-**template function:** can use any type that is copy constructable, assignable & defined by the time template compiled (custom classes)
-  ```cpp
-  template <typename T>    // can use typename or class keyword
-  T func1(const T &arg1)
-  {
-  }
+- **generic programming:** enables the programmer to write a general algorithm which will work with all data types (separate algorithms from data type)
+- **`template`:** enable you to define the operations of a function/function and later specify what types those operations should work on  
+**instantiation:** compiler generates concrete functions/classes based on the supplied argument type (`<T>` expanded)  
+so for the compiler to generate the code it must see both the template definition (not just declaration) and the specific types used to fill-in the template, so keep declaration & definition in a header then include it in source files
+  - **`template` function:** can use any type that is copy constructable, assignable & defined by the time template compiled (custom classes)  
+  pass explicit type if compiler is not able to determine the type
+    ```cpp
+    template <typename T>  // can use typename or class keyword
+    T foo(const T &arg1)
+    {
+    }
 
-  func(10);       // type inferred by compiler
-  func<int>();    // explicit type (in case data type cannot be determined by compiler)
-  ```
-  **template class:** used for meta programming (programs that modify programs), compiler generates objects based on types we passed
+    foo(10);     // type inferred by compiler
+    foo<int>();  // explicit type
+    ```
+  - **`template` class:** used for meta-programming in which templates are used to generate temporary source code
+    ```cpp
+    template <typename T>
+    class someClass
+    {
+      public:
+        someClass(const T &var) : var_(var){};
+
+      private:
+        T var_;
+    };
+
+    someClass<int> my_object(10);
+    ```
+- **example: get type size in bytes (meta-programming):**
   ```cpp
   template <typename T>
-  class myClass
+  size_t sizeOf()
   {
-  public:
-      myClass(const T &var) : var_(var){};
-
-  private:
-      T var_;
+      T *a        = nullptr;
+      size_t size = (uint8_t *)(a + 1) - (uint8_t *)(a);
+      return size;
   }
 
-  myClass<int> my_object(10);
+  std::cout << "int: " << sizeOf<int>() << std::endl;              // int: 4
+  std::cout << "someClass: " << sizeOf<someClass>() << std::endl;  // someClass: 16
   ```
-- **specialization:** different template function/class implementation for a specific type
+- **specialization:** special (different) function/class implementation for a specific type
   ```cpp
-  template <typename T>    // generic
-  T func()
+  template <typename T>  // generic
+  T foo()
   {
+      std::cout << "generic" << std::endl;
   }
 
-  template <>              // specialized
-  int func()
+  template <>  // specialized
+  int foo()
   {
+      std::cout << "specialized int" << std::endl;
   }
 
-  func<int>();             // specialized
-  func<double>();          // generic
+  foo<int>();     // specialized int
+  foo<double>();  // generic
   ```
-- **where to keep template:** a template is a pattern that the compiler uses to generate a family of classes or functions, so for the compiler to generate the code it must see both the template definition (not just declaration) and the specific types/whatever used to fill-in the template, so keep declaration & definition in a header & include it
 
 ## error handling
 - **exception:** thrown when there is an error, ctor of exception receives a string error message, use `what()` to get exception string
@@ -1483,16 +1500,16 @@ just create a standard raw pointer then pass that to the smart pointer immediate
   LL  // long long int, ULL
   F   // float
   ```
-- **enum:** assign names to integral constants, by default starts with 0
+- **enum:** user-defined type that consists of a set of named integral constants, by default starts with 0
   - **unscoped:** can implicitly convert to primitives
-  - **scoped:** implicit conversion leads to error, use `static_cast` if required
+  - **scoped:** add `class` to create a new scope, implicit conversion leads to error, use `static_cast` if required
   ```cpp
   enum uFoo  // unscoped
   {
-      a,
-      b,
-      c = 1,
-      d = b + c
+      a,         // 0
+      b,         // 1
+      c = 1,     // 1
+      d = b + c  // 2
   };
 
   enum class sFoo  // scoped
@@ -1503,8 +1520,8 @@ just create a standard raw pointer then pass that to the smart pointer immediate
       d = b + c
   };
 
-  int enumValue = uFoo::a;  // implicit conversion
-  int enumValue = sFoo::a;  // error
+  int enumValue = a;        // visible without qualifier, implicit conversion
+  int enumValue = sFoo::a;  // sFoo qualifier required, error for conversion
   ```
 - **union:** different variables of different types in same memory location  
 use when member variables are used in either-or but never both fashion
