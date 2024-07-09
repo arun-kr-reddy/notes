@@ -14,7 +14,7 @@
 - [pointers](#pointers)
   - [smart pointers](#smart-pointers)
 - [templates](#templates)
-- [error handling](#error-handling)
+- [exceptions](#exceptions)
 - [misc](#misc)
   - [cpp core guidelines](#cpp-core-guidelines)
   - [standard template library](#standard-template-library)
@@ -197,7 +197,7 @@ for a variable placeholder replaced typically by deduction from an initializer
 - **reference:** is an alias (alternative name) for an existing variable declared using `&`  
 whatever happens to a reference happens to variable & vice-versa, yields performance gain as references avoid copying data
 - **`++i` vs `i++`:** post-increment could be slower since a copy of the old value copy needs to be saved for later use  
-but modern compilers will optimize it if `i` is a basic data type (like `int`)  
+but modern compilers will optimize it if `i` is a primitive data type (like `int`)  
 if `i` is  a class then temp will involve calling a copy ctor which can be expensive
 - **bitwise operators:** variants of AND (`&&`), OR (`||`) & NOT (`!`)
   ```
@@ -1099,8 +1099,9 @@ can lead to dangling pointer when object shallow copied
 shallow copy duplicate as little as possible while deep copy duplicate everything
 
 ## pointers
-- **pointer:** stores the memory address of another variable as its value,  
+- **pointer:** holds the memory address of another object (variable/function) as its value  
 in modern C++ owning memory means being responsible for its cleanup, so raw pointer should never own memory
+- **`nullptr`:** implicitly converts to any pointer type (but never an integral type)
 - **pointer vs reference:** use references wherever you can (passing parameters), and pointers wherever you must (polymorphic interfaces are `NULL` initialized)
   - own memory vs alias
   - no init required vs init in declaration
@@ -1316,7 +1317,8 @@ just create a standard raw pointer then pass that to the smart pointer immediate
       shape->print();  // executes respective derivedClass implementation
   }
   ```
-- **type casting:** converting value of given data type into another
+- **type casting:** converting value of given data type into another  
+![](./media/cplusplus/typecasting.png)
   - **implicit/automatic:** are done automatically by the compiler, tries to prevent changing the value by up-casting it to highest data type present in the expression
     ```cpp
     short a = 1024;
@@ -1339,9 +1341,10 @@ just create a standard raw pointer then pass that to the smart pointer immediate
       unsigned char u = (unsigned char)(-9);  // same bit pattern
       printf("%d \n", u);                     // 247
       ```
-    - **cast operator:** `newType new_var = static_cast<newType>(var);`
-      - **`static_cast`:** can perform all the conversions that are done implicitly, done at compile time
-      - **`dynamic_cast`:** runtime conversion of pointer/reference to classes up/down/sideways along the inheritance hierarchy, `nullptr` if failed
+    - **cast operator:** has different easily recognizable & searchable (in codebase) notations for different tasks that eliminate unintended errors  
+      - **`static_cast`:** can perform all the conversions compile time that can be done implicitly
+      - **`dynamic_cast`:** runtime conversion of pointer/reference to classes up/down/sideways along the inheritance hierarchy  
+      if failed returns `nullptr` for pointer or throws `std::bad_alloc` for pointers
       - **`reinterpret_cast`:** reinterpret bytes of one type as another type, mainly used to work with bits
       - **`const_cast`:** remove const from const reference of non-const variable
         ```cpp
@@ -1353,6 +1356,38 @@ just create a standard raw pointer then pass that to the smart pointer immediate
         k      = 4;
         std::cout << i << std::endl;  // 4
         ```
+        another usecase is to prevent code duplication
+        ```cpp
+        const std::string &shorterString(const std::string &s1, const std::string &s2)
+        {
+            return s1.size() <= s2.size() ? s1 : s2;
+        }
+
+        std::string &shorterString(std::string &s1, std::string &s2)
+        {
+            const std::string &r = shorterString(const_cast<const std::string &>(s1),
+                                                 const_cast<const std::string &>(s2));  // add const qualifier to args
+            return const_cast<std::string &>(r);  // discard const qualifier
+        }
+        ```
+- **run-time type information (RTTI):** is a mechanism that exposes information stored about each polymorphic object's data type at runtime, this is useful when `dynamic_cast` is used
+- **type aliasing:** using the memory of one type as if it were a different type when the memory layout of two types are compatible, compatible types can be converted using `reinterpret_cast`
+  ```cpp
+  struct point
+  {
+      int x;
+      int y;
+  };
+
+  struct location
+  {
+      int x;
+      int y;
+  };
+
+  point p{1, 2};
+  auto *loc = reinterpret_cast<location *>(&p);
+  ```
 
 ## templates
 - **generic programming:** enables the programmer to write a general algorithm which will work with all data types (separate algorithms from data type)
@@ -1415,56 +1450,58 @@ so for the compiler to generate the code it must see both the template definitio
   foo<double>();  // generic
   ```
 
-## error handling
-- **exception:** thrown when there is an error, ctor of exception receives a string error message, use `what()` to get exception string
-  - `logic_error`
-  - `invalid_argument`
-  - `domain_error`: not defined for certain domain
-  - `length_error`: exceeds max size
-  - `out_of_range`: access out of bounds
-  - `runtime_error`
-  - `range_error`: requested operation doesn't make mathematical sense in the domain considered, example: `sqrqt(negative_number)` in real domain
-  - `overflow_error`/`underflow_error`: result exceeds capacity of underlying type
-- `try` ⟶ `throw` ⟶ `catch`
+## exceptions
+- **`exception`:** provides consistent interface to handle errors through the `throw` expression  
+an exception can be caught at any point of the program (`try - catch`) or even thrown further (`throw`)  
+ctor of exception receives a string error message as argument which can accessed later using `what()`  
+`std::exception` is the base class from which various error types like `logic_error` & `runtime_error` inherit
+- **example: `try` ⟶ `throw` ⟶ `catch`:**
   ```cpp
   #include <stdexcept>
 
   void someFunc(void)
   {
-      if (badEvent)
+      uint8_t *ptr = nullptr;
+
+      if (nullptr == ptr)
       {
-          string msg = "error string";
-          throw runtime_error(msg);
+          std::string msg = "null pointer";
+          throw std::runtime_error(msg);  // throw
       }
   }
 
-  try
+  int main(void)
   {
-      x = someFunc(a, b, c);  // throws exception
-  }
-  catch (runtime_error &exp)
-  {
-      cerr << "runtime error: " << exp.what() << endl;
-  }
-  catch (logic_error &exp)
-  {
-      cerr << "logic error: " << exp.what() << endl;
-  }
-  catch (exception &exp)  // generic
-  {
-      cerr << "some exception: " << exp.what() << endl;
-  }
-  catch (...)  // catch everything
-  {
-      cerr << "unknown exception" << endl;
+      try
+      {
+          someFunc();  // throws exception
+      }
+      catch (std::runtime_error &exp)
+      {
+          std::cerr << "runtime error: " << exp.what() << std::endl;  // runtime error: null pointer
+      }
+      catch (std::logic_error &exp)
+      {
+          std::cerr << "logic error: " << exp.what() << std::endl;
+      }
+      catch (std::exception &exp)  // generic
+      {
+          std::cerr << "exception: " << exp.what() << std::endl;
+      }
+      catch (...)  // catch everything
+      {
+          std::cerr << "unknown exception" << std::endl;
+      }
   }
   ```
 
 ## misc
-- **using:** create type aliases, `using newType = oldType;`, similar to `typedef`, creates local alias if used within function scope
+- **`using` type alias:** similar to `typedef` but compatible with complex types (like templates & arrays)  
+creates local alias if used within function scope
   ```cpp
-  using image3f = image<float, 3>;
-  using vector3d = double[3];  // not possible using `typedef`
+  // not possible with typedef
+  using image3f  = image<float, 3>;  // template
+  using vector3d = double[3];        // array
   ```
 - **why typedef over macro:**
   ```cpp
