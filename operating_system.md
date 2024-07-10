@@ -1,34 +1,15 @@
-# operating system
+# table of contents  <!-- omit from toc -->
 - [introduction](#introduction)
 - [processes](#processes)
-  - [process abstraction](#process-abstraction)
-  - [process API](#process-api)
-  - [process execution mechanism](#process-execution-mechanism)
-  - [scheduling policies](#scheduling-policies)
-  - [inter-process communication](#inter-process-communication)
 - [memory](#memory)
-  - [virtual memory](#virtual-memory)
-  - [address translation](#address-translation)
-  - [paging](#paging)
-  - [demand paging](#demand-paging)
-  - [memory allocation algorithms](#memory-allocation-algorithms)
 - [concurrency](#concurrency)
-  - [threads and concurrency](#threads-and-concurrency)
-  - [locks](#locks)
-  - [conditional variables](#conditional-variables)
-  - [semaphores](#semaphores)
-  - [concurrency bugs](#concurrency-bugs)
 - [I/O and filesystems](#io-and-filesystems)
-  - [communication with I/O devices](#communication-with-io-devices)
-  - [files \& directories](#files--directories)
-  - [file system implementation](#file-system-implementation)
-  - [hard disk internals](#hard-disk-internals)
 - [xv6](#xv6)
 
-## links  <!-- omit from toc -->
+# links  <!-- omit from toc -->
 - [[lectures] operating systems](https://www.cse.iitb.ac.in/~mythili/os/)
 
-## todo  <!-- omit from toc -->
+# todo  <!-- omit from toc -->
 - [IPC extra](https://www.cse.iitb.ac.in/~mythili/os/notes/notes-ipc.txt)
 - [semaphore extra](https://www.cse.iitb.ac.in/~mythili/os/references/LittleBookOfSemaphores.pdf)
 - [programming groundup extra](https://www.cse.iitb.ac.in/~mythili/os/references/ProgrammingGroundUp.pdf)
@@ -38,7 +19,7 @@
 - [`brk` & `sbrk`](https://stackoverflow.com/questions/6988487/what-does-the-brk-system-call-do)
 - `mmap` system class
 
-## introduction
+# introduction
 - **operating system:** is a middleware that sits between user programs & system hardware and manages hardware for the user programs:
   - **manage CPU:** provide process abstraction (create & manage), each process has illusion of having complete CPU (CPU virtualization), timeshares the CPU between processes, enables coordination between processes
   - **manage memory:** of the process (code, data, stack, heap), each process thinks it has dedicated memory space (code, data, stack, heap) for itself  
@@ -52,9 +33,9 @@
 **procedure call:** jumps to a process defined elsewhere in the program  
 **system call:** runs at a higher privilege level of CPU, sensitive operations (like hardware access) only allowed at a higher privilege level
 
-## processes
+# processes
 
-### process abstraction
+## process abstraction
 - **CPU scheduler:** pick one of the many active processes to execute on a CPU
   - **policy:** which process to run next
   - **mechanism:** how to context-switch between processes
@@ -84,7 +65,7 @@
   - pointers to memory locations
   - pointers to open files
 
-### process API
+## process API
 - **application programming interface (API):** functions available to write user programs
 - **process API:** set of system calls provided by OS, some blocking system calls (like disk read) can cause the process to be blocked and descheduled
 - **portable operating system interface (POSIX) API:** standard set of system calls that compliant OS must implement, ensures program portability  
@@ -134,7 +115,7 @@ user programs need to worry about this since program language libraries will usu
   - shell can also manipulate child process  
   example: for `ls > log.txt` shell will: spawn a child ⟶ rewire stdout of child to file ⟶ call exec on the child
 
-### process execution mechanism
+## process execution mechanism
 - **function call working:**
   - translates to jump instruction
   - new stack frame pushed and `SP` updated, stack frame contains arguments, return value, etc
@@ -169,7 +150,7 @@ user programs need to worry about this since program language libraries will usu
 - **user context:** when going from user mode to kernel mode, saved on kernel stack by trap instruction  
 **kernel context:** during context switch, saved on kernel stack by context switching code
 
-### scheduling policies
+## scheduling policies
 - **CPU burst:** CPU time used by a process in a continuous stretch, counted as a fresh burst if a process comes back after a I/O wait
 - **CPU scheduler policy goals:**
   - **maximize utilization:** fraction of time CPU is used
@@ -185,7 +166,7 @@ user programs need to worry about this since program language libraries will usu
   - **round robin (RR):** each job processed for a fixed time slice, preemptive, slice big enough to reduce context switch cost, good for response time & fairness, bad for turnaround time
   - **multi level feedback queue (MLFQ):** used in linux, many queues in order of priority, process from highest priority queue, within same priority any algorithm like RR, priority of process reduces with its age
 
-### inter-process communication
+## inter-process communication
 - **inter-process communication (IPC):** mechanisms to share information between processes, processes do not share any memory with each other
   - **shared memory:** both processes can read/write same region of memory via `int shmget(key,size, shmflg)` system call to communicate, by providing same key two processes can get same segment of memory
   - **signals:** can be sent to a process by OS or another process, some signals have fixed meaning (`ctrl + C` send `SIGINT` signal), every process has a default code to execute for each signal (signal handler) like exit on terminate signal, some signal handlers can be overriden to do other things
@@ -196,9 +177,9 @@ user programs need to worry about this since program language libraries will usu
   - **message queue:** mailbox abstraction, process can open a mailbox at a specified location, processes can send/receive messages from mailbox, OS buffers messages between send & receive
 - **blocking vs non-blocking communication:** some IPC actions like reading from empty socket/pipe/message queue or writing to full socket/pipe/message queue can block, system calls to read/write have versions that return error code instead of blocking
 
-## memory
+# memory
 
-### virtual memory
+## virtual memory
 - earlier memory had only code of one running process (and OS code), but now multiple active processes timeshare CPU so memory of many processes must be in memory (non-contiguous too)  
 ![](./media/operating_systems/actual_memory.png)
 - **virtual address space:** every process assumes it has access to large contiguous space of memory from address 0 to MAX, to hide complexity of multiple processes non-contiguously sharing memory, contains program code, heap & stack (heap & stack grow runtime), is setup during process creation  
@@ -214,7 +195,7 @@ user programs need to worry about this since program language libraries will usu
   - program can use `mmap()` to allocate page sized memory, gets anonymous page from OS
 - **OS address space:** OS is not a separate process with its own address space, instead OS code is part of the address space of every process, process sees OS as part of its code, page table maps OS addresses to OS code
 
-### address translation
+## address translation
 - **address translation in simplified OS:** places entire memory image in one chunk, OS tells MMU the base (starting address) & bound (total size of process) values (needs privileged mode), MMU calculates PA from VA, MMU also checks if address is beyond bound, generates faults and traps to OS if access illegal (VA is out of bound), OS updates translation information upon context switch
   ```
   PA = VA + base
@@ -232,7 +213,7 @@ user programs need to worry about this since program language libraries will usu
 **external fragmentation:** total memory space is enough to satisfy a request or to reside a process in it but it is not contiguous so it cannot be used  
 ![](./media/operating_systems/fragmentation.png)
 
-### paging
+## paging
 - **paging:** allocate memory in fixed size chunks called pages, avoids external fragmentation, but since minimum allocation is page-sized it has internal fragmentation due to partially filled pages
 - **example: paging:** 64B address space in 128B physical memory with 16B page size  
 ![](./media/operating_systems/paging.png)
@@ -255,7 +236,7 @@ user programs need to worry about this since program language libraries will usu
 for address translation first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs  
 ![](./media/operating_systems/multilevel_pagetable_address.png)
 
-### demand paging
+## demand paging
 - **demand paging:** main memory not always enough to store all the pages of all active processes, OS uses a part of disk (swap space) to store pages that are not in active use  
 ![](./media/operating_systems/swap_space.png)
 - **page fault:** if page not in main memory (present bit unset) during VA-PA translation MMU raises trap to OS, MMU cannot access the disk
@@ -277,7 +258,7 @@ for address translation first few bits of VA to identify outer page table entry,
   - **temporal:** same location will be referenced again in the near future
   - **spatial:** nearby memory locations will be referenced in the near future
 
-### memory allocation algorithms
+## memory allocation algorithms
 - **variable sized allocation:** given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s and kernel for its internal data structures
   - **headers:** every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
   ![](./media/operating_systems/headers.png)
@@ -299,9 +280,9 @@ for address translation first few bits of VA to identify outer page table entry,
   - **slab allocator:** used by kernel for small allocations like PCB, object caches for each type (size) of objects, within each cache only fixed size allocation, each cache made up of one or more pages/slabs with multiple fixed size objects  
   ![](./media/operating_systems/slab_allocator.png)
 
-## concurrency
+# concurrency
 
-### threads and concurrency
+## threads and concurrency
 - **thread:** is like another copy of a process that executes independently, all threads share the same address space (code & heap), each thread has separate PC and stack for independent function calls  
 ![](./media/operating_systems/single_vs_multi_threaded.png)
 - **process vs thread:**
@@ -359,7 +340,7 @@ for address translation first few bits of VA to identify outer page table entry,
 - **mutual exclusion:** only one thread should be executing critical section at any time
 - **atomicity:** critical section should execute like one uninterruptible instruction
 
-### locks
+## locks
 - **lock:** is just a variable that is either available (no thread holds the lock) or acquired (one thread holds the lock, other threads waiting), makes sure only one thread is executing critical section
 - **why locks:** all threads accessing a critical section share a lock, one thread succeeds in locking (owner of the lock), other threads that try to lock cannot proceed further until lock is released by the owner
 - **goals of lock implementation:**
@@ -424,7 +405,7 @@ for address translation first few bits of VA to identify outer page table entry,
 - **coarse-grained locking:** one big lock for all shared data, example: one lock for any change in entire linked-list  
 **fine-grained locking:** separate locks for individual shared data, allows more parallelism, but multiple locks may be harder to manage, example: individual locks for each linked-list element
 
-### conditional variables
+## conditional variables
 - other than mutex, another common requirement in multi-threaded applications is waiting & signaling, can accomplish using busy-wait but inefficient, example: thread T1 wants to continue only after T2 has finished some task
 - **conditional variables:** is a queue that a thread can put itself into when waiting on some condition, another thread that makes the condition true can signal the conditional variable to wake up a waiting thread
   - **signal:** wake up one thread
@@ -518,7 +499,7 @@ for address translation first few bits of VA to identify outer page table entry,
   }
   ```
 
-### semaphores
+## semaphores
 - **semaphores:** is a variable with an underlying counter (not visible to user), two functions - up/post increments and down/wait decrements counter, calling thread blocked if resulting value negative, binary semaphore (init value 1) acts as a mutex
 - **example: binary semaphore:**
   ```cpp
@@ -597,7 +578,7 @@ for address translation first few bits of VA to identify outer page table entry,
   }
   ```
 
-### concurrency bugs
+## concurrency bugs
 **concurrency bugs:** are non-deterministic and occur based on execution order of threads, very hard to debug
   - **non-deadlock bugs:** not blocking but incorrect results when threads execute
     - **atomicity bugs:** atomicity assumptions made by programmer are violated during execution of concurrent threads, fix: use locks for mutual exclusion
@@ -676,9 +657,9 @@ for address translation first few bits of VA to identify outer page table entry,
   - **deadlock avoidance:** if OS knew which process needs which locks then it can schedule the processes in a way that deadlock will not occur, impractical in real lift to assume OS having this knowledge
   - **detect and recover:** reboot system or kill deadlocked processes
 
-## I/O and filesystems
+# I/O and filesystems
 
-### communication with I/O devices
+## communication with I/O devices
 - **port:** point of connection to the system, I/O devices connect to the CPU & memory via a bus to a port on the machine
 - **simple device model:** block devices store a set of numbered blocks (disks), character devices produce/consume stream of bytes (keyboard), devices expose an interface of memory registers (like current status of device, command to execute, data to transfer), internals of device are usually hidden
 - **OS registers read/write:**
@@ -701,7 +682,7 @@ for address translation first few bits of VA to identify outer page table entry,
 - **device driver:** part of OS code that talks to specific device, gives commands and handles interrupts, most OS code abstracts the device details, example: file system code is written on top of a generic block device  
 ![](./media/operating_systems/device_driver.png)
 
-### files & directories
+## files & directories
 - **file:** linear array of bytes, stored persistently, identified with filename (human readable) and a OS level identifier index node (inode) number, inode number is unique within a filesystem
 - **directory:** contains other subdirectories and files along with their inode numbers, stored like a file whose contents are filename-to-inode mappings
 - **directory tree:** files & directories arranged in a tree starting with root (/)  
@@ -779,7 +760,7 @@ for address translation first few bits of VA to identify outer page table entry,
   - **anonymous page:** used to store program data
   - **file-backed page:** contains data of file, filename provided as arg to `mmap()`
 
-### file system implementation
+## file system implementation
 - **file system:** an organization of files & directories on disk, OS has one or more file systems, disk exposes set of blocks (usually 512 bytes), file system organizes files onto blocks, two main aspects of file systems are
   - data structures to organize data & metadata on disk
   - implementation of system calls like open, read, write using data structures
@@ -822,7 +803,7 @@ for address translation first few bits of VA to identify outer page table entry,
   - improved performance due to reduced disk I/O
   - single copy of block in memory, so no inconsistency across processes
 
-### hard disk internals
+## hard disk internals
 - **hard disk internals:** a set of 512 byte blocks (sectors) that can be read/written atomically, one or more platters connected by a spindle spin at ~10K rpm, each plater has a disk head & arm attached to it, a platter is divided into multiple tracks and each track into 512 byte sectors  
 ![](./media/operating_systems/hard_disk_internals.png)
 - **hard disk sector access:** seek to the correct track while waiting for disk to rotate, example: sector 30 to 11  
@@ -843,7 +824,7 @@ for address translation first few bits of VA to identify outer page table entry,
 - **error detection/correction:** bits stored on disk with some error detection/correction bits, correct random bit flips or detect corruption of data, disk controller or OS can handle some errors (blacklisting certain sectors), if errors cannot be masked user perceives hard disk failures
 - **redundant array of inexpensive disks (RAID):** provide high reliability & performance by replicating across multiple disks
 
-## xv6
+# xv6
 - **memory image of a process:** consists of:  
 ![](./media/operating_systems/process_memory_image.png)
   - compiled code (cpu instructions)

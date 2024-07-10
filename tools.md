@@ -1,15 +1,15 @@
-# tools
+# table of contents  <!-- omit from toc -->
 - [git](#git)
 - [powershell](#powershell)
 - [ffmpeg](#ffmpeg)
 - [vlc](#vlc)
 
-## links  <!-- omit from toc -->
+# links  <!-- omit from toc -->
 - [git guide](http://rogerdudler.github.io/git-guide/)
 - [git parable](httsps://www.youtube.com/watch?v=jm7QsI-nNjk)
 - [clang format](https://clang.llvm.org/docs/ClangFormatStyleOptions.html)
 
-## todo  <!-- omit from toc -->
+# todo  <!-- omit from toc -->
 - [undo (almost) anything with git](https://github.blog/2015-06-08-how-to-undo-almost-anything-with-git/)
 - [regex basics](https://www.youtube.com/watch?v=sa-TUpSx1JA)
 - linux commands (from archived ?)
@@ -24,7 +24,7 @@
 - batch scripting
 - python scripting
 
-## git
+# git
 - ![](./media/tools/git_workflow.png)
 - **create a new repo:**
   ```sh
@@ -87,13 +87,13 @@
   git fetch origin && git reset --hard origin/master  # drop all local changes & commits
   ```
 
-## powershell
+# powershell
 - **replace string in all files:**
   ```sh
   get-childitem *.mp4 | foreach { rename-item $_ $_.Name.Replace("Lecture ","") }
   ```
 
-## ffmpeg
+# ffmpeg
 - **mkv to mp4:**
   ```sh
   for %f in (*.mkv) do ffmpeg -i "%f" -codec copy "%f.mp4"
@@ -114,7 +114,7 @@
   ffmpeg.exe -i input.mp4 -filter:v scale=-2:360 -c:a copy output.mp4
   ```
 
-## vlc
+# vlc
 - **filename as title:**  
 ![](./media/tools/vlc_filename_title.png)
 - **always on top:** `View` ⟶ `Always on Top`

@@ -1,9 +1,11 @@
-# computer vision
+# table of contents  <!-- omit from toc -->
 - [introduction](#introduction)
+- [filtering](#filtering)
+- [feature detection \& matching](#feature-detection--matching)
 
-## links  <!-- omit from toc -->
+# links  <!-- omit from toc -->
 
-## todo  <!-- omit from toc -->
+# todo  <!-- omit from toc -->
 - [[lectures] first principles of computer vision](https://fpcv.cs.columbia.edu/)
 - [feature detection & matching algos](https://medium.com/data-breach/introduction-to-feature-detection-and-matching-65e27179885d)
 - [stanford CV tutorial](https://ai.stanford.edu/~syyeung/cvweb/tutorials.html)
@@ -11,7 +13,7 @@
 - edge & blur artifact detection
 - [time of flight](https://www.sony-semicon.com/en/technology/industry/tof.html)
 
-## introduction
+# introduction
 - **computer vision:** convert light into meaning
 - image: array of picture elements (pixels)
 
@@ -35,7 +37,7 @@
 
 **warping:** changes the pixel positions of an image, points mapped to other points
 
-## filtering
+# filtering
 
 ![](media/computer_vision/correlation.gif)
 
@@ -55,7 +57,7 @@
 5. **kernel crop:** any pixel in the kernel that extends past the input image isn't used and the normalizing is adjusted to compensate
 6. **constant:** use constant value for pixels outside the image
 
-### averaging filters
+## averaging filters
 
 **averaging filters:** force pixels different to their neighbors (example - noise) to look like neighbors
 
@@ -71,7 +73,7 @@
 
 ![](media/computer_vision/pascal_triangle.png)
 
-### non-linear filters
+## non-linear filters
 
 **non-linear filters:** cannot be implemented as convolution
 
@@ -83,7 +85,7 @@
 
 ![](media/computer_vision/bilateral_example.png)
 
-### derivative filters
+## derivative filters
 
 **derivative:** rate of change, `∆x == 1` in discrete domain
 1. **backward difference:** `[-1   1   0 ]`
@@ -158,7 +160,7 @@ f'(x) = [-1   0   1 ] x [ 2 ] = [-2   0   2 ]
 
 ![](media/computer_vision/canny_hysteresis.png)
 
-## feature detection & matching
+# feature detection & matching
 
 **feature detection & matching:** feature point detection  ⟶  extract feature descriptor  ⟶  match two descriptors
 
@@ -177,7 +179,7 @@ f'(x) = [-1   0   1 ] x [ 2 ] = [-2   0   2 ]
 
 ![](media/computer_vision/ssd_correlation.png)
 
-### harris corner detector
+## harris corner detector
 
 **harris corner detector (HCD):** calculate gradient `Ix` & `Iy`  ⟶  compute terms in `M`  ⟶  calculate `R`  ⟶  threshold `R`  ⟶  non-maximum suppression
 
@@ -209,7 +211,7 @@ then find pixels with `R` that exceed certain threshold & are local maxima withi
 ![](media/computer_vision/harris_response_function_variations.png)
 
 
-### scale-invariant feature transform
+## scale-invariant feature transform
 
 **scale-invariant feature transform (SIFT):** scale space peak selection  ⟶  keypoint localization  ⟶  orientation assignment  ⟶  keypoint descriptor
 

@@ -1,18 +1,13 @@
-# computer architecture
+# table of contents  <!-- omit from toc -->
 - [introduction](#introduction)
 - [combinational logic](#combinational-logic)
 - [sequential logic](#sequential-logic)
 - [timing \& verification](#timing--verification)
 - [instruction set architecture](#instruction-set-architecture)
-  - [assembly programming](#assembly-programming)
 - [micro-architecture](#micro-architecture)
-  - [microprogramming](#microprogramming)
 - [pipelining](#pipelining)
 - [reorder buffer](#reorder-buffer)
-  - [history buffer](#history-buffer)
-  - [future file](#future-file)
 - [out-of-order execution](#out-of-order-execution)
-  - [memory dependence handling](#memory-dependence-handling)
 - [dataflow execution](#dataflow-execution)
 - [superscalar execution](#superscalar-execution)
 - [branch prediction](#branch-prediction)
@@ -25,16 +20,14 @@
 - [memory organization](#memory-organization)
 - [memory hierarchy](#memory-hierarchy)
 - [cache](#cache)
-  - [multi core caches](#multi-core-caches)
 - [prefetching](#prefetching)
-  - [runahead execution](#runahead-execution)
 
-## links  <!-- omit from toc -->
+# links  <!-- omit from toc -->
 - [[lectures] design of digital circuits](https://safari.ethz.ch/digitaltechnik/spring2018/doku.php?id=schedule)
 - [Hamming code](https://harryli0088.github.io/hamming-code/)
 - [ARM assembly](http://www.cburch.com/books/arm/) ([addressing modes](https://roboticelectronics.in/addressing-modes-in-arm/))
 
-## todo  <!-- omit from toc -->
+# todo  <!-- omit from toc -->
 - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
 - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
 - [Hamming code in hardware](https://www.youtube.com/watch?v=h0jloehRKas)
@@ -48,7 +41,7 @@
 - [memory ordering](https://www.google.com/search?q=memory+ordering&rlz=1C1GCEA_enIN1108IN1108&oq=memory&gs_lcrp=EgZjaHJvbWUqBggAEEUYOzIGCAAQRRg7MgwIARBFGDkYsQMYgAQyDQgCEAAYgwEYsQMYgAQyCggDEAAYsQMYgAQyBwgEEAAYgAQyBggFEEUYPDIGCAYQRRg8MgYIBxBFGDzSAQgxNjc2ajBqN6gCALACAA&sourceid=chrome&ie=UTF-8)
 - javed questions: ARM arch (32 vs 64), what happens if interrupts come, buddy allocator, process vs thread descriptor, hard vs soft interrupts
 
-## introduction
+# introduction
 - **computer architecture:** is the science & art of designing computing platforms (hardware, interface, system SW & programming model)  
 **why art?:** we don't know the future applications/users/market
 - **abstraction:** higher level only needs to know about the interface to the lower level, not how the lower level is implemented  
@@ -74,7 +67,7 @@ a simple hardware failure mechanism is creating a widespread system security vul
 - **Moore's law:** number of transistors on an integrated circuit will double every two years, possible by manufacturing smaller structures through precision manufacturing and creating new device technologies, is an observation and projection of historical trend  
 ![](./media/computer_architecture/moores_law.png)
 
-## combinational logic
+# combinational logic
 - **metal-oxide-semiconductor (MOS) transistor:** controls the flow of current by the application of a voltage to the insulated gate by altering the conductivity between the drain & source, works similar to a wall switch  
 ![](./media/computer_architecture/mos_transistor.png)  
 ![](./media/computer_architecture/mos_transistor_working.gif)  
@@ -152,7 +145,7 @@ example: imagine a wire connecting the CPU & memory, at any time either CPU or m
 - **binary coded decimal:** each decimal is encoded with a fixed number of bits, example: normal vs BCD clock  
 ![](./media/computer_architecture/binary_coded_decimal.png)
 
-## sequential logic
+# sequential logic
 - **sequential logic:** outputs are determined by previous & current values of inputs (has memory)  
 ![](./media/computer_architecture/sequential_circuit.png)
 - **cross-coupled inverters:** basic sequential logic element with two stable states `Q = 0` & `Q = 1`, not useful without a control mechanism for setting Q  
@@ -211,7 +204,7 @@ so at rising/positive edge of clock `Q` get assigned `D`
   - **1-hot encoded:** maximize flipflops and minimize next state logic, use `num_states` bits to represent states, example: `0001`, `0010`, `0100`, `1000`
   - **output encoded:** minimize output logic, output can be deduced from state encoding, only works for Moore machines, example: `001` (red), `010` (yellow), `100` (green), `110`(red & yellow)
 
-## timing & verification
+# timing & verification
 - **functional specification:** describes relationship between inputs & outputs  
 **timing specification:** describes delay between inputs changing and outputs responding
 - **combinational circuit delay:** circuit outputs change some time after the inputs change due to capacitance & resistance in a circuit and finite speed of light (which is not so fast in nanosecond level)  
@@ -240,7 +233,7 @@ example: clock skew spatial distribution for Alpha 21264
 to keep skew to minimum intelligent clock network are required across a chip to make sure clock arrives at all locations at roughly the same time  
 ![](./media/computer_architecture/clock_network.png)
 
-## instruction set architecture
+# instruction set architecture
 - **von Neumann model:** program stored in memory (unified instruction & data memory), processor fetches then processes instruction sequentially one at a time, easier to debug since you know which instruction will execute  
 but pipelining, SIMD, OoO execution, separate data & instruction cache in modern processors are not consistent with von Neumann model  
 **Harvard model:** was developed to overcome the bottlenecks of von Neumann model by having separate instruction & data memory & bus  
@@ -284,7 +277,7 @@ in a von Neumann machine fetch & fetch operands stage interpret memory as instru
 this tradeoff can be changed by translating from one ISA into a different one, example: Apple Rosetta hardware translator  
 ![](./media/computer_architecture/semantic_gap_hardware_translator.png)
 
-### assembly programming
+## assembly programming
 - a machine language encodes instructions as sequences of `0`s and `1`s but this encoding is unwieldy for human programmers, so we use an assembly language when we want to dictate the precise instructions that the computer is to perform, an assembler will translate a file containing assembly language code into the corresponding machine language  
 for each ISA there must be a different assembly language since the assembly language must correspond to an entirely different set of machine instructions
 - **why ARM ISA over IA32 (x86):**
@@ -390,7 +383,7 @@ except `TST`, `TEQ`, `CMP` & `CMN` all arithmetic instructions may modify PSR fl
           END
   ```
 
-## micro-architecture
+# micro-architecture
 - **micro-architecture (μArch):** is an implementation of the ISA, to ensure backwards compatibility μArch keeps changing with constant ISA interface, example: `add` instruction vs underlying adder implementation
 - ISA specifies how the programmer sees the instructions to be executed but μArch can execute instructions in any order as long as it obeys the semantics specified by the ISA when making instruction results visible to software  
 so anything like pipelining, speculative execution, OoO execution can be done in HW without exposure to SW  
@@ -418,7 +411,7 @@ in multi cycle machines, control signals needed in the next cycle can be generat
   - **common case design:** spend time & resources on where it matters most, similar to Amdahl's law
   - **balanced design:** balance instruction/data flow through hardware components to eliminate bottlenecks
 
-### microprogramming
+## microprogramming
 - **microprogramming:** for a multi cycle μArch instruction processing cycle is divided into states, it sequences from state to state to process an instruction, the behavior of the entire processor can be specified fully by a FSM
 - **microinstruction:** control signal associated with the current state  
 **microsequencing:** determining the next state and the microinstruction for the next state  
@@ -436,7 +429,7 @@ control signals (microinstruction) for the current state control two things: pro
   - enables update of machine behavior  
   a buggy implementation of an instruction can be fixed by changing the microcode in the field
 
-## pipelining
+# pipelining
 - **pipelining:** with multi-cycle design some hardware resources are idle during different phases of instruction processing cycle so pipeline the execution ("assembly line processing") of multiple instructions for better hardware utilization & instruction throughput (which increases as number of stages increase)  
 ![](./media/computer_architecture/pipelining.png)
 - **example: multi-stage vs pipelining:** fetch ⟶ decode ⟶ execute ⟶ writeback  
@@ -509,7 +502,7 @@ required because von Neumann model ISA specifies it, also aids software debuggin
 for multi-cycle machines make each operation take the same amount of time, slowest instruction latency determines all other instructions' latency but worst-case can be very high for memory operations  
 ![](./media/computer_architecture/precise_exceptions_pipelining.png)
 
-## reorder buffer
+# reorder buffer
 - idea is to complete instruction execution out-of-order but reorder them before making results visible to architectural state (rollback on mispredictions), useful for multi-cycle precise exceptions  
 ![](./media/computer_architecture/reorder_buffer.png)
 - **reorder buffer (ROB):** hardware structure that keeps information about all instructions that are decoded but not yet retired, working cycle is:
@@ -540,7 +533,7 @@ ROB is not constrained by ISA interface (unlike register file), so it can be hug
   - **completion (R):** write result to reorder buffer
   - **retirement (W):** check for exceptions
 
-### history buffer
+## history buffer
 - idea is to update the register file when instruction completes, but undo the updates when an exception occurs, working cycle is:  
 ![](./media/computer_architecture/history_buffer.png)
  - when instruction is decoded, it reserves an HB entry
@@ -550,7 +543,7 @@ ROB is not constrained by ISA interface (unlike register file), so it can be hug
 - advantage over ROB is that HB is not on the critical path but increased exception handling latency due to unwinding of history buffer  
 but assuming exceptions are rare then HB is better for common case
 
-### future file
+## future file
 - idea is to keep two register files (speculative/future & architectural), future file is used for fast access to latest register values and architectural files is used for state recovery on exceptions  
 ![](./media/computer_architecture/future_file.png)
   - architectural register file is updated in program order for precise exceptions and a reorder buffer used to ensure in-order updates
@@ -559,7 +552,7 @@ but assuming exceptions are rare then HB is better for common case
 - branch mispredictions are much more common than exceptions, so to minimize the performance impact of mispredictions  
 **checkpointing:** checkpoint the future file at the time a branch is decoded and keep the checkpointed state updated with results of instructions older than the branch, but upon branch misprediction restore the checkpoint associated with the branch
 
-## out-of-order execution
+# out-of-order execution
 - **out-of-order (OoO) execution:** (or dynamic instruction scheduling) idea is to move the dependent instructions out of the way of independent ones to ensure that true data dependency does not stall the processor  
 dependent instructions are moved to into rest areas and monitor their source values, dispatch/fire the instruction when all source values are available  
 instructions dispatched in dataflow (not control flow) order but not exposed to ISA
@@ -601,7 +594,7 @@ dataflow graph from frontend RAT
 - **example: Pentium 4 micro-architecture:** OoO execution with centralized physical register file  
 ![](./media/computer_architecture/out_of_order_tables_example.png)
 
-### memory dependence handling
+## memory dependence handling
 - **register vs memory:**
   - register dependencies known statically  
   memory dependencies determined dynamically
@@ -627,12 +620,12 @@ modern processors use a load queue (LQ) & a store queue (SQ) for checking whethe
   - when a store instruction finishes execution, it writes its address & data to its ROB entry
   - when a load computes its address, it searches SQ (multiple SQ entries for multi-word load) with its address and then receives the value from youngest (closest in queue) older store that wrote to that address
 
-## dataflow execution
+# dataflow execution
 - **pure (ISA level) dataflow:** availability of data determines order of execution, a data flow node fires when its sources are ready, programs represented as data flow graphs (of nodes)  
 dataflow implementations at the μArch level (while preserving von Neumann model semantics) have been very successful (like OoO execution) but at ISA level have not been successful  
 pure dataflow is very good at exploiting irregular parallelism (only real dependencies constrain processing) but no precise state semantics which makes debugging extremely difficult
 
-## superscalar execution
+# superscalar execution
 - **superscalar execution:** fetch, decode, execute & retire multiple instructions per cycle, needs multiple copies of hardware resources (`N` wide superscalar means `N` instructions per cycle)
 - superscalar execution and out-of-order execution are orthogonal concepts  
 can have all four combinations of processors: [in-order, out-of-order] x [scalar, superscalar]
@@ -643,7 +636,7 @@ with dependencies
 ![](./media/computer_architecture/superscalar_dependency_example_2.png)
 - superscalar execution gives higher instruction throughput but higher complexity for dependence checking as well and for a OoO superscalar processor register renaming also becomes complex
 
-## branch prediction
+# branch prediction
 - ![](media/computer_architecture/branch_types.png)
 - **control dependencies handling:** critical to keep pipeline full with correct sequence of dynamic instructions
   - **stall:** the pipeline until we know the next fetch instruction
@@ -772,7 +765,7 @@ improves performance if misprediction cost greater than useless work but for mul
 bigger & more complex predictors are more accurate but slower  
 ![](./media/computer_architecture/branch_prediction_latency.png)
 
-## very-long instruction word
+# very-long instruction word
 - **very-long instruction word (VLIW):** consists of multiple independent instructions (`NOP`s if not found) packed/bundled together by the compiler, hardware fetches & executes the instructions in the bundle concurrently  
 instructions can be logically unrelated (like `mov` & `add` together) and no need for dependency checking between concurrently-fetched instructions  
 recompilation required when execution width (`N`) or instruction latencies or functional units change  
@@ -786,7 +779,7 @@ VLIW philosophy is similar to RISC (simple instructions and hardware), compiler 
 instruction bundles can have dependent instructions, a few bits in the instruction format specify explicitly which instructions in the bundle are dependent on which other ones  
 useful because it is not easy for compiler to find independent instructions
 
-## systolic arrays
+# systolic arrays
 - **systolic array:** replace a single processing element (PE) with a regular array of PEs and carefully orchestrate flow of data between the PEs such that they collectively transform a piece of input data before outputting it to memory 
 maximizes computation done on a single piece of data element brought from memory (balanced computation and memory bandwidth)  
 similar to blood flow: heart ⟶ many cells ⟶ heart  
@@ -821,7 +814,7 @@ software has the illusion that each 256B input is read at once and they instantl
 multiply-accumulate operation moves through the matrix as a diagonal wave  
 ![](./media/computer_architecture/tensor_processing_unit.png)
 
-## decoupled access execute
+# decoupled access execute
 - because Tomasulo's algorithm is too complex to implement  
 **decoupled access execute:** decouple operand access and execution via two separate instruction streams that communicate via ISA-visible queues  
 ![](./media/computer_architecture/decoupled_access_execute.png)  
@@ -836,7 +829,7 @@ compiler support required to partition the program and to manage the queues
 - **example: DAE in Intel Pentium 4:**  
 ![](./media/computer_architecture/decoupled_access_execute_pentium4_example.png)
 
-## single instruction multiple data
+# single instruction multiple data
 - **Flynn's taxonomy of computers:**
   - **SISD:** single instruction operates on a single data element, example: single core processor
   - **SIMD:** single instruction operates on multiple data elements, example: array & vector processor
@@ -995,7 +988,7 @@ example: machine has 32 elements per vector register and 8 lanes (so need 4 cycl
 **automatic code vectorization:** compile-time reordering of operation sequencing, this requires extensive loop dependence analysis  
 ![](./media/computer_architecture/auto_code_vectorization.png)
 
-## fine-grained multithreading
+# fine-grained multithreading
 - **fine-grained multithreading:** hardware has multiple thread contexts (`PC` + registers) and each cycle fetch-engine fetches from a different thread such that no two instructions from a thread are in the pipeline concurrently  
 tolerates the control and data dependency latencies by overlapping the latency with useful work from other threads  
 improves pipeline utilization by taking advantage of multiple threads  
@@ -1004,7 +997,7 @@ needs extra logic for keeping thread contexts and does not overlap latency if no
 ![](./media/computer_architecture/fine_grained_multithreading.png)  
 ![](./media/computer_architecture/fine_grained_multithreading_example.png)
 
-## graphics processing units
+# graphics processing units
 - GPU instruction pipeline operates like a SIMD pipeline underneath, but the programming is done using threads (not SIMD instructions)
 - **programming model:** how the programmer expresses the code, example: sequential (von Neumann), data parallel (SIMD), multi-threaded (MIMD)  
 **execution model:** how the hardware executes the code underneath, example: OoO execution, vector processor, array processor  
@@ -1059,7 +1052,7 @@ enough threads branching to each path enables the creation of full new warps
 - **example: dynamic warp formation:**  
 ![](./media/computer_architecture/dynamic_warp_merging_example.png)
 
-## memory organization
+# memory organization
 - most of the system is dedicated to storing & moving data, yet system is still bottlenecked by memory  
 ![](./media/computer_architecture/onchip_memory.png)  
 important workloads (like AI/ML, genomics, data analytics) are all data intensive, they require rapid & efficient processing of large amounts of data  
@@ -1111,7 +1104,7 @@ two bitlines will be complement of each other, if they are same then system will
   - decode column address and select subset of row to send to output
   - pre-charge bitlines for next access (like DRAM refresh)
 
-## memory hierarchy
+# memory hierarchy
 - ideal memory would have zero access time (latency), infinite capacity, zero cost and infinite bandwidth to support multiple accesses in parallel  
 but practically these requirements oppose each other: bigger is slower (longer to determine the location), faster is more expensive (SRAM vs DRAM), higher bandwidth is more expensive (more banks, more ports, higher frequency)
 - so both fast & large cannot be achieved with a single level of memory  
@@ -1125,7 +1118,7 @@ fundamental tradeoff is small fast memory vs large slow memory
   - **spatial:** use of data elements within relatively close storage locations, locality in space (like instruction fetch or traversing an array)  
   to exploit: divide memory into equal size blocks and store the recently accessed block in its entirety
 
-## cache
+# cache
 - **cache:** any structure that memorizes frequently used/produced results to avoid repeating the long-latency operations required to reproduce/fetch the data from scratch, example: web cache  
 in processor context it is an automatically managed memory structure based on SRAM that memorizes the most frequently accessed DRAM memory locations to avoid repeatedly paying for DRAM access latency  
 - **caching in a pipelined design:** cache needs to be tightly integrated into the pipeline (ideally 1-cycle access to prevent stall)  
@@ -1315,7 +1308,7 @@ eliminating a higher-latency miss could help performance more than eliminating a
 - **false sharing:** when a core attempts to periodically access data that is not being altered but it shares a cache block with data that is being altered then caching protocol may force the first participant to reload the whole cache block despite a lack of logical necessity  
 example: if two variables share a cache line then unmodified variable read will be as expensive as modified variable read if there's an intervening write to the other variable since cache line needs to be invalidated then fetched from main memory again
 
-### multi core caches
+## multi core caches
 - cache efficiency becomes even more important in a multi-core/threaded systems since memory bandwidth is at premium & cache space is a limited resource across cores/threads
 - **private cache:** cache belongs to one core, a shared data blocks needs to be brought into respective caches (redundant transfer)  
 **shared cache:** cache is shared by multiple cores  
@@ -1331,7 +1324,7 @@ slower access since cache not tightly coupled with the core
 - **cache coherence:** refers to the consistency and synchronization of data stored in different caches within a multi-core system  
 **simple coherence implementation:** all caches will observe each other’s write/read operations, if a processor writes to a block then others will invalidate that block in their respective caches
 
-## prefetching
+# prefetching
 - **prefetching:** fetch the data before it is needed by the program  
 if data can be prefetched accurately & early enough then (high) memory latency can be reduced/eliminated  
 can eliminate compulsory cache misses (only option other than very large cache blocks)  
@@ -1366,7 +1359,7 @@ memory-region based stride prefetching where N = 1
   - **bandwidth consumption:** bandwidth consumed with/without prefetcher, can utilize idle bus bandwidth if available
   - **cache pollution:** extra load demand misses due to prefetch placement in cache
 
-### runahead execution
+## runahead execution
 - long latency cache misses are responsible for most OoO execution full-window stalls so large instruction windows are required to fully tolerate memory latency  
 but this conflicts with lower energy consumption (tag matching, load/store buffers), shorter cycle time (wakeup/select, regfile & bypass latencies) and lower DV (design & verification) complexity
 ![](./media/computer_architecture/full_window_stall.png)

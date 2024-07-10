@@ -1,34 +1,33 @@
-# README
 - [teachyourselfcs](#teachyourselfcs)
 - [domain specific](#domain-specific)
 - [advanced](#advanced)
 - [misc](#misc)
 - [symbols](#symbols)
 
-## [teachyourselfcs](https://teachyourselfcs.com/)
+# [teachyourselfcs](https://teachyourselfcs.com/)
 - [ ] [programming](./programming.md)
 - [ ] [computer architecture](./computer_architecture.md)
 - [ ] [algorithms and data structures](./algorithms.md)
 - [ ] [maths](./maths.md)
 - [ ] [operating systems](./operating_system.md)
 
-## domain specific
+# domain specific
 - [ ] [C++](./cplusplus.md)
 - [ ] [computer vision](./computer_vision.md)
 - [ ] [performance](./performance.md)
 - [ ] [gpu programming](./performance.md)
 
-## advanced
+# advanced
 - [ ] [design patterns](./programming.md)
 - [ ] [system design](./programming.md)
 - [ ] [SOLID principles](./programming.md)
 - [ ] [life](./life.md)
 - [ ] [tools](./tools.md)
 
-## misc
+# misc
 - [ ] [indian economy](https://web.archive.org/web/20190816184602/http://www.iitd.ac.in/CEAIITD/index.html)
 
-## symbols
+# symbols
 
 ```sh
 ⟵  ⟶  ⟷ ↑ ↓            # arrows

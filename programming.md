@@ -1,13 +1,14 @@
-# programming
+# table of contents  <!-- omit from toc -->
 - [introduction](#introduction)
 - [procedures \& processes](#procedures--processes)
 - [higher order procedures](#higher-order-procedures)
 - [misc](#misc)
+- [clean code](#clean-code)
 
-## links  <!-- omit from toc -->
+# links  <!-- omit from toc -->
 - [scheme (lisp dialect) interpreter](https://inst.eecs.berkeley.edu/~cs61a/fa14/assets/interpreter/scheme.html)
 
-## todo  <!-- omit from toc -->
+# todo  <!-- omit from toc -->
 - [[lectures] structure and interpretation of computer programs
 ](https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/)
 - [iterative process for fibonacci & towers of hanoi](https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution)
@@ -19,7 +20,7 @@
 - clean code
 - pragmatic programmer
 
-## introduction
+# introduction
 - ***The key to understanding complicated things is to know what not to look at and what not to compute and what not to think***
 - **declarative:** "what is true" knowledge, example: `y` is `sqrt(x)` if `y^2 = x`  
 **imperative:** "how to" knowledge, example: square-root by successive averaging of guess `g` & `x/g` until result doesn't change much
@@ -58,7 +59,7 @@ prefix notation `(+ x y)` used uniformly since it is more generic & can take mul
                                ; lambda is used to construct a procedure without a name specified
   ```
 
-## procedures & processes
+# procedures & processes
 - **procedure:** is the description/recipe of the process  
 **process:** is the result of applying a procedure to arguments  
 example: procedure is the blueprint, while process is the actual building construction
@@ -194,7 +195,7 @@ this is possible through recursion because we always count down here & 0 high to
   ```  
   ![](media/programming/towers_of_hanoi.png)  
 
-## higher order procedures
+# higher order procedures
 - whenever trying to make complicated systems and understand them, it is crucial to divide the things up into as many pieces as I can, each of which I understand separately  
 summation of integers & summation of squares have almost the same program with only term differing (`a` & `(square a)`), but we don't like repetition & no repetition means you only write it once (also only understand and debug it once)
   ```lisp
@@ -295,10 +296,28 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
 - [continue](https://www.youtube.com/watch?v=DrFkf-T-6Co&list=PLE18841CABEA24090&index=5)
 
 
-## misc
+# misc
 - programming requires dividing a unit of work into smaller units of work with the goal to replace units of work with one of the programming constructs:
   - **sequential:** used if task can be broken down into two subtasks one following the other
   - **conditional:** used if the task consists of doing one of two subtasks but not both
   - **iterative:** used if the task consists of doing a subtask a number of times but only as long as some condition is true
   ![](./media/programming/programming_constructs.png)
 - **reentrancy:** a function/subroutine can be interrupted and then resumed before it finishes executing, this also means that the function can be called again before it completes its previous execution, so reentrant code needs to be safe & predictable when multiple instances of the same function are called simultaneously or in quick succession
+
+# clean code
+- **basics:**
+  ```cpp
+  int some_random_var;  // snake case
+  int some-random-var;  // kebab case
+  int someRandomVar;    // camel case
+  int SomeRandomVar;    // pascal case
+  ```
+- **naming:**
+  ```cpp
+  // snake_case: variables
+  int some_var;
+  // CAPITALIZED_SNAKE_CASE: constants & macros
+  const int SOME_CONSTANT_VAR = 10;
+  // camelCase: functions & classes
+  int someFunction(void);
+  ```

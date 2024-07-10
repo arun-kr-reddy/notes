@@ -1,25 +1,16 @@
-# C++
+# table of contents  <!-- omit from toc -->
 - [introduction](#introduction)
-- [containers](#containers)
-  - [sequence](#sequence)
-  - [associative](#associative)
-  - [unordered associative](#unordered-associative)
-  - [container adaptors](#container-adaptors)
 - [object oriented programming](#object-oriented-programming)
-  - [encapsulation](#encapsulation)
-  - [inheritance](#inheritance)
-  - [polymorphism](#polymorphism)
 - [file \& string stream](#file--string-stream)
 - [memory](#memory)
 - [pointers](#pointers)
-  - [smart pointers](#smart-pointers)
 - [templates](#templates)
 - [exceptions](#exceptions)
 - [misc](#misc)
-  - [cpp core guidelines](#cpp-core-guidelines)
-  - [standard template library](#standard-template-library)
+- [STL](#stl)
+- [containers](#containers)
 
-## links  <!-- omit from toc -->
+# links  <!-- omit from toc -->
 - [[lectures] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
 - [compiler explorer](https://godbolt.org/)
 - [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
@@ -34,8 +25,9 @@
 - [mixing `signed` & `unsigned`](https://stackoverflow.com/questions/19446888/adding-signed-and-unsigned-int)
 - [IEEE754 conversion](https://www.youtube.com/watch?v=8afbTaA-gOQ&pp=ygUIaWVlZSA3NTQ%3D)
 - [storage specifiers, linkage, storage duration](https://en.cppreference.com/w/cpp/language/storage_duration)
+- [2D pointer](https://c-faq.com/aryptr/dynmuldimary.html)
 
-## todo  <!-- omit from toc -->
+# todo  <!-- omit from toc -->
 - [cpp core guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#main)
 - [lost art of struct packing](http://www.catb.org/esr/structure-packing/)
 - [memory order](https://en.cppreference.com/w/c/atomic/memory_order)
@@ -54,45 +46,9 @@
 - [copy-and-swap idiom](https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom) ([video](https://www.youtube.com/watch?v=7LxepUEcXA4))
 - friend functions
 - [zero overhead principle](https://github.com/baderouaich/the-zero-overhead-principle)
+- [embedded C questions](https://rmbconsulting.us/publications/a-c-test-the-0x10-best-questions-for-would-be-embedded-programmers/)
 
-## todo list  <!-- omit from toc -->
-- Basics and Fundamentals:
-  - Syntax and language features
-  - Variables, data types, and type conversions
-  - Control flow (if-else, loops, switch statements)
-  - Functions and parameter passing
-- Object-Oriented Programming (OOP):
-  - Classes and objects
-  - Inheritance, polymorphism, and encapsulation
-  - Constructors and dtors
-  - Overloading and overriding
-- Standard Template Library (STL):
-  - Containers (vectors, lists, sets, maps, etc.)
-  - Iterators and algorithms (sorting, searching, etc.)
-  - Smart pointers (unique_ptr, shared_ptr)
-  - Exception handling
-- Memory Management:
-  - Stack vs. heap memory
-  - Dynamic memory allocation (new, delete)
-  - Memory leaks and resource management
-  - RAII (Resource Acquisition Is Initialization)
-- Operator Overloading:
-  - Unary and binary operators
-  - Assignment operators
-  - Stream insertion and extraction operators
-  - Comparison operators
-- Templates and Generic Programming:
-  - Function templates
-  - Class templates
-  - Template specialization
-  - Template metaprogramming
-- Advanced Concepts:
-  - Lambdas and functional programming
-  - Multithreading and concurrency
-  - File I/O and streams
-  - Exception safety and error handling
-
-## introduction
+# introduction
 - *within C++ there is a much smaller & cleaner language struggling to get out*
 - **standard I/O channels:** are preconnected input & output communication channels between a computer program and its environment when it begins execution  
 one input channel: standard input `cin` and two output channels: standard output (`cout`) & standard error (`cerr`)  
@@ -154,10 +110,10 @@ one input channel: standard input `cin` and two output channels: standard output
 
   #error message  // preproc error
   ```
-  continuation (`\`), stringize (`#`) & token pasting (`##`) operators
+  continuation (`\`), stringize (`#`) & token pasting (`#`) operators
   ```cpp
   #define macroFunc(a, b) printf("val"#a " : %d, val"#b " : %d\n", \
-                                val##a, val##b)
+                                val#a, val#b)
 
   int main(void)
   {
@@ -166,6 +122,11 @@ one input channel: standard input `cin` and two output channels: standard output
       macroFunc(2, 1);  // val2 : 30, val1 : 40
       return 0;
   }
+  ```
+  **variadic macros:** all the tokens in the argument list after the last named argument will replace the identifier `__VA_ARGS__` in the macro body wherever it appears
+  ```cpp
+  #define PRINT(str, ...) \
+    printf(str "\n", __VA_ARGS__);  // append new line to format string then place arguments
   ```
 - **declaration:** introduces an identifier and describes its type, this is what the compiler needs to accept references to that identifier  
 **definition:** actually instantiates/implements this identifier, this is what the linker needs in order to link references to those entities
@@ -318,140 +279,10 @@ example: if client code has his own `cout` implementation this can lead to wrong
     gcc -shared main.o -o libmain.so
     ```
 
-## containers
-- **`iterator`:** used to point at the memory addresses of STL containers (similar to a pointer) which allows quick & efficient navigation through any STL container (even unordered ones)  
-![](./media/cplusplus/iterator.png)
-  ```cpp
-  T::iterator itr = container.begin();  // vector<double>::iterator itr;
-
-  T val = *itr;  // current element
-  ++itr;         // increment iterator, now points to next element
-  ```  
-
-### sequence
-- **sequence containers:** data structures that can be accessed sequentially (`O(n)`)
-- **`string`:** sequences of characters, better than C-style arrays (which is faster) because this has dynamic size & useful member functions
-  ```cpp
-  #include <string>
-  std::string str;                      // std::string str("hello world");
-
-  +                                     // concatenate operator
-  int pos          = str.find(substr);  // find substring pos
-  bool is_empty    = str.empty();       // check empty
-  int size         = str.size();        // size (doesn't include string end NULL character)
-  const char *data = str.data();        // underlying NULL terminated C array, same as c_str()
-  char c           = str.at(i);         // access with bounds checking, without check [i]
-  str.clear();                          // clear string
-  str.push_back(val);                   // add val char at the end, pop_back(), alternate to `emplace_back`
-  str.reserve(size);                    // reserve size to prevent frequent memory-allocs
-                                        // optional second arg for initializing new elements
-  str.shrink_to_fit();                  // dealloc unused memory
-  ```
-- **`vector`:** dynamic contiguous (so cache-friendly) array
-  ```cpp
-  #include <vector>
-  std::vector<T> vec;                   // std::vector<int> vec{1, 2, 3, 4};
-
-  // empty, size, data, at(i), clear, push_back, reserve, shrink_to_fit
-  ```
-- **`array`:** static contiguous array
-  ```cpp
-  #include <array>
-  std::array<T, size> arr;              // std::array<int, 4> arr{1, 2, 3, 4};
-
-  arr.fill(value)                       // assign value to all elements
-  // empty, size, data, at(i), clear
-  ```
-- **`deque`:** double-ended queue, basically a two-sided vector with non contiguous mem  
-usually implemented as variable size array of fixed size arrays, this makes growing faster than a vector (which requires allocation & copying)
-  ```cpp
-  #include <deque>
-  std::deque<T> dq;                     // std::deque<int> dq{1, 2, 3, 4};
-
-  dq.push_front(val)                    // add element at beginning, popfront()
-  // empty, size, at(i), clear, push_back, shrink_to_fit
-  // size not provided
-  ```
-- **why `emplace_back`:** it constructs the object in place with the ctor arguments, while `push_back` will construct a temporary object then copy/move it into the container  
-more performant for types with an inefficient move constructor
-
-### associative
-- **associative containers:** sorted data structures that can be quickly searched (`O(logn)`)
-- **`pair`:** provides a way to store two heterogeneous objects as a single unit
-  ```cpp
-  #include <utility>
-  std::pair<T1, T2> pr;                 // std::pair<int, string> pr(1, "hello");
-
-  pr       = make_pair(val1, val2);     // create pair
-  pr.first = val3;                      // modify first element, second
-  ```
-- **set:** collection of unique keys which is always sorted
-  ```cpp
-  #include <set>
-  std::set<T> st;                       // std::set<T> st{1, 2, 3, 4};
-
-  <posItr, bool> = st.insert(val);      // insert value if not exists
-  posItr         = st.find(key);        // find element, (posItr == st.end()) if not present
-  if (mp.count(key) > 0)                // number of matching keys (0/1 for set & map)
-  // empty, size, clear
-  ```
-- **`map`:** collection of key-value pairs which is sorted by unique keys  
-anything with a defined less-than operator (`<`) can be used as key
-  ```cpp
-  #include <map>
-  std::map<keyT, valT> mp{{1, "hello"}, {2, "world"}};
-
-  mp[key] = val;                        // assign (insert if not present)
-  // empty, size, at(key), clear, insert(pair), find, count
-  ```
-- **`multiset` & `multimap`:** are same as set & map but keys are not unique (duplicates allowed), so `count(key)` can greater than 1  
-  defined in same headers as set & map
-
-### unordered associative
-- **unordered associative containers:** unsorted  but hashed data structures that can be quickly searched (average `O(1)` but worst case `O(n)`)  
-worst case if hash function is producing collision for every insertion into container
-- **`unordered_set`, `unordered_map`, `unordered_multiset` & `unordered_multimap`:** same as ordered associate containers with headers: `#include <unordered_set>` & `#include <unordered_map>`
-
-### container adaptors
-- **container adaptors:** provide a different interface for sequential containers
-- **`stack`:** deque wrapper with functionality of a LIFO data structure by forcing push/pop on one side only
-  ```cpp
-  #include <stack>
-  std::stack<T> stk;                    // new dequeue created
-  std::stack<T> stk(dq);                // copy existing deque data (copy ctor)
-
-  T t = stk.top();                      // peek top
-  stk.push(val);                        // add value to top of stack, pop()
-                                        // pop() doesn't return value so store top() first
-  // empty, size
-  ```
-- **`queue`:** deque wrapper with functionality of a FIFO data structure by forcing push one side and pop on other
-  ```cpp
-  #include <queue>
-  std::queue<T> que;                    // new dequeue created
-  std::queue<T> que(dq);                // copy existing deque data (copy ctor)
-
-  T t = que.front();                    // first element, back()
-  stk.push(val);                        // add value at the end, pop()
-                                        // pop() doesn't return value so store front() first
-  // empty, size
-  ```
-- **`priority_queue`:** vector wrapper which provides `O(1)` (top element) lookup at the expense of `O(logn)` insertion/extraction by taking more effort into how to insert new elements in the underlying vector  
-stack & queue based on queue since growing is faster, priority queue uses vector because insertion into sorted vector (data shifts) is faster with contiguous memory (same cache line)
-  ```cpp
-  #include <queue>
-  std::priority_queue<T> pq();          // new vector created & uses less<T> by default
-  std::priority_queue<T> pq(compare, vec);  // copy existing vector data (copy ctor)
-                                        // for compare function: std::less<T> (largest at top) or std::greater<T>
-
-  // empty, size, top, push, pop
-  // push will insert into sorted array
-  ```
-
-## object oriented programming
+# object oriented programming
 - **object oriented programming:** bind together the data and the functions that operate on them so that no other part of the code can access this data except that function
 
-### encapsulation
+## encapsulation
 - **encapsulation:** binding together the data and the functions that manipulate them  
 - **`class`:** is a user-defined data type which holds its own data & function members which can be accessed by creating an instance of that class (object), class is like a blueprint for an object  
 use `this` as pointer to current object in class member functions  
@@ -719,7 +550,7 @@ if none defined then compiler generated `default` functions will be used (they m
   example: disable copy ctors when only ones instance of the class must be guaranteed  
   example: if a class has a constant data member then compiler marks copy/move ctor/assignment operator as deleted
 
-### inheritance
+## inheritance
 - **inheritance:** is the capability of a class (child) to inherit/derive data & functions from other classes (parent)  
 six special functions & private members will not be inherited from base class
   ```cpp
@@ -750,7 +581,7 @@ composition is `has a` relationship, example: car has a wheel (& other objects)
 or use composition instead which makes it easier to hide data that is not required in derived class  
 example: include an object of another class as a class member instead of polluting your class by adding (inheriting) all that data & functions
 
-### polymorphism
+## polymorphism
 - **function overriding:** if a function (not data) is `virtual` in base class then it can be overridden in derived class (base class member function shadowing)  
 same function prototype in both base & derived classes, so compiler needs to check which function needs to be called in a virtual table (costs extra cycles)  
 
@@ -852,7 +683,7 @@ example: if two classes in a hierarchy have the same function defined, without `
   **abstract class:** are a class which has at-least one pure virtual function, object of this class cannot be created  
   **interface:** special abstract class with only pure virtual functions & no data members
 
-## file & string stream
+# file & string stream
 - **fstream:** read/write file
   ```cpp
   #include <fstream>
@@ -923,7 +754,7 @@ example: if two classes in a hierarchy have the same function defined, without `
     in_sstream >> str >> val;  // str: "pi", val: 3.14
   ```
 
-## memory
+# memory
 - **1s complement:** invert all bits  
 **2s complement:** add one to 1s complement
   ```cpp
@@ -982,7 +813,7 @@ example: `0x 80` is first promoted to `0x 80 00 00 00` signed integer (only MSB 
   - **`volatile`:** variable may be changed by something external to the program at any time so must be re-read from memory every time (don't keep in cache) it is accessed, `const volatile` used for read-only status registers
   - **`restrict`:** is an optimization hint to compiler that during a pointer's lifetime no other pointer will access the same memory  
   - **`_Atomic`:** variable have guaranteed read-modify-write operation in single instruction  
-  free from data races so can be used in reentrant functions & in ISR that interrupt it
+  free from data races so can be used in reentrant functions & again in the ISR that interrupt it
     ```cpp
     #include <stdatomic.h>
 
@@ -1098,7 +929,7 @@ can lead to dangling pointer when object shallow copied
 **deep copying:** create new pointers and copy data into it  
 shallow copy duplicate as little as possible while deep copy duplicate everything
 
-## pointers
+# pointers
 - **pointer:** holds the memory address of another object (variable/function) as its value  
 in modern C++ owning memory means being responsible for its cleanup, so raw pointer should never own memory
 - **`nullptr`:** implicitly converts to any pointer type (but never an integral type)
@@ -1240,8 +1071,36 @@ in modern C++ owning memory means being responsible for its cleanup, so raw poin
   int (*fpa())[];  // a function returning a pointer to an array of ints
   int (*fpf())();  // a function returning a pointer to a function returning an int
   ```
+- **example: matrix (2D array) as double pointer:** double pointer is a pointer to pointers (array of pointers)  
+first allocate pointer array (double pointer) then allocate memory for each element (1D row array)  
+![](./media/cplusplus/2d_pointer.png)
+  ```cpp
+  // method1: non contiguous
+  uint8_t **array1 = (uint8_t **)malloc(num_rows * sizeof(uint8_t *));  // or sizeof(*array1)
+  for (size_t i = 0; i < num_rows; i++)
+      array1[i] = (uint8_t *)malloc(num_cols * sizeof(uint8_t));  // or sizeof(**array1)
 
-### smart pointers
+  // method2: contiguous
+  uint8_t **array2 = (uint8_t **)malloc(num_rows * sizeof(int *));
+  array2[0]        = (uint8_t *)malloc(num_rows * num_cols * sizeof(int));
+  for (int i = 1; i < num_rows; i++)
+      array2[i] = array2[0] + i * num_cols;
+
+  // print matrix
+  void printArray2d(uint8_t **arr, size_t num_rows, size_t num_cols)
+  {
+      for (size_t row = 0; row < num_rows; row++)
+      {
+          for (size_t col = 0; col < num_cols; col++)
+          {
+              printf("%u ", arr[row][col]);
+          }
+          printf("\n");
+      }
+  }
+  ```
+
+## smart pointers
 - **smart pointer:** is a wrapper class over a heap memory owning raw pointer and is used to manage its lifetime (memory freed when object destroyed), crucial for the RAII programming idiom  
 just create a standard raw pointer then pass that to the smart pointer immediately
   ```cpp
@@ -1389,7 +1248,7 @@ just create a standard raw pointer then pass that to the smart pointer immediate
   auto *loc = reinterpret_cast<location *>(&p);
   ```
 
-## templates
+# templates
 - **generic programming:** enables the programmer to write a general algorithm which will work with all data types (separate algorithms from data type)
 - **`template`:** enable you to define the operations of a function/function and later specify what types those operations should work on  
 **instantiation:** compiler generates concrete functions/classes based on the supplied argument type (`<T>` expanded)  
@@ -1450,7 +1309,7 @@ so for the compiler to generate the code it must see both the template definitio
   foo<double>();  // generic
   ```
 
-## exceptions
+# exceptions
 - **`exception`:** provides consistent interface to handle errors through the `throw` expression  
 an exception can be caught at any point of the program (`try - catch`) or even thrown further (`throw`)  
 ctor of exception receives a string error message as argument which can accessed later using `what()`  
@@ -1495,7 +1354,7 @@ ctor of exception receives a string error message as argument which can accessed
   }
   ```
 
-## misc
+# misc
 - **`using` type alias:** similar to `typedef` but compatible with complex types (like templates & arrays)  
 creates local alias if used within function scope
   ```cpp
@@ -1503,43 +1362,59 @@ creates local alias if used within function scope
   using image3f  = image<float, 3>;  // template
   using vector3d = double[3];        // array
   ```
-- **why typedef over macro:**
+- **why `typedef` over macro:**
   ```cpp
-  #define type1 struct s *
-  typedef struct s *type2;
+  #define type1 int *
+  typedef int *type2;
 
-  type1 a, b;  // "a" pointer-to struct but "b" just struct
+  type1 a, b;  // "a" pointer but "b" just int
   type2 c, d;  // both "c" & "d" pointer
   ```
 - **maximum munch rule:** compiler bites off biggest legal chunk
   ```cpp
-  c = a+++b;  // a++ + b
+  d = ++a+++b++c++;  // ++a + ++b + +c++
   ```
-- **format specifiers:**
+- **format specifiers:** are placeholders to represent data types
   ```cpp
   %c  // char
   %s  // string
-  %i  // int
+  %d  // int
   %u  // uint
   %o  // unsigned octal
-  %x  // unsigned hex
-  %e  // exponent notation
-  %f  // float
-  %g  // selects shorter of %f & %e, no trailing 0s
+  %x  // unsigned hex, %llx 64 bit
+  %f  // float, %lf double
+  %e  // float exponent notation
+  %g  // shorter of %f & %e (no trailing zeroes)
   %p  // pointer
   ```
-- **data type constants**
+  C99 has added fixed length integer format specifiers, replace `PRI` with `SCN` for `scanf()`
   ```cpp
+  #include <inttypes.h>
+
+  PRId8  // signed
+  PRIi8  // unsigned
+  PRIx8  // unsigned hex
+  ```
+- **constant integer literals:**
+  ```cpp
+  // pre
+  0b  // binary
   0x  // hex
   0   // oct
+
+  // post
   U   // uint
   L   // long int, UL
   LL  // long long int, ULL
   F   // float
   ```
-- **enum:** user-defined type that consists of a set of named integral constants, by default starts with 0
+  ```cpp
+  uint32_t a = 0b10, b = 0x10, c = 052;
+  LOG("a %" PRIi32 " b %" PRIi32 " c %" PRIi32, a, b, c);  // a 2 b 16 c 42
+  ```
+- **`enum`:** user-defined type that consists of a set of named integral constants, by default starts with 0
   - **unscoped:** can implicitly convert to primitives
-  - **scoped:** add `class` to create a new scope, implicit conversion leads to error, use `static_cast` if required
+  - **scoped:** add `class` to create a new scope, implicit conversion leads to error (use `static_cast` if required)
   ```cpp
   enum uFoo  // unscoped
   {
@@ -1560,81 +1435,204 @@ creates local alias if used within function scope
   int enumValue = a;        // visible without qualifier, implicit conversion
   int enumValue = sFoo::a;  // sFoo qualifier required, error for conversion
   ```
-- **union:** different variables of different types in same memory location  
-use when member variables are used in either-or but never both fashion
+- **`union`:** is a type consisting of a sequence of members whose storage overlaps  
+use when member variables are used in either-or-but-never-both fashion
   ```cpp
-  union unn
+  union someUnion  // size 8bytes
   {
-      int i;
-      char c;
+      uint32_t a;
+      uint8_t b;
+      uint64_t c;
   };
   ```
-- **typedef struct:**
+- **`typedef struct`:** used to define an alias for the structure data type
   ```cpp
-  typedef struct S_
+  typedef struct someStruct_  // someStruct_ not necessary
   {
       int x;
-  } S;
+  } someStruct;
 
   // same as
-  struct S_
+  struct someStruct_
   {
       int x;
   };
-  typedef struct S_ S;
+  typedef struct someStruct_ someStruct;
   ```
-- **nested struct/union:**
+- **nested `struct`/`union`:** do not repeat anonymous/nameless struct/union member names
   ```cpp
-  typedef struct image
+  typedef struct
   {
-      struct coordinate
+      union
       {
-          int x;
-          int y;
+          struct  // nameless struct
+          {
+              uint8_t nibble1 : 4;
+              uint8_t nibble2 : 4;
+          };
+
+          struct
+          {
+              uint8_t bit0 : 1;
+              uint8_t bit1 : 1;
+              uint8_t bit2 : 1;
+              uint8_t bit3 : 1;
+              uint8_t bit4 : 1;
+              uint8_t bit5 : 1;
+              uint8_t bit6 : 1;
+              uint8_t bit7 : 1;
+          };
+
+          uint8_t value;
       };
-      struct coordinate pos;
-  } image;
+  } byte;
   ```
-- **lambdas:** function declared without name
+- **functor (function object)** class/struct that acts like a function by overloading `operator ()`  
+**lambdas:** define an anonymous function object right at the location where it's invoked or passed as an argument
   ```cpp
-  auto plus_one = [](const int value) { return value + 1; };
-  ```
-- **functor** class that acts like a function, done by overloading `operator ()`
-  ```cpp
-  struct plusOne
+  struct  // functor
   {
-      int operator()(const int value) const { return value + 1; }
-  };
+      bool operator()(int a, int b) const { return a < b; }
+  } customLessFunc;
 
-  int main()
-  {
-      plusOne plus_one;
-      assert(plus_one(2) == 3);
-
-      return 0;
-  }
+  std::sort(vec.begin(), vec.end(), customLessFunc);                      // using functor
+  std::sort(vec.begin(), vec.end(), [](int a, int b) { return a > b; });  // using lambdas
   ```
 
-### cpp core guidelines
-- **basics:**
+# STL
+
+# containers
+- **`iterator`:** used to point at the memory addresses of STL containers (similar to a pointer) which allows quick & efficient navigation through any STL container (even unordered ones)  
+![](./media/cplusplus/iterator.png)
   ```cpp
-  int some_random_var;  // snake case
-  int some-random-var;  // kebab case
-  int someRandomVar;    // camel case
-  int SomeRandomVar;    // pascal case
-  ```
-- **naming:**
+  T::iterator itr = container.begin();  // vector<double>::iterator itr;
+
+  T val = *itr;  // current element
+  ++itr;         // increment iterator, now points to next element
+  ```  
+
+## sequence
+- **sequence containers:** data structures that can be accessed sequentially (`O(n)`)
+- **`string`:** sequences of characters, better than C-style arrays (which is faster) because this has dynamic size & useful member functions
   ```cpp
-  // snake_case: variables
-  int some_var;
-  // CAPITALIZED_SNAKE_CASE: constants & macros
-  const int SOME_CONSTANT_VAR = 10;
-  // camelCase: functions & classes
-  int someFunction(void);
+  #include <string>
+  std::string str;                      // std::string str("hello world");
+
+  +                                     // concatenate operator
+  int pos          = str.find(substr);  // find substring pos
+  bool is_empty    = str.empty();       // check empty
+  int size         = str.size();        // size (doesn't include string end NULL character)
+  const char *data = str.data();        // underlying NULL terminated C array, same as c_str()
+  char c           = str.at(i);         // access with bounds checking, without check [i]
+  str.clear();                          // clear string
+  str.push_back(val);                   // add val char at the end, pop_back(), alternate to `emplace_back`
+  str.reserve(size);                    // reserve size to prevent frequent memory-allocs
+                                        // optional second arg for initializing new elements
+  str.shrink_to_fit();                  // dealloc unused memory
+  ```
+- **`vector`:** dynamic contiguous (so cache-friendly) array
+  ```cpp
+  #include <vector>
+  std::vector<T> vec;                   // std::vector<int> vec{1, 2, 3, 4};
+
+  // empty, size, data, at(i), clear, push_back, reserve, shrink_to_fit
+  ```
+- **`array`:** static contiguous array
+  ```cpp
+  #include <array>
+  std::array<T, size> arr;              // std::array<int, 4> arr{1, 2, 3, 4};
+
+  arr.fill(value)                       // assign value to all elements
+  // empty, size, data, at(i), clear
+  ```
+- **`deque`:** double-ended queue, basically a two-sided vector with non contiguous mem  
+usually implemented as variable size array of fixed size arrays, this makes growing faster than a vector (which requires allocation & copying)
+  ```cpp
+  #include <deque>
+  std::deque<T> dq;                     // std::deque<int> dq{1, 2, 3, 4};
+
+  dq.push_front(val)                    // add element at beginning, popfront()
+  // empty, size, at(i), clear, push_back, shrink_to_fit
+  // size not provided
+  ```
+- **why `emplace_back`:** it constructs the object in place with the ctor arguments, while `push_back` will construct a temporary object then copy/move it into the container  
+more performant for types with an inefficient move constructor
+
+## associative
+- **associative containers:** sorted data structures that can be quickly searched (`O(logn)`)
+- **`pair`:** provides a way to store two heterogeneous objects as a single unit
+  ```cpp
+  #include <utility>
+  std::pair<T1, T2> pr;                 // std::pair<int, string> pr(1, "hello");
+
+  pr       = make_pair(val1, val2);     // create pair
+  pr.first = val3;                      // modify first element, second
+  ```
+- **set:** collection of unique keys which is always sorted
+  ```cpp
+  #include <set>
+  std::set<T> st;                       // std::set<T> st{1, 2, 3, 4};
+
+  <posItr, bool> = st.insert(val);      // insert value if not exists
+  posItr         = st.find(key);        // find element, (posItr == st.end()) if not present
+  if (mp.count(key) > 0)                // number of matching keys (0/1 for set & map)
+  // empty, size, clear
+  ```
+- **`map`:** collection of key-value pairs which is sorted by unique keys  
+anything with a defined less-than operator (`<`) can be used as key
+  ```cpp
+  #include <map>
+  std::map<keyT, valT> mp{{1, "hello"}, {2, "world"}};
+
+  mp[key] = val;                        // assign (insert if not present)
+  // empty, size, at(key), clear, insert(pair), find, count
+  ```
+- **`multiset` & `multimap`:** are same as set & map but keys are not unique (duplicates allowed), so `count(key)` can greater than 1  
+  defined in same headers as set & map
+
+## unordered associative
+- **unordered associative containers:** unsorted  but hashed data structures that can be quickly searched (average `O(1)` but worst case `O(n)`)  
+worst case if hash function is producing collision for every insertion into container
+- **`unordered_set`, `unordered_map`, `unordered_multiset` & `unordered_multimap`:** same as ordered associate containers with headers: `#include <unordered_set>` & `#include <unordered_map>`
+
+## container adaptors
+- **container adaptors:** provide a different interface for sequential containers
+- **`stack`:** deque wrapper with functionality of a LIFO data structure by forcing push/pop on one side only
+  ```cpp
+  #include <stack>
+  std::stack<T> stk;                    // new dequeue created
+  std::stack<T> stk(dq);                // copy existing deque data (copy ctor)
+
+  T t = stk.top();                      // peek top
+  stk.push(val);                        // add value to top of stack, pop()
+                                        // pop() doesn't return value so store top() first
+  // empty, size
+  ```
+- **`queue`:** deque wrapper with functionality of a FIFO data structure by forcing push one side and pop on other
+  ```cpp
+  #include <queue>
+  std::queue<T> que;                    // new dequeue created
+  std::queue<T> que(dq);                // copy existing deque data (copy ctor)
+
+  T t = que.front();                    // first element, back()
+  stk.push(val);                        // add value at the end, pop()
+                                        // pop() doesn't return value so store front() first
+  // empty, size
+  ```
+- **`priority_queue`:** vector wrapper which provides `O(1)` (top element) lookup at the expense of `O(logn)` insertion/extraction by taking more effort into how to insert new elements in the underlying vector  
+stack & queue based on queue since growing is faster, priority queue uses vector because insertion into sorted vector (data shifts) is faster with contiguous memory (same cache line)
+  ```cpp
+  #include <queue>
+  std::priority_queue<T> pq();          // new vector created & uses less<T> by default
+  std::priority_queue<T> pq(compare, vec);  // copy existing vector data (copy ctor)
+                                        // for compare function: std::less<T> (largest at top) or std::greater<T>
+
+  // empty, size, top, push, pop
+  // push will insert into sorted array
   ```
 
-### standard template library
-- STL
+## functions
+- standard template library
   ```cpp
   #include <algorithm>
   flag = std::all_of(startItr, endItr, boolFunc);      // all_of, any_of, none_of

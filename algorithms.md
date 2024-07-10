@@ -1,20 +1,20 @@
-# algorithms
+# table of contents  <!-- omit from toc -->
 - [algorithmic thinking](#algorithmic-thinking)
 - [models of computation](#models-of-computation)
 - [sorting](#sorting)
 
-## links  <!-- omit from toc -->
+# links  <!-- omit from toc -->
 - [[lectures] introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/)
 - [big O notation](https://adrianmejia.com/how-to-find-time-complexity-of-an-algorithm-code-big-o-notation/)
 
-## todo  <!-- omit from toc -->
+# todo  <!-- omit from toc -->
 - document distance sorted vector add notes
 - go through document distance variations
 - [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
 - [leetcode 75](https://leetcode.com/studyplan/leetcode-75/)
 - [connected component labelling](https://en.wikipedia.org/wiki/Connected-component_labeling)
 
-## algorithmic thinking
+# algorithmic thinking
 - efficient procedures for solving problems on large inputs (like human genome)
 - **asymptotic complexity:** is used for (worst-case) estimation of computational complexity of algorithms  
 example: for `f(n) = n^2 + 3n` as `n` grows `n^2` grows at a much faster rate than `3n` rendering it insignificant for large values of `n`, so `f(n)` is said to be asymptotically equivalent to `n^2`  
@@ -302,7 +302,7 @@ with `>=` a peak will always exist, but with `>` a peak might exist, example: no
       }
       ```
 
-## models of computation
+# models of computation
 - **algorithm:** is mathematical abstraction of a computer program (computational procedure to solve a problem)  
 **model of computation:** specifies what operations an algorithm is allowed and cost (time, space, etc) of each operation  
 total cost of an algorithm is sum of operation costs
@@ -394,7 +394,7 @@ recall dot product is `x . y = |x| |y| cosθ`, so apply arccosine (inverse funct
   }
   ```
 
-## sorting
+# sorting
 - **sorting:** refers to ordering data in an increasing/decreasing manner according to some linear relationship among the data items  
 useful for problems (like find the median or binary search) that become easier if items are already in sorted order and for not so obvious usecases like finding duplicates during data compression
 - **insertion sort:** insert key `A[j]` into the already sorted sub-array `A[1 .. j-1]` by pairwise key-swaps down to its right position  

@@ -1,17 +1,12 @@
-# performance
+# table of contents  <!-- omit from toc -->
 - [introduction](#introduction)
-  - [example: matrix multiplication performance optimization](#example-matrix-multiplication-performance-optimization)
 - [Bentley optimization rules](#bentley-optimization-rules)
-  - [data structures](#data-structures)
-  - [logic](#logic)
-  - [loops](#loops)
-  - [functions](#functions)
 - [bit hacks](#bit-hacks)
 
-## links  <!-- omit from toc -->
+# links  <!-- omit from toc -->
 
 
-## todo  <!-- omit from toc -->
+# todo  <!-- omit from toc -->
 - [[lectures] performance engineering of software systems](https://ocw.mit.edu/courses/6-172-performance-engineering-of-software-systems-fall-2018/)
 - [[lectures] gpu programming](http://www.cse.iitm.ac.in/~rupesh/teaching/gpu/jan22/)
   - [parallel patterns](https://link.springer.com/chapter/10.1007/978-1-4842-5574-2_14)
@@ -29,7 +24,7 @@
 - [x64 assembly programming & check other playlists](https://www.youtube.com/playlist?list=PLKK11Ligqitg9MOX3-0tFT1Rmh3uJp7kA)
 - static sparse graph using CSR
 
-## introduction
+# introduction
 - ***the first rule of program optimization: don't do it  
 second rule of program optimization: for experts only, don't do it yet***
 - there are software properties that are more important that performance, like modularity, reliability, portability, maintainability, testability etc  
@@ -47,7 +42,7 @@ so now the software must be adapted to utilize this hardware efficiently
 `s` speedup of optimized part  
 `p` fraction of time
 
-### example: matrix multiplication performance optimization
+## example: matrix multiplication performance optimization
 - execution of matrix multiplication of 4096 x 4096 floating-pointing point matrix in python takes 6 hours, in java takes 46 minutes (8.81x relative speedup), in C takes 19 minutes (2.07x relative speedup)  
 python is interpreted, C is compiled directly to machine code and java is (in the middle) compiled to byte-code which is then interpreted by just-in-time (JIT) compiled to machine code
   ```cpp
@@ -103,13 +98,13 @@ compilers use vector instructions automatically when compiling at optimization l
 with above discussed optimizations, we received a speedup of 53292x  
 ![](./media/performance/matrix_multiplication_performance_optimizations.png)
 
-## Bentley optimization rules
+# Bentley optimization rules
 - **work:** of a program on a given input is the sum total of all the operations executed by the program
 - algorithm design can produce dramatic reductions in the amount of work it takes to solve a problem, example: a `O(nlogn)`-time quick sort replacing `O(n^2)`-time insertion sort  
 reducing the work of a program doesn't automatically reduce its running time due to the complex nature of computer hardware (ILP, caching, vectorization, speculation, branch prediction, etc), but reducing the workload serves as a good heuristic for reducing overall running time
 - ![](./media/performance/bentleys_rules_list.png)
 
-### data structures
+## data structures
 - **packing & encoding:** idea of packing is to store more than one data value in a machine word and of encoding is to convert data values into a representation requiring fewer bits  
 example: encoding date in a string `september 11 2008` will need 18 bytes, but assuming years are from 4096BC to 4096AD then there are `365.25 * 404096 * 2 ≈ 3x10^6` which can be encoded in `log2(3x10^6) ≈ 22` bits  
 to make fetching of data easier it can be packed into bitfields where individual fields can be extracted much more quickly than if we had encoded the 3M dates as sequential integers
@@ -202,7 +197,7 @@ to get a row's size just take the difference of current & next row offsets, we h
   }
   ```
 
-### logic
+## logic
 - **constant folding & propagation:** evaluate constant expressions and substitute the result into further expressions all during compilation, with a sufficiently high optimization level all expressions are evaluated at compile-time  
 example: building a orrery (model of a solar system) assuming earth's constant radius
   ```cpp
@@ -328,7 +323,7 @@ example: in the balls colliding example, add a extra check if bounding boxes ove
 example: for a full adder truth table implementation, instead of a large if else table for each combination combine them into a switch case  
 ![](./media/performance/full_adder.png)
 
-### loops
+## loops
 - **hoisting (loop-invariant code motion):** avoid recomputing loop-invariant code each time through the body of a loop, usually compiler can take care of this  
 example: scaling a array
   ```cpp
@@ -478,7 +473,7 @@ example: matrix transpose, half iterations will fail the check in normal code, i
   }
   ```
 
-### functions
+## functions
 - **inlining:** avoid the overhead of a function-call by replacing a call to the function with the body of the function itself  
 need not be done manually set function to `static inline`, inline functions can be just as efficient as macros and are better structured  
 example: sum of squares
@@ -574,7 +569,7 @@ example: quicksort will switch to a simple loop-based insertion sort algorithm o
   }
   ```
 
-## bit hacks
+# bit hacks
 - hex gives a more compact format for binary representations  
 to translate from hex to binary translate each hex digit and concatenate the bits  
 example: `0xDEC1` is equivalent to `0b1101111011000001`
