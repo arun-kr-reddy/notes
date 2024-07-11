@@ -321,3 +321,19 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
   // camelCase: functions & classes
   int someFunction(void);
   ```
+
+## essentials of modern C++
+- fundamentals:
+  - write for clarity and correctness first
+  - avoid premature optimization, by default prefer clear over optimal
+  - prefer faster when equally clear
+- prefer ranged for loop unless you have weird logic like skipping iterations
+- don't use owing pointer, `new` or `delete`, use `make_unique` & `make_shared` instead  
+non-owning pointer & reference are still great for local scopes (like passing as arguments)  
+smart pointers are about managing the owned object's lifetime, so copy/assign only when you intend to manipulate the owned object's lifetime  
+never pass smart pointer (by reference or value) unless it will be manipulated in the function, use raw pointer instead  
+express ownership using unique_ptr whenever possible, they have exactly the cost of a raw pointer, is exception safe & is declarative, if object is shared use make_shared up front
+- to make type track/deduce `auto var = init;`, to make type stick/commit `auto var = type{init}` or `type var{init};`  
+with deduction you always get the right type and make code more robust in the face of change, committing to explicit type leads to silent conversions whether you expected it or not  
+deduction guarantees no implicit conversion, no narrowing conversions and no uninitialized variables  
+deduction is only good option for hard-to-spell types like lambdas
