@@ -4,6 +4,8 @@
 - [higher order procedures](#higher-order-procedures)
 - [misc](#misc)
 - [clean code](#clean-code)
+  - [essentials of modern C++](#essentials-of-modern-c)
+  - [best parts of C++](#best-parts-of-c)
 
 # links  <!-- omit from toc -->
 - [scheme (lisp dialect) interpreter](https://inst.eecs.berkeley.edu/~cs61a/fa14/assets/interpreter/scheme.html)
@@ -327,13 +329,41 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
   - write for clarity and correctness first
   - avoid premature optimization, by default prefer clear over optimal
   - prefer faster when equally clear
-- prefer ranged for loop unless you have weird logic like skipping iterations
-- don't use owing pointer, `new` or `delete`, use `make_unique` & `make_shared` instead  
+- **loops:** prefer ranged for loop unless you have weird logic like skipping iterations
+- **pointers:** don't use owing pointer, `new` or `delete`, use `make_unique` & `make_shared` instead  
 non-owning pointer & reference are still great for local scopes (like passing as arguments)  
 smart pointers are about managing the owned object's lifetime, so copy/assign only when you intend to manipulate the owned object's lifetime  
 never pass smart pointer (by reference or value) unless it will be manipulated in the function, use raw pointer instead  
 express ownership using unique_ptr whenever possible, they have exactly the cost of a raw pointer, is exception safe & is declarative, if object is shared use make_shared up front
-- to make type track/deduce `auto var = init;`, to make type stick/commit `auto var = type{init}` or `type var{init};`  
+- **variable declarations:** to make type track/deduce `auto var = init;`, to make type stick/commit `auto var = type{init}` or `type var{init};`  
 with deduction you always get the right type and make code more robust in the face of change, committing to explicit type leads to silent conversions whether you expected it or not  
 deduction guarantees no implicit conversion, no narrowing conversions and no uninitialized variables  
 deduction is only good option for hard-to-spell types like lambdas
+- **parameter passing:** just as exception safety isn't all about writing `try` & `catch` everywhere, using move semantics isn't all about writing `move` & `&&` everywhere  
+use `X f()` for out, `f(X&)` for in/out, `f(x)` for in & in don't modify  
+use rvalue `&&` only to optimize rvalues like move assignment operator & move constructors
+  ```cpp
+    // pass by ref
+    void set_name(const std::string &name) { name_ = name; }  // name_ allocation can throw exception
+
+    // pass by rvalue
+    void set_name(std::string &&name) noexcept
+    {
+        name_ = std::move(name);  // no exception expected in moving
+    }
+
+    // pass by value
+    void set_name(std::string name) noexcept  // no exception in function body but this noexcept is a lie
+    {                                         // string construction in argument can throw exception, so exception moved to caller
+        name_ = std::move(name);              // this is acceptable for ctors since the allocation can be reused by member variables
+    }
+  ```
+
+## best parts of C++
+- **standard:** internationally agreed document that specifiers behavior of our compilers & programs
+- **`const`:** one of the most important tools to clean code, cannot be modified
+- **deterministic object lifetime:** ctor/dtor pairs (RAII) combined with scoped values give us determinism
+- **templates:** ultimate in DRY principle
+- **STL:** a generic set of composable tools
+- **`array`:** fixed size container so more optimization opportunities
+- **uniform initialization:** to initialize containers

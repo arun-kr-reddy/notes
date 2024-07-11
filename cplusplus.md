@@ -1,14 +1,19 @@
 # table of contents  <!-- omit from toc -->
 - [introduction](#introduction)
 - [object oriented programming](#object-oriented-programming)
+  - [encapsulation](#encapsulation)
+  - [inheritance](#inheritance)
+  - [polymorphism](#polymorphism)
 - [file \& string stream](#file--string-stream)
 - [memory](#memory)
 - [pointers](#pointers)
+  - [smart pointers](#smart-pointers)
 - [templates](#templates)
 - [exceptions](#exceptions)
 - [misc](#misc)
 - [STL](#stl)
-- [containers](#containers)
+  - [containers](#containers)
+  - [functions](#functions)
 
 # links  <!-- omit from toc -->
 - [[lectures] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
@@ -26,6 +31,7 @@
 - [IEEE754 conversion](https://www.youtube.com/watch?v=8afbTaA-gOQ&pp=ygUIaWVlZSA3NTQ%3D)
 - [storage specifiers, linkage, storage duration](https://en.cppreference.com/w/cpp/language/storage_duration)
 - [2D pointer](https://c-faq.com/aryptr/dynmuldimary.html)
+- [copy elision](https://www.youtube.com/watch?v=IZbL-RGr_mk)
 
 # todo  <!-- omit from toc -->
 - [cpp core guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#main)
@@ -1249,6 +1255,7 @@ just create a standard raw pointer then pass that to the smart pointer immediate
   ```
 
 # templates
+- **don't repeat yourself (DRY):** is aimed at reducing repetition of information which is likely to change, instead replacing it with abstractions that are less likely to change or using data normalization which avoids redundancy in the first place
 - **generic programming:** enables the programmer to write a general algorithm which will work with all data types (separate algorithms from data type)
 - **`template`:** enable you to define the operations of a function/function and later specify what types those operations should work on  
 **instantiation:** compiler generates concrete functions/classes based on the supplied argument type (`<T>` expanded)  
@@ -1353,6 +1360,11 @@ ctor of exception receives a string error message as argument which can accessed
       }
   }
   ```
+- **`noexcept`:** specifies whether a function could throw exceptions, checked at compile-time
+  ```cpp
+  void f() noexcept { std::cout << "f" << std::endl; }
+  ```
+
 
 # misc
 - **`using` type alias:** similar to `typedef` but compatible with complex types (like templates & arrays)  
@@ -1498,10 +1510,58 @@ use when member variables are used in either-or-but-never-both fashion
   std::sort(vec.begin(), vec.end(), customLessFunc);                      // using functor
   std::sort(vec.begin(), vec.end(), [](int a, int b) { return a > b; });  // using lambdas
   ```
+- **copy elision:** is an optimization implemented by most compilers to prevent extra (potentially expensive) copies in certain situations, can be applied even if copying/moving the object has side-effects  
+example: compiler implementation eliminates both copies being made (`C()` ⟶ `return C()` ⟶ `obj`)
+  ```cpp
+  class C
+  {
+    public:
+      C() {}
+      C(const C &) { std::cout << "A copy was made.\n"; }
+  };
+
+  C f()
+  {
+      return C();
+  }
+
+  int main()
+  {
+      std::cout << "Hello World!\n";
+      C obj = f();  // no prints
+  }
+  ```
+  **return value optimization (RVO):** involves eliminating the temporary object created to hold a function's return value  
+  example: with un-optimized compiler string is first constructed on stack frame and then copied to location pointed by the caller, but with RVO string is constructed directly in the location pointed by the caller
+  ```cpp
+  std::string foo()
+  {
+      std::string a("A");
+      int b{23};
+      .
+      .
+      .
+
+      return a;
+  }
+  ```
+  here copy cannot be skipped since return object is not known
+  ```cpp
+  someType foo()
+  {
+      someType a, b;
+
+      if (someFlag)
+          return a;
+      else
+          return b;
+  }
+  ```
+- **zero cost abstractions:** adding higher-level programming concepts like templates that come at extra compile-time cost not run-time cost and usually is as fast as you would write out matching functionality by hand
 
 # STL
 
-# containers
+## containers
 - **`iterator`:** used to point at the memory addresses of STL containers (similar to a pointer) which allows quick & efficient navigation through any STL container (even unordered ones)  
 ![](./media/cplusplus/iterator.png)
   ```cpp
@@ -1511,7 +1571,7 @@ use when member variables are used in either-or-but-never-both fashion
   ++itr;         // increment iterator, now points to next element
   ```  
 
-## sequence
+### sequence
 - **sequence containers:** data structures that can be accessed sequentially (`O(n)`)
 - **`string`:** sequences of characters, better than C-style arrays (which is faster) because this has dynamic size & useful member functions
   ```cpp
@@ -1558,7 +1618,7 @@ usually implemented as variable size array of fixed size arrays, this makes grow
 - **why `emplace_back`:** it constructs the object in place with the ctor arguments, while `push_back` will construct a temporary object then copy/move it into the container  
 more performant for types with an inefficient move constructor
 
-## associative
+### associative
 - **associative containers:** sorted data structures that can be quickly searched (`O(logn)`)
 - **`pair`:** provides a way to store two heterogeneous objects as a single unit
   ```cpp
@@ -1590,12 +1650,12 @@ anything with a defined less-than operator (`<`) can be used as key
 - **`multiset` & `multimap`:** are same as set & map but keys are not unique (duplicates allowed), so `count(key)` can greater than 1  
   defined in same headers as set & map
 
-## unordered associative
+### unordered associative
 - **unordered associative containers:** unsorted  but hashed data structures that can be quickly searched (average `O(1)` but worst case `O(n)`)  
 worst case if hash function is producing collision for every insertion into container
 - **`unordered_set`, `unordered_map`, `unordered_multiset` & `unordered_multimap`:** same as ordered associate containers with headers: `#include <unordered_set>` & `#include <unordered_map>`
 
-## container adaptors
+### container adaptors
 - **container adaptors:** provide a different interface for sequential containers
 - **`stack`:** deque wrapper with functionality of a LIFO data structure by forcing push/pop on one side only
   ```cpp
