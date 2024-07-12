@@ -38,21 +38,16 @@
 - [lost art of struct packing](http://www.catb.org/esr/structure-packing/)
 - [memory order](https://en.cppreference.com/w/c/atomic/memory_order)
 - [mix C & C++](https://isocpp.org/wiki/faq/mixing-c-and-cpp#:~:text=Just%20declare%20the%20C%20function,int)
-- [structure packing](http://www.catb.org/esr/structure-packing/)
 - [efficient c++](https://embeddedgurus.com/stack-overflow/category/efficient-cc/)
-- template uses
-- STL
-- OOPs concepts
 - [MSVC init memory](https://stackoverflow.com/questions/127386/what-are-the-debug-memory-fill-patterns-in-visual-studio-c-and-windows)
-- atomics & memory ordering
+- [memory ordering](https://en.cppreference.com/w/cpp/atomic/memory_order)
 - [templates FAQ](https://isocpp.org/wiki/faq/templates)
 - why static initialized to 0
-- double pointer access
 - stack canary
 - [copy-and-swap idiom](https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom) ([video](https://www.youtube.com/watch?v=7LxepUEcXA4))
 - friend functions
-- [zero overhead principle](https://github.com/baderouaich/the-zero-overhead-principle)
 - [embedded C questions](https://rmbconsulting.us/publications/a-c-test-the-0x10-best-questions-for-would-be-embedded-programmers/)
+- [named lambda](https://stackoverflow.com/questions/51760019/why-would-one-write-a-c-lambda-with-a-name-so-it-can-be-called-from-somewhere)
 
 # introduction
 - *within C++ there is a much smaller & cleaner language struggling to get out*
@@ -1123,12 +1118,14 @@ just create a standard raw pointer then pass that to the smart pointer immediate
     ```cpp
     auto uPtr = std::unique_ptr<myType>(new myType());      // default ctor
     auto uPtr = std::unique_ptr<myType>(new myType(args));  // custom ctor
+    auto uPtr = std::make_unique<myType>(args);             // cleaner (type mentioned once)
     ```
   - **`shared_ptr`:** allows you to make a copy of the pointer which will hold the memory until all the pointers holding that memory gets out of scope which is done by maintaining a reference counter (*last one turns off the light*, memory freed when refcount reaches zero)  
   `reset()` revokes the ownership over the memory that the pointer holds (decreases `usage_count`)
     ```cpp
     auto sPtr = std::shared_ptr<myType>(new myType());      // default ctor
     auto sPtr = std::shared_ptr<myType>(new myType(args));  // custom ctor
+    auto sPtr = std::make_shared<myType>(args);             // cleaner
 
     sPtr.use_count();  // return usage_count
     ```
@@ -1143,8 +1140,8 @@ just create a standard raw pointer then pass that to the smart pointer immediate
 
     int main()
     {
-        auto a = std::shared_ptr<someClass>(new someClass());  // alive
-        std ::cout << a.use_count() << std ::endl;             // 1
+        auto a = std::make_shared<someClass>();     // alive
+        std ::cout << a.use_count() << std ::endl;  // 1
         {
             auto b = a;
             std ::cout << b.use_count() << std ::endl;  // 2
@@ -1557,7 +1554,8 @@ example: compiler implementation eliminates both copies being made (`C()` ⟶ `r
           return b;
   }
   ```
-- **zero cost abstractions:** adding higher-level programming concepts like templates that come at extra compile-time cost not run-time cost and usually is as fast as you would write out matching functionality by hand
+- **zero cost abstractions (zero overhead principle):** you don't pay (in time or space) for what you don't use and what you do use is just as efficient as what you could reasonably write by hand  
+so adding higher-level programming concepts like templates will come at extra compile-time cost not run-time cost and usually is as fast as you would write out matching functionality by hand
 
 # STL
 
