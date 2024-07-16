@@ -84,3 +84,4 @@ key idea is that lower-level needs must be satisfied before higher-level needs c
 - *an engineer can do for a dime what any damn fool can do for a dollar*
 - *code is read more than it is written*
 - *temporary solutions often become permanent problems*
+- *advertising has us chasing cars & clothes, working jobs we hate so we can buy shit we don't need*

@@ -147,8 +147,10 @@ one input channel: standard input `cin` and two output channels: standard output
   };
   ```
 - **variable shadowing:** a variable declared in some specific scope takes precedence over a variable with the same name declared in an outer scope
-- **`auto`:** is a placeholder type that will be replaced later by the compiler  
-for a variable placeholder replaced typically by deduction from an initializer
+- **`auto`:** is a placeholder type that will be replaced later by the compiler typically by deduction from an initializer  
+with deduction you always get the right type and make code more robust in the face of change, committing to explicit type leads to silent conversions whether you expected it or not  
+deduction guarantees no implicit conversion, no narrowing conversions and no uninitialized variables  
+deduction is only good option for hard-to-spell types like lambdas
   ```cpp
   auto var = 13;     // int
   auto var = 13.0f;  // float
@@ -204,7 +206,7 @@ if `i` is  a class then temp will involve calling a copy ctor which can be expen
   ```
 - use `for` when number of iterations are known else use `while` loop, it easy to form an infinite loop with `while`
 - **ranged for loop:** more readable `for` loop for iterating over standard containers (using iterators internally)  
-avoids mistakes with indices since container iterator used
+avoids mistakes with indices since container iterator used so prefer ranged for loop unless you have weird logic like skipping iterations
   ```cpp
   std::vector<int> vec{0, 1, 5};
 
@@ -257,6 +259,7 @@ picked at compile-time based on arguments (return type plays no role)
 - **name mangling:** encoding of function/variable names so linker can separate common names due to overloading/namespaces  
   use `extern "C" { .... }` in C++ when declaring a function that was implemented/compiled in C (name mangling not done)
 - **function argument passing:** use pass-by-reference (pointer or reference) to prevent copying of large objects, use `const` reference in function declaration to prevent modification as well  
+use `X f()` for out, `f(X&)` for in/out, `f(x)` for in (& don't modify)  
 ![](./media/cplusplus/pass_by_reference_vs_value.gif)
 - **default argument:** is a value provided in a function declaration (after mandatory arguments) that is automatically assigned by the compiler if the calling function doesn’t provide a value
   ```cpp
@@ -319,7 +322,7 @@ avoid setters instead set data in ctor
 - **why private default:** *it's better to be properly encapsulated and only open up the things that are needed, as opposed to having everything open by default and having to close it*  
 keep data members hidden (private), user should be able to modify data only through provided public interfaces (functions)
 - **resource acquisition is initialization (RAII):** resource acquisition (allocation) is done by the ctor while resource release (deallocation) is done by the dtor, holding a resource should be class-invariant and tied to object lifetime  
-also known as scope-bound resource management
+ctor/dtor pairs (RAII) combined with scoped values give us deterministic object lifetime, so also known as scope-bound resource management
   ```cpp
   class someClass
   {
@@ -1120,8 +1123,8 @@ just create a standard raw pointer then pass that to the smart pointer immediate
     auto uPtr = std::unique_ptr<myType>(new myType(args));  // custom ctor
     auto uPtr = std::make_unique<myType>(args);             // cleaner (type mentioned once)
     ```
-  - **`shared_ptr`:** allows you to make a copy of the pointer which will hold the memory until all the pointers holding that memory gets out of scope which is done by maintaining a reference counter (*last one turns off the light*, memory freed when refcount reaches zero)  
-  `reset()` revokes the ownership over the memory that the pointer holds (decreases `usage_count`)
+  - **`shared_ptr`:** allows you to make a copy of the pointer which will hold the memory until all the pointers holding that memory gets out of scope which is done by maintaining a reference counter (*last one turns off the light*, memory freed when refcount reaches zero), so copy/assign only when you intend to manipulate the owned object's lifetime  
+  `reset()` revokes the ownership over the memory that the pointer holds (decreases `usage_count`)  
     ```cpp
     auto sPtr = std::shared_ptr<myType>(new myType());      // default ctor
     auto sPtr = std::shared_ptr<myType>(new myType(args));  // custom ctor
@@ -1556,6 +1559,26 @@ example: compiler implementation eliminates both copies being made (`C()` ⟶ `r
   ```
 - **zero cost abstractions (zero overhead principle):** you don't pay (in time or space) for what you don't use and what you do use is just as efficient as what you could reasonably write by hand  
 so adding higher-level programming concepts like templates will come at extra compile-time cost not run-time cost and usually is as fast as you would write out matching functionality by hand
+- **small string optimization:** most implementations of `std::string` create a small static array (like `char [20]`) within class definition  
+so smaller strings are stored on stack avoiding the need to allocate heap memory which speeds things up a bit
+- **`noexcept`:** performs a compile-time check (that returns true) if an expression is declared to not throw any exception
+  ```cpp
+  // pass by ref
+  void set_name(const std::string &name) { name_ = name; }  // name_ allocation can throw exception
+
+  // pass by rvalue
+  void set_name(std::string &&name) noexcept
+  {
+      name_ = std::move(name);  // no exception expected in moving
+  }
+
+  // pass by value
+  void set_name(std::string name) noexcept  // no exception in function body but this noexcept is a lie
+  {                                         // string construction in argument can throw exception, so exception moved to caller
+      name_ = std::move(name);              // this is acceptable for ctors since the allocation can be reused by member variables
+  }
+  ```
+
 
 # STL
 
@@ -1595,7 +1618,7 @@ so adding higher-level programming concepts like templates will come at extra co
 
   // empty, size, data, at(i), clear, push_back, reserve, shrink_to_fit
   ```
-- **`array`:** static contiguous array
+- **`array`:** static contiguous array, fixed size container so more optimization opportunities
   ```cpp
   #include <array>
   std::array<T, size> arr;              // std::array<int, 4> arr{1, 2, 3, 4};
@@ -1626,6 +1649,25 @@ more performant for types with an inefficient move constructor
   pr       = make_pair(val1, val2);     // create pair
   pr.first = val3;                      // modify first element, second
   ```
+- **`tuple`:** fixed-size collection of heterogeneous values, generalization of `pair`
+  ```cpp
+  #include <tuple>
+  std::pair<T1, T2, T3, ...> tp;        // std::tuple<int, string, float> pr(1, "hello", 2.5);
+
+  tp       = make_tuple(val1, ...);     // create tuple
+  T1 val1  = get<i>(tp);                // extract ith element
+  T2 val2  = get<T2>(tp);               // extract element based on type, compile time error if multiple members of that type
+  ```
+  `std::tie` creates a tuple of lvalue references
+  ```cpp
+  std::pair<std::set<int>::iterator, bool> a;
+  a = st.insert(1);
+
+  // same as
+  std::set<int>::iterator itr;
+  bool flag;
+  std::tie(itr, flag) = st.insert(1);
+  ```
 - **set:** collection of unique keys which is always sorted
   ```cpp
   #include <set>
@@ -1640,7 +1682,7 @@ more performant for types with an inefficient move constructor
 anything with a defined less-than operator (`<`) can be used as key
   ```cpp
   #include <map>
-  std::map<keyT, valT> mp{{1, "hello"}, {2, "world"}};
+  std::map<keyT, valT> mp;              // std::map<int, string> mp{{1, "hello"}, {2, "world"}};
 
   mp[key] = val;                        // assign (insert if not present)
   // empty, size, at(key), clear, insert(pair), find, count
