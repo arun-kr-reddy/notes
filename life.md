@@ -7,6 +7,7 @@
 - [exercising for weight loss](#exercising-for-weight-loss)
 - [second brain](#second-brain)
 - [Maslow’s hierarchy](#maslows-hierarchy)
+- [ESOPs tax filing](#esops-tax-filing)
 - [quotes](#quotes)
 
 # [why save money](https://www.reddit.com/r/personalfinanceindia/comments/1ax2xrp/is_saving_money_really_worth_it/#:~:text=You'll%20learn%20to%20be,didn't%20save%20or%20invest)
@@ -74,6 +75,20 @@ key idea is that lower-level needs must be satisfied before higher-level needs c
   - **love & belonging:** refers to a human emotional need for interpersonal relationships, affiliating, connectedness & being part of a group
   - **self-esteem:** includes self-worth, accomplishment & respect
   - **self-actualization:** refers to the realization of a person’s potential, self-fulfillment, seeking personal growth & peak experiences
+
+# [ESOPs tax filing](https://www.youtube.com/watch?v=NO6OlUI1Hz4)
+- **form 67:** get 1042S from [at work ⟶ my account ⟶ tax information](https://us.etrade.com/etx/pxy/tax-center)  
+fill this in form67 [eFile ⟶ income tax forms ⟶ file income tax forms](https://eportal.incometax.gov.in/iec/foservices/#/dashboard/fileIncomeTaxForm)
+- **ESPP:** `num_shares * (purchase_date_market_value - purchase_price)` is already taxed (form12ba)  
+so need to compute profit on `sale_price - purchase_price`
+get `num_shares` & `purchase_date_market_value` from [at work ⟶ my account ⟶ benefit history](https://us.etrade.com/etx/sp/stockplan#/myAccount/benefitHistory)
+- **RSUs** tax is already paid on `num_shares * vest_date_market_value`  
+so need to compute profit on `sale_price - vest_date_market_value`
+get `num_shares` & `vest_date_market_value` from [at work ⟶ my account ⟶ benefit history](https://us.etrade.com/etx/sp/stockplan#/myAccount/benefitHistory)
+- **profit calculation:**
+  - get `sale_price` from [at work ⟶ my account ⟶ gains & losses -> view order details](https://us.etrade.com/etx/sp/stockplan#/myAccount/gainsLosses)
+  - calculate profit using [SBI TT rate](https://github.com/sahilgupta/sbi-fx-ratekeeper/blob/main/csv_files/SBI_REFERENCE_RATES_USD.csv)
+
 
 # quotes
 - *if you crush a cockroach you're a hero, if you crush a beautiful butterfly you're a villain, morals have aesthetic criteria*
