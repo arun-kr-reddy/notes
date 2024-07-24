@@ -100,3 +100,4 @@ get `num_shares` & `vest_date_market_value` from [at work ⟶ my account ⟶ ben
 - *code is read more than it is written*
 - *temporary solutions often become permanent problems*
 - *advertising has us chasing cars & clothes, working jobs we hate so we can buy shit we don't need*
+- *any fool can make something complicated, it takes a genius to make it simple*

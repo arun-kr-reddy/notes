@@ -3,6 +3,7 @@
 - [powershell](#powershell)
 - [ffmpeg](#ffmpeg)
 - [vlc](#vlc)
+- [youtube](#youtube)
 
 # links  <!-- omit from toc -->
 - [git guide](http://rogerdudler.github.io/git-guide/)
@@ -120,3 +121,6 @@
 - **always on top:** `View` ⟶ `Always on Top`
 - **minimal view default:** `Tools` ⟶ `Preferences` ⟶ `All` ⟶ `Interface` ⟶ `Main interfaces` ⟶ `Qt` ⟶ `Start in minimal view`
 - **always continue playback:** `Tools` ⟶ `Preferences` ⟶ `Interface` ⟶ `Continue Playback` ⟶ `Always`
+
+# youtube
+- **all channel uploads playlist:** copy channel ID from channel's about section, the second letter should be an `C` replace it with `U` & paste it after `https://www.youtube.com/playlist?list=`
