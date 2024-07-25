@@ -4,7 +4,6 @@
 - [higher order procedures](#higher-order-procedures)
 - [misc](#misc)
 - [clean code](#clean-code)
-  - [clean code](#clean-code-1)
 
 # links  <!-- omit from toc -->
 - [[playlist] structure and interpretation of computer programs
@@ -23,14 +22,25 @@
 
 # introduction
 - ***The key to understanding complicated things is to know what not to look at and what not to compute and what not to think***
-- **declarative:** "what is true" knowledge, example: `y` is `sqrt(x)` if `y^2 = x`  
+- ancient Egyptians began geometry using surveying instruments to measure earth (`geometry = gaia + metron`) but we now know that the essence of geometry is much bigger than the act of using these primitive tools  
+we often conflate the essence of a field with its tools (like computers for computer science)
+- computer science deals with idealized components unlike physical system where one has to worry about constraints of tolerance, approximation & noise  
+so for building a large program there isn't much difference between what I can imagine & what I can build
+- **declarative:** "what is true" knowledge, example: `y` is `sqrt(x)` iff `y^2 = x`  
 **imperative:** "how to" knowledge, example: square-root by successive averaging of guess `g` & `x/g` until result doesn't change much
+- **procedure:** is the description/recipe of the process  
+**process:** is the result of applying a procedure to arguments  
+example: procedure is the blueprint, while process is the actual building construction
 - **techniques for controlling complexity:** make building very large programs possible
-  - **black-box abstraction:** putting something in a box to suppress details to go ahead & build bigger boxes OR your "how-to" method is an instance of a more general thing, example: fixed point of a function (`f(y) = y`) by successive applying `f(g)` until result doesn't change much can be used for square-root if `f(g)` is average of `g` & `x/g`
-  - **conventional interfaces:** agreed upon ways of plugging things together, example: use `(* x (+ a b))` to add numbers, vectors, polynomial, analog signals etc
-  - **metalinguistic abstraction:** pick a new design language to highlight different aspect of the system (suppress some kind of details & emphasize others)
+  - **black-box abstraction:** putting something in a box to suppress details to go ahead & build bigger boxes  
+  OR if your "how-to" method is an instance of a more general thing  
+  example: fixed point of a function (`f(y) = y`) by successive applying `f(g)` until result doesn't change much can be used for square-root if `f(g)` is average of `g` & `x/g` (average procedure as a argument to square root procedure)
+  - **conventional interfaces:** agreed upon ways of plugging things together  
+  example: use `(* x (+ a b))` to add-then-scale numbers, vectors, polynomial, analog signals etc
+  - **metalinguistic abstraction:** pick/construct a new design language to highlight different aspect of the system (suppress some kind of details while emphasizing others)
 - **lisp basics:** for learning any language we need to know three things: primitive elements, means of combination & means of abstraction  
-prefix notation `(+ x y)` used uniformly since it is more generic & can take multiple arguments
+prefix notation `(+ x y)` used uniformly since it is more generic & can take multiple arguments  
+lisp make no arbitrary distinction between built-in & user-defined procedures, example: using `square` after defining it similar to using built-in procedures
   ```lisp
   ; primitive elements
   5                            ; 5
@@ -42,36 +52,59 @@ prefix notation `(+ x y)` used uniformly since it is more generic & can take mul
   (+ 5 3.14 1)                 ; 9.14
   (+ 4 (* 3 6) 8 2)            ; 32
   ; case analysis
-  (define (abs x)              ; (using cond)
-    (cond ((< x 0) (- x)))
+  ; using cond
+  (define (abs x)
+    (cond ((< x 0) (- x))      ; (cond (<predicate1> <action1>) (<predicate2> <action2>))
           ((= x 0) 0)
-          ((> x 0) x))
-  (define (abs x)              ; (using if for single case)
+          ((> x 0) x)))
+  ; using if for single case
+  (define (abs x)              ; (if <predicate> <true_action> <false_action>)
     (if (< x 0)
         (- x)
         x))
 
   ; means of abstraction
-  (define pi 3.14)             ; pi (define variable)
+  ; define variable
+  (define pi 3.14)             ; pi
   (* pi pi)                    ; 9.869604403666765
-  (define (square x) (* x x))  ; square (define procedure)
+  ; define procedure
+  (define (square x) (* x x))  ; square
   (square (+ 1 4))             ; 25
-  square                       ; (lambda (x) (* x x)) (above define is syntactic sugar for this)
-                               ; lambda is used to construct a procedure without a name specified
+  square                       ; (lambda (x) (* x x))
+                               ; (square x) is same as square((lambda (x) (* x x)))
+                               ; lambda is used to construct a anonymous/nameless procedure
+                               ; earlier definition is syntactic sugar for this
+  ```
+- **syntactic sugar:** is syntax within a programming language that is designed to make things easier to read or to express
+- combination can be visualized as a tree with operands (primitives & procedures) as branches  
+example: `(- (* x1 (* x1 x1)) (- x2 2))`  
+![](./media/programming/combination_visualization.png)
+- **example: procedure vs primitive:**
+  ```
+  (define A (* 5 5))
+  (define (B) (* 5 5))         ; procedure with no arguements
+  A                            ; 25
+  B                            ; CompoundProcedure
+  (B)                          ; 25
   ```
 
 # procedures & processes
-- **procedure:** is the description/recipe of the process  
-**process:** is the result of applying a procedure to arguments  
-example: procedure is the blueprint, while process is the actual building construction
-- computer science deals with idealized components unlike physical system where one has to worry about constraints of tolerance, approximation & noise  
-so for building a large program there isn't much difference between what I can imagine & what I can build
 - **formal parameter:** parameter written in function definition  
 **actual parameter:** parameter written in function call
-- **recursive definitions:** allows you to do infinite computations that go on until something is true
+- **recursive definitions:** allows you to do infinite computations that go on until something is true  
+**block structure:** package internals inside of definition, to not confuse the system confused if internal procedures' names reused
+- **example: factorial using recursion:**
+  ```lisp
+  (define (factorial num)
+    (if (< num 2)
+        1 
+        (* (factorial (- num 1)) num)))
+
+  (factorial 10)                            ; 3628800
+  ```
 - **example: square root by successive averaging:**
   ```lisp
-  ; block structure: package internals inside of definition
+  ; note: cannot run on online interpreters
   (define (sqrt x)
     (define (try g x)                       ; try
       (if (goodenough? g x)
@@ -306,6 +339,10 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
 - **reentrancy:** a function/subroutine can be interrupted and then resumed before it finishes executing, this also means that the function can be called again before it completes its previous execution, so reentrant code needs to be safe & predictable when multiple instances of the same function are called simultaneously or in quick succession
 
 # clean code
+- **fundamentals:**
+  - write for clarity and correctness first
+  - avoid premature optimization, by default prefer clear over optimal
+  - prefer faster when equally clear
 - **basics:**
   ```cpp
   int some_random_var;  // snake case
@@ -322,9 +359,3 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 =
   // camelCase: functions & classes
   int someFunction(void);
   ```
-
-## clean code
-- fundamentals:
-  - write for clarity and correctness first
-  - avoid premature optimization, by default prefer clear over optimal
-  - prefer faster when equally clear
