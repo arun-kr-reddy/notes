@@ -1,13 +1,32 @@
 # table of contents  <!-- omit from toc -->
 - [introduction](#introduction)
 - [processes](#processes)
+  - [process abstraction](#process-abstraction)
+  - [process API](#process-api)
+  - [process execution mechanism](#process-execution-mechanism)
+  - [scheduling policies](#scheduling-policies)
+  - [inter-process communication](#inter-process-communication)
 - [memory](#memory)
+  - [virtual memory](#virtual-memory)
+  - [address translation](#address-translation)
+  - [paging](#paging)
+  - [demand paging](#demand-paging)
+  - [memory allocation algorithms](#memory-allocation-algorithms)
 - [concurrency](#concurrency)
+  - [threads and concurrency](#threads-and-concurrency)
+  - [locks](#locks)
+  - [conditional variables](#conditional-variables)
+  - [semaphores](#semaphores)
+  - [concurrency bugs](#concurrency-bugs)
 - [I/O and filesystems](#io-and-filesystems)
+  - [communication with I/O devices](#communication-with-io-devices)
+  - [files \& directories](#files--directories)
+  - [file system implementation](#file-system-implementation)
+  - [hard disk internals](#hard-disk-internals)
 - [xv6](#xv6)
 
 # links  <!-- omit from toc -->
-- [[lectures] operating systems](https://www.cse.iitb.ac.in/~mythili/os/)
+- [[playlist] operating systems & system programming](https://cs162.org/)
 
 # todo  <!-- omit from toc -->
 - [IPC extra](https://www.cse.iitb.ac.in/~mythili/os/notes/notes-ipc.txt)

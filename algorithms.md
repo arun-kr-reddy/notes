@@ -2,7 +2,7 @@
 - [introduction](#introduction)
 
 # links  <!-- omit from toc -->
-- [[lectures] analysis of algorithms](https://www3.cs.stonybrook.edu/~skiena/373/videos/)
+- [[playlist] introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/)
 - [big O notation](https://adrianmejia.com/how-to-find-time-complexity-of-an-algorithm-code-big-o-notation/)
 
 # todo  <!-- omit from toc -->
@@ -11,6 +11,7 @@
 - [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
 - [leetcode 75](https://leetcode.com/studyplan/leetcode-75/)
 - [connected component labelling](https://en.wikipedia.org/wiki/Connected-component_labeling)
+- [postfix vs infix](https://www.geeksforgeeks.org/postfix-to-infix/)
 
 # introduction
 - **algorithms:** is a finite sequence of well-defined instructions that can be used to solve a computational problem  

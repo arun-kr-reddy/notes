@@ -6,7 +6,7 @@
 # links  <!-- omit from toc -->
 
 # todo  <!-- omit from toc -->
-- [[lectures] first principles of computer vision](https://fpcv.cs.columbia.edu/)
+- [[playlist] first principles of computer vision](https://fpcv.cs.columbia.edu/)
 - [feature detection & matching algos](https://medium.com/data-breach/introduction-to-feature-detection-and-matching-65e27179885d)
 - [stanford CV tutorial](https://ai.stanford.edu/~syyeung/cvweb/tutorials.html)
 - FastCV, OpenCV

@@ -1,5 +1,6 @@
 # table of contents  <!-- omit from toc -->
 - [git](#git)
+- [mermaid UML](#mermaid-uml)
 - [powershell](#powershell)
 - [ffmpeg](#ffmpeg)
 - [vlc](#vlc)
@@ -86,6 +87,84 @@
   git checkout -- <filename>  # replace working directory file changes with one in HEAD
   git status                  # changes in working directory & index
   git fetch origin && git reset --hard origin/master  # drop all local changes & commits
+  ```
+
+# [mermaid UML](https://jojozhuang.github.io/tutorial/mermaid-cheat-sheet/)
+- **flowchart:** graph direction: `TB` , `BT`, `RL`, `LR`  
+nodes shape: rect `[ ]`, rounded rect `( )`, circle `(( ))`, rhombus `{ }`  
+link types: link `---`, arrow `-->`, dotted arrow `-.->`  
+![](./media/tools/flowchart_symbols.png)
+  ```bash
+  graph LR
+    a((start))
+    b[func1]
+    c[func2]
+    d{cond}
+    e((end))
+
+    a --> b
+    b --> d
+    d -- yes --> c
+    d -- no --> e
+    c --> e
+  ```
+  ```mermaid
+  graph LR
+    a((start))
+    b[func1]
+    c[func2]
+    d{cond}
+    e((end))
+
+    a --> b
+    b --> d
+    d -- yes --> c
+    d -- no --> e
+    c --> e
+  ```
+- **sequence diagram:** participants in order of declaration  
+message types: line `->`, dotted line `-->`, arrow `->>`, dotted arrow `-->>`  
+show activation period by appending `+`/`-` to message  
+notes can be added `Note [direction] [participants]: [message]` where direction can be `right of`, `left of`, `over`  
+for `over` notes multiple comma-separated participants can be added  
+for loops `loop <title>\n  statements...  \nend`
+  ```bash
+  sequenceDiagram
+    participant thread1
+    participant thread2
+    participant thread3
+
+    thread1 ->>+ thread2: frame_start
+
+    loop busy_wait
+        thread2 -->> thread3: reg_read
+        thread3 -->> thread2: reg_val
+    end
+
+    thread2 ->>+ thread3: frame
+    thread3 ->>- thread2: output
+
+    Note over thread1, thread2: some comment
+    thread2 ->>- thread1: frame_done
+  ```
+  ```mermaid
+  sequenceDiagram
+    participant thread1
+    participant thread2
+    participant thread3
+
+    thread1 ->>+ thread2: frame_start
+
+    loop busy_wait
+        thread2 -->> thread3: reg_read
+        thread3 -->> thread2: reg_val
+    end
+
+    thread2 ->>+ thread3: frame
+    thread3 ->>- thread2: output
+
+    Note over thread1, thread2: some comment
+    thread2 ->>- thread1: frame_done
   ```
 
 # powershell

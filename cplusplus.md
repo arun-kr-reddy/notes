@@ -16,7 +16,7 @@
   - [functions](#functions)
 
 # links  <!-- omit from toc -->
-- [[lectures] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
+- [[playlist] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
 - [compiler explorer](https://godbolt.org/)
 - [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
 - [bit manipulation](https://www.hackerearth.com/practice/basic-programming/bit-manipulation/basics-of-bit-manipulation/tutorial/)
@@ -48,6 +48,10 @@
 - friend functions
 - [embedded C questions](https://rmbconsulting.us/publications/a-c-test-the-0x10-best-questions-for-would-be-embedded-programmers/)
 - [named lambda](https://stackoverflow.com/questions/51760019/why-would-one-write-a-c-lambda-with-a-name-so-it-can-be-called-from-somewhere)
+- iomapip
+- std::any
+- floating point to fixed point
+- hardware abstraction layer
 
 # introduction
 - *within C++ there is a much smaller & cleaner language struggling to get out*

@@ -7,11 +7,11 @@
   - [clean code](#clean-code-1)
 
 # links  <!-- omit from toc -->
-- [scheme (lisp dialect) interpreter](https://inst.eecs.berkeley.edu/~cs61a/fa14/assets/interpreter/scheme.html)
+- [[playlist] structure and interpretation of computer programs
+](https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/) ([notes](https://mk12.github.io/sicp/lecture/1a.html))
+- [scheme interpreter](https://try.scheme.org/)
 
 # todo  <!-- omit from toc -->
-- [[lectures] structure and interpretation of computer programs
-](https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/)
 - [iterative process for fibonacci & towers of hanoi](https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution)
 - dynamic programming
 - [why is lisp different](https://www.paulgraham.com/diff.html)
