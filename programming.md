@@ -35,9 +35,11 @@ example: procedure is the blueprint, while process is the actual building constr
   - **black-box abstraction:** putting something in a box to suppress details to go ahead & build bigger boxes  
   OR if your "how-to" method is an instance of a more general thing  
   example: fixed point of a function (`f(y) = y`) by successive applying `f(g)` until result doesn't change much can be used for square-root if `f(g)` is average of `g` & `x/g` (average procedure as a argument to square root procedure)
-  - **conventional interfaces:** agreed upon ways of plugging things together  
+  - **conventional interfaces:** agreed upon ways of plugging things together (generic operations, object-oriented programming)  
   example: use `(* x (+ a b))` to add-then-scale numbers, vectors, polynomial, analog signals etc
-  - **metalinguistic abstraction:** pick/construct a new design language to highlight different aspect of the system (suppress some kind of details while emphasizing others)
+  - **metalinguistic abstraction:** pick/construct a new domain-specific design language that will highlight different aspect of the system (suppress some kind of details while emphasizing others)  
+  process of interpreting lisp is like a giant wheel of two processes `apply` & `eval` which reduce expressions to each other  
+  ![](./media/programming/lisp_apply_eval.png)
 - **lisp basics:** for learning any language we need to know three things: primitive elements, means of combination & means of abstraction  
 prefix notation `(+ x y)` used uniformly since it is more generic & can take multiple arguments  
 lisp make no arbitrary distinction between built-in & user-defined procedures, example: using `square` after defining it similar to using built-in procedures
@@ -54,11 +56,11 @@ lisp make no arbitrary distinction between built-in & user-defined procedures, e
   ; case analysis
   ; using cond
   (define (abs x)
-    (cond ((< x 0) (- x))      ; (cond (<predicate1> <action1>) (<predicate2> <action2>))
+    (cond ((< x 0) (- x))      ; (cond ([predicate1] [action1]) (<predicate2> <action2>))
           ((= x 0) 0)
           ((> x 0) x)))
   ; using if for single case
-  (define (abs x)              ; (if <predicate> <true_action> <false_action>)
+  (define (abs x)              ; (if [predicate] <consequent> <alternative>)
     (if (< x 0)
         (- x)
         x))
@@ -81,18 +83,18 @@ example: `(- (* x1 (* x1 x1)) (- x2 2))`
 ![](./media/programming/combination_visualization.png)
 - **example: procedure vs primitive:**
   ```
-  (define A (* 5 5))
-  (define (B) (* 5 5))         ; procedure with no arguements
-  A                            ; 25
-  B                            ; CompoundProcedure
-  (B)                          ; 25
+  (define a (* 5 5))
+  (define (b) (* 5 5))  ; procedure with no arguements
+  a                     ; 25
+  b                     ; CompoundProcedure
+  (b)                   ; 25
   ```
 
 # procedures & processes
 - **formal parameter:** parameter written in function definition  
 **actual parameter:** parameter written in function call
 - **recursive definitions:** allows you to do infinite computations that go on until something is true  
-**block structure:** package internals inside of definition, to not confuse the system confused if internal procedures' names reused
+**block structure:** package internals inside of definition to create a black-box
 - **example: factorial using recursion:**
   ```lisp
   (define (factorial num)
@@ -100,12 +102,12 @@ example: `(- (* x1 (* x1 x1)) (- x2 2))`
         1 
         (* (factorial (- num 1)) num)))
 
-  (factorial 10)                            ; 3628800
+  (factorial 10)  ; 3628800
   ```
 - **example: square root by successive averaging:**
   ```lisp
   ; note: cannot run on online interpreters
-  (define (sqrt x)
+  (define (sqrt x)                          ; block structure used
     (define (try g x)                       ; try
       (if (goodenough? g x)
           g
@@ -136,42 +138,36 @@ example: `(- (* x1 (* x1 x1)) (- x2 2))`
     (+ 9 16)
     25
     ```
-  - **special forms:**
-    - **conditionals:** evaluate predicate first then the consequent/alternative expression
-      ```lisp
-      (if <predicate>
-          <consequent>
-          <alternative>)
-      ```
-      ```lisp
-      (define (+ x y)
-        (if (= x 0)
-            y
-            (+ (-1+ x) (1+ y))))         ; "-1+" is decrement operator & "1+" is the increment operator
-                                         ; counting down "x" till "y" is the sum
-      (+ 3 4)                            ; 7
+  - **special forms:** for conditionals evaluate predicate first then the consequent/alternative expression  
+  other special forms are lambda expressions & definitions
+    ```lisp
+    (define (+ x y)
+      (if (= x 0)
+          y
+          (+ (-1+ x) (1+ y))))         ; "-1+" is decrement operator & "1+" is the increment operator
+                                       ; counting down "x" till "y" is the sum
+    (+ 3 4)                            ; 7
 
-      ; substitution model
-      (+ 3 4)
-      (if (= 3 0) 4 (+ (-1+ 3) (1+ 4)))
-      (+ (-1+ 3) (1+ 4))
-      (+ (-1+ 3) 5)
-      (+ 2 5)                            ; recursion
-      (if (= 2 0) 5 (+ (-1+ 2) (1+ 5)))
-      (+ (-1+ 2) (1+ 5))
-      (+ (-1+ 2) 6)
-      (+ 1 6)                            ; recursion
-      (if (= 1 0) 6 (+ (-1+ 1) (1+ 6)))
-      (+ (-1+ 1) (1+ 6))
-      (+ (-1+ 1) 7)
-      (+ 0 7)                            ; recursion
-      (if (= 0 0) 7 (+ (-1+ 0) (1+ 7)))
-      7
-      ```
-    - lambda expressions, definitions
+    ; substitution model
+    (+ 3 4)
+    (if (= 3 0) 4 (+ (-1+ 3) (1+ 4)))
+    (+ (-1+ 3) (1+ 4))
+    (+ (-1+ 3) 5)
+    (+ 2 5)                            ; recursion
+    (if (= 2 0) 5 (+ (-1+ 2) (1+ 5)))
+    (+ (-1+ 2) (1+ 5))
+    (+ (-1+ 2) 6)
+    (+ 1 6)                            ; recursion
+    (if (= 1 0) 6 (+ (-1+ 1) (1+ 6)))
+    (+ (-1+ 1) (1+ 6))
+    (+ (-1+ 1) 7)
+    (+ 0 7)                            ; recursion
+    (if (= 0 0) 7 (+ (-1+ 0) (1+ 7)))
+    7
+    ```
 - **peano arithmetic:** formalizes arithmetic operations on natural numbers & their properties  
 there are two ways to add whole numbers, both are recursive definitions but lead to different process types: iteration & recursion  
-number of steps is approximation for time it takes to execute & width is the the space that needs to be remembered
+number of steps is approximation for time it takes to execute and width is the the space that needs to be remembered
   - **iteration:** time `O(x)` (steps increase as `x` increases) & space `O(1)` (same width for any `x`)  
   has all of its state in explicit variables (formal parameters), example: can continue the computation from `(+ 1 6)`  
     ```lisp
@@ -183,8 +179,22 @@ number of steps is approximation for time it takes to execute & width is the the
     (+ 3 4)
     (+ 2 5)
     (+ 1 6)
-    (+ 0 7)
+    (+ 0 7)  ; consequent (exit condition)
     7
+    ```
+    ```mermaid
+    graph LR
+      a((start))
+      b(loop)
+      c(loop)
+      d(loop)
+      e(loop)
+
+      a -- (+ 3 4) --> b
+      b -- (+ 2 5) --> c
+      c -- (+ 1 6) --> d
+      d -- (+ 0 7) --> e
+      e -- 7 --> a
     ```
   - **recursion:** time `O(x)` (steps increase as `x` increases) & space `O(x)` (deferred increments increase as `x` increases)  
   has its state not just in explicit variables but some information belongs to computer as well, example: cannot continue the computation from `(+ 1 4)` without knowing about deferred increments
@@ -197,11 +207,31 @@ number of steps is approximation for time it takes to execute & width is the the
     (+ 3 4)
     (1+ (+ 2 4))
     (1+ (1+ (+ 1 4)))
-    (1+ (1+ (1+ (+ 0 4))))
+    (1+ (1+ (1+ (+ 0 4))))  ; consequent (exit condition)
     (1+ (1+ (1+ 4)))
     (1+ (1+ 5))
     (1+ 6)
     7
+    ```
+    ```mermaid
+    sequenceDiagram
+      participant start
+      participant call1
+      participant call2
+      participant call3
+      participant call4
+
+      start ->> call1: (+ 3 4)
+      call1 ->> call2: (+ 2 4)
+      Note over call1: 1+
+      call2 ->> call3: (+ 1 4)
+      Note over call2: 1+
+      call3 ->> call4: (+ 0 4)
+      Note over call3: 1+
+      call4 ->> call3: 4
+      call3 ->> call2: 5
+      call2 ->> call1: 6
+      call1 ->> start: 7
     ```
   - typically, an iterative process passes the answer around as a parameter (the accumulator) in such a way that the last recursive call has no pending operations left  
   ![](media/programming/recursion_vs_iteration.png)
