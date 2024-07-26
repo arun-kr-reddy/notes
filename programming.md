@@ -21,7 +21,7 @@
 - pragmatic programmer
 
 # introduction
-- ***The key to understanding complicated things is to know what not to look at and what not to compute and what not to think***
+- *The key to understanding complicated things is to know what not to look at and what not to compute and what not to think*
 - ancient Egyptians began geometry using surveying instruments to measure earth (`geometry = gaia + metron`) but we now know that the essence of geometry is much bigger than the act of using these primitive tools  
 we often conflate the essence of a field with its tools (like computers for computer science)
 - computer science deals with idealized components unlike physical system where one has to worry about constraints of tolerance, approximation & noise  
@@ -235,40 +235,42 @@ number of steps is approximation for time it takes to execute and width is the t
     ```
   - typically, an iterative process passes the answer around as a parameter (the accumulator) in such a way that the last recursive call has no pending operations left  
   ![](media/programming/recursion_vs_iteration.png)
-- **perturbation analysis:** making small changes to the program & see how it affects the process
-- **example: fibonacci numbers:** time is denoted by each node that the dotted arrow follows `O(fib(x))` & to go back from the tail node  to head node we have to remember all the intermediate nodes so space complexity is the longest path `O(n)`  
-this program consists of just two rules: break up something into two parts for `(> n 2)` & reduction for `(< n 2)`
+- **perturbation analysis:** making small changes to the program and see how it affects the process
+- **example: fibonacci numbers:** this program consists of just two rules: breaking up a problem into two parts for `(> n 2)` and base case for `(< n 2)`  
+time is denoted by each node that the dotted arrow follows `O(fib(x))` and space complexity is the longest path `O(n)` since we have to remember all the intermediate node values  
+note that `fib(3)` subtree is being constructed twice so this is a extremely inefficient
   ```lisp
-  ; [0] 1 1 2 3 5 8 13 21 34 . . .
+  ; [0 1] 1 2 3 5 8 13 21 34 . . .
   (define (fib n)
     if(< n 2)
       n
       (+ (fib (- n 1)) (fib (- n 2))))
   ```  
   ![](media/programming/fibonacci.png)
-- **example: towers of hanoi:** move `n` disks from tower 'from' to tower `to` using an extra tower `spare`  
+- *the way in which you would construct a recursive process is by wishful thinking, you have to believe*
+- **example: towers of hanoi:** move `n` disks from tower `from` to tower `to` using an extra tower `spare`  
 suppose we know how to move `n-1` disks, then we move `n-1` disks to `spare`, `n`th disk to `to`, then `n-1` disks on top of `n`th in `to`  
-this is possible through recursion because we always count down here & 0 high tower requires no moves
+this is possible through recursion because we always count down and when we reach 0 high tower it requires no moves
   ```lisp
   (define (move n from to spare)
     (cond ((= n 0) "done")
           (else
             (move (-1+ n) from spare to)     ; move "n-1" disks "from" to "spare" using "to" as spare
-            (single move n from to)          ; move "n"th disk "from" to "to"
+            (single_move n from to)          ; move "n"th disk "from" to "to"
             (move (-1+ n) spare to from))))  ; move "n-1" disks "spare" to "to" using "from" as spare
   ```  
   ![](media/programming/towers_of_hanoi.png)  
 
 # higher order procedures
-- whenever trying to make complicated systems and understand them, it is crucial to divide the things up into as many pieces as I can, each of which I understand separately  
-summation of integers & summation of squares have almost the same program with only term differing (`a` & `(square a)`), but we don't like repetition & no repetition means you only write it once (also only understand and debug it once)
+- summation of integers & summation of squares have almost the same program with only term differing (`a` & `(square a)`)  
+but we don't like repetition and no repetition means you only write it once (also only understand and debug it once)
   ```lisp
   ; Σ i, for i=a to i=b
   (define (sum_int a b)
     (if (> a b)
       0
       (+ a                       ; term
-         (sum_int (1 + a) b))))
+         (sum_int (1+ a) b))))
 
   ; Σ i^2, for i=a to i=b
   (define (sum_sq a b)
@@ -277,29 +279,32 @@ summation of integers & summation of squares have almost the same program with o
       (+ (square a)              ; term
          (sum_sq (1 + a) b))))
   ```
-- **example: generic summation:** a more general pattern for summation is  
-procedures are just another kind of data like numbers  
-procedure `sum` is encapsulated in other procedures, improving this will benefit all procedures using it
+- *whenever trying to make complicated systems and understand them, it is crucial to divide the things up into as many pieces as I can, each of which I understand separately  
+no repetition means you only write it once but also only understand and debug it once  
+any time you see things that are almost identical think of an abstraction to cover them*
+- **example: generic summation:** procedures are just another kind of data like numbers,so a more general pattern for summation is
   ```lisp
-  (define (sum term a next b)           ; "term" & next are procedural arguments
+  (define (sum term a next b)           ; "term" & "next" are procedural arguments
     (if (> a b)
       0
-      (+ (term a)                       ; "term" produces a value for a given index
-         (sum term 
-         (next a)                       ; "next" produces the next index
-         next 
-         b))))
-  
+      (+ (term a)                       ; "term" produces the value for a given index
+         (sum term (next a) next b))))  ; "next" produces the next index
+  ```
+  procedure `sum` is then encapsulated in other procedures, so improving `sum` will automatically benefit all procedures using it
+  ```lisp
   ; sum_int
   (define (sum_int a b)
-    (define (identity a) a)
-    (sum identity a 1+ b))
+    (define (identity a) a)      ; defined because sum expects procedure argument
+    (sum identity a 1+ b))       ; 1+ gives next index
   
   ; sum_sq
   (define (sum_sq a b)
     (define (square a) (* a a))
     (sum square a 1+ b))
   ```
+
+CONTINUE -> 2a @ 22:37
+
 - **example: square-root using fixed point:**
   ```lisp
   ; square-root

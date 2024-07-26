@@ -1,6 +1,11 @@
 # table of contents  <!-- omit from toc -->
 - [introduction](#introduction)
+  - [example: matrix multiplication performance optimization](#example-matrix-multiplication-performance-optimization)
 - [Bentley optimization rules](#bentley-optimization-rules)
+  - [data structures](#data-structures)
+  - [logic](#logic)
+  - [loops](#loops)
+  - [functions](#functions)
 - [bit hacks](#bit-hacks)
 
 # links  <!-- omit from toc -->
@@ -25,8 +30,8 @@
 - static sparse graph using CSR
 
 # introduction
-- ***the first rule of program optimization: don't do it  
-second rule of program optimization: for experts only, don't do it yet***
+- *the first rule of program optimization: don't do it  
+second rule of program optimization: for experts only, don't do it yet*
 - there are software properties that are more important that performance, like modularity, reliability, portability, maintainability, testability etc  
 then **why performance:** performance is the currency of computing using which we often buy needed properties  
 - Moore's law and scaling of clock frequency was the printing press for the currency of performance, but that came to an end in 2004 when clock speed plateaued  
