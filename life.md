@@ -7,7 +7,7 @@
 - [exercising for weight loss](#exercising-for-weight-loss)
 - [second brain](#second-brain)
 - [Maslow’s hierarchy](#maslows-hierarchy)
-- [ESOPs tax filing](#esops-tax-filing)
+- [ESOPs tax filing (spreadsheet)](#esops-tax-filing-spreadsheet)
 - [quotes](#quotes)
 
 # [why save money](https://www.reddit.com/r/personalfinanceindia/comments/1ax2xrp/is_saving_money_really_worth_it/#:~:text=You'll%20learn%20to%20be,didn't%20save%20or%20invest)
@@ -76,19 +76,22 @@ key idea is that lower-level needs must be satisfied before higher-level needs c
   - **self-esteem:** includes self-worth, accomplishment & respect
   - **self-actualization:** refers to the realization of a person’s potential, self-fulfillment, seeking personal growth & peak experiences
 
-# [ESOPs tax filing](https://www.youtube.com/watch?v=NO6OlUI1Hz4)
-- **form 67:** get 1042S from [at work ⟶ my account ⟶ tax information](https://us.etrade.com/etx/pxy/tax-center)  
-fill this in form67 [eFile ⟶ income tax forms ⟶ file income tax forms](https://eportal.incometax.gov.in/iec/foservices/#/dashboard/fileIncomeTaxForm)
-- **ESPP:** `num_shares * (purchase_date_market_value - purchase_price)` is already taxed (form12ba)  
-so need to compute profit on `sale_price - purchase_price`
-get `num_shares` & `purchase_date_market_value` from [at work ⟶ my account ⟶ benefit history](https://us.etrade.com/etx/sp/stockplan#/myAccount/benefitHistory)
-- **RSUs** tax is already paid on `num_shares * vest_date_market_value`  
-so need to compute profit on `sale_price - vest_date_market_value`
-get `num_shares` & `vest_date_market_value` from [at work ⟶ my account ⟶ benefit history](https://us.etrade.com/etx/sp/stockplan#/myAccount/benefitHistory)
-- **profit calculation:**
-  - get `sale_price` from [at work ⟶ my account ⟶ gains & losses -> view order details](https://us.etrade.com/etx/sp/stockplan#/myAccount/gainsLosses)
-  - calculate profit using [SBI TT rate](https://github.com/sahilgupta/sbi-fx-ratekeeper/blob/main/csv_files/SBI_REFERENCE_RATES_USD.csv)
-
+# [ESOPs tax filing](https://www.youtube.com/watch?v=NO6OlUI1Hz4) ([spreadsheet](https://docs.google.com/spreadsheets/d/1oIXQBw2UPs85bPaDNYrtJTxoSkKj0gQ7glok59ZK_Gs/edit?usp=sharing))
+- total RSU & ESPP already-taxed income present in form12b, check individual values in tax-computation-sheet
+- to calculate gain/profit in INR use [SBI TT rate](https://github.com/sahilgupta/sbi-fx-ratekeeper/blob/main/csv_files/SBI_REFERENCE_RATES_USD.csv)
+- **ESPP:** `num_shares * (purchase_date_FMV - purchase_price)` is already taxed, so only need to compute profit `num_shares * (sale_price - purchase_date_FMV)`  
+use [gain & losses](https://us.etrade.com/etx/sp/stockplan#/myAccount/gainsLosses)(example below) to calculate gain in USD  
+![](./media/life/esop_taxation_espp.png)
+- **RSUs:** `num_shares * vest_date_FMV` already taxed, so only need to compute profit `num_shares * (sale_price - vest_date_FMV)`  
+use [gain & losses](https://us.etrade.com/etx/sp/stockplan#/myAccount/gainsLosses)(example below) to calculate gain in USD  
+**note:** one-third shares sold on vesting, so figure out order pairs of auto-covered-sale and what-you-sold  
+**note:** dividends as fractional shares are received as cash, get the fraction from confirmation of release and assume them to be part of auto-covered-sale  
+![](./media/life/esop_taxation_rsu.png)
+- **1042S:** dividends are taxed by US at 25% which can be used as tax credits using [1042S](https://us.etrade.com/etx/pxy/tax-center), so use these by converting them to INR and filling [form67](https://eportal.incometax.gov.in/iec/foservices/#/dashboard/fileIncomeTaxForm)
+- **ITR schedules:**
+  - **capital gains:** fill the combined purchase & sale price for RSU + ESPP
+  - **foreign source income (FSI):** fill RSUs & ESPP gain
+  - **foreign assets (FA):** this is for calendar year, so fill purchase & sale price for combined assets (ESPP + RSU)
 
 # quotes
 - *if you crush a cockroach you're a hero, if you crush a beautiful butterfly you're a villain, morals have aesthetic criteria*

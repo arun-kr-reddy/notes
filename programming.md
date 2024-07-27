@@ -2,6 +2,7 @@
 - [introduction](#introduction)
 - [procedures \& processes](#procedures--processes)
 - [higher order procedures](#higher-order-procedures)
+- [compound data](#compound-data)
 - [misc](#misc)
 - [clean code](#clean-code)
 
@@ -9,6 +10,7 @@
 - [[playlist] structure and interpretation of computer programs
 ](https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/) ([notes](https://mk12.github.io/sicp/lecture/1a.html))
 - [scheme interpreter](https://try.scheme.org/)
+- [SICP distilled](https://www.sicpdistilled.com/)
 
 # todo  <!-- omit from toc -->
 - [iterative process for fibonacci & towers of hanoi](https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution)
@@ -165,7 +167,7 @@ example: `(- (* x1 (* x1 x1)) (- x2 2))`
     (if (= 0 0) 7 (+ (-1+ 0) (1+ 7)))
     7
     ```
-- **peano arithmetic:** formalizes arithmetic operations on natural numbers & their properties  
+- **example: peano arithmetic:** formalizes arithmetic operations on natural numbers & their properties  
 there are two ways to add whole numbers, both are recursive definitions but lead to different process types: iteration & recursion  
 number of steps is approximation for time it takes to execute and width is the the space that needs to be remembered
   - **iteration:** time `O(x)` (steps increase as `x` increases) & space `O(1)` (same width for any `x`)  
@@ -302,68 +304,105 @@ any time you see things that are almost identical think of an abstraction to cov
     (define (square a) (* a a))
     (sum square a 1+ b))
   ```
-
-CONTINUE -> 2a @ 22:37
-
+- **higher order procedures:** take procedural arguments & produce procedural values out, they help us clarify & abstract some otherwise complicated processes
 - **example: square-root using fixed point:**
   ```lisp
-  ; square-root
+  ; square root
   (define (sqrt x)
     (fixed_point 
-      (lamdba (y) (average (/ x y) y))
-      1))
+      (lamdba (y) (average (/ x y) y))  ; y ⟶ (y + (x/y))/2
+      1))                               ; initial guess
   
-  ; fixed-point
+  ; fixed point
   (define (fixed_point f start)
+    (define tolerance 0.001)
+    (define (close_enough u v)
+      (< (abs(- u v)) tolerance))
     (define (iter old new)
-      (if (close_enough? old new)
+      (if (close_enough old new)
         new
         (iter new (f new))))       ; "new" becomes old & "f(new)" becomes new
     (iter start (f start)))
   ```
-  - why should this converge?  
-    here for finding `(sqrt x)` (such that `y^2 = x` or its equivalent form `y = x/y`) we can search for the fixed point using `f(y) = x/y` (`(fixed_point (lambda (y) (/ x y)) 1)`)  
-    considering intial guess `y1`, this never converges, it keeps oscillating between `y1` & `y2` (`y2 = x/y1` ⟶ `y3 = x/y2 = x/(x/y1) = y1`)  
-    average is used to damp out these oscillations
-    ```lisp
-    (define (sqrt x)
-      (fixed_point
-        (average_damp (lambda (y) (/ x y)))  ; procedure returned from averagfw_damp used as "f"
-        1))
-    
-    (define average_damp
-      (lambda (f)                            ; takes procedure as an argument
-        (lambda (x) (average (f x) x))))     ; & return procedure as a value
-    ```
-- **higher order procedures:** take procedural arguments & produce procedural values ot help us clarify & abstract some otherwise complicated processes
-- **example: Netwon's method to find square roots:** used to find roots of a function  
-to find `y` such that `f(y) = 0`, start with a guess `y0` & iterate with `yn+1 = lim y->yn (y - f(y)/(df/dy))`
+  **why `(y + (x/y))/2` should converge?:** for `(sqrt x)` we know `y^2 = x` so its equivalent form `y = x/y` can be used to search for the fixed point using `(fixed_point (lambda (y) (/ x y)) 1)`  
+  but for initial guess `y1` this never converges, it keeps oscillating between `y1` & `y2` such that `y2 = x/y1` ⟶ `y3 = x/y2 = x/(x/y1) = y1`  
+  average is used to damp out these oscillations
   ```lisp
   (define (sqrt x)
-    (newton (lambda (y) (- x (square y)))  ; if we know value of "y" for which "x - y^2 = 0" then "y = sqrt(x)"
-    1))
-  (define (newton f guess)
-    (define df (derive f)
     (fixed_point
-      (lambda(x) (- x (/ (f x) (df x)))))  ; (x - f(x)/(df/dx))
-      guess))
-  (define deriv
-    (lambda (f)
-      (lambda (x)
-        (/ (- (f (+ x dx))                 ; (f(x+dx) - f(x))/dx
-           (f x))
-        dx))))
-  (define dx 0.00001)
+      (average_damp (lambda (y) (/ x y)))  ; procedure returned from average_damp used as "f"
+      1))
+  
+  (define average_damp
+    (lambda (f)                            ; takes procedure as an argument
+      (lambda (x) (average (f x) x))))     ; and returns a procedure
+
+  ; OR
+  (define (average_damp f)                 ; takes procedure as an argument
+    (define (foo x) (average (f x) x))
+    foo)                                   ; and returns a procedure
   ```
 - **top-down design:** allows us to use names of procedures that we haven’t defined yet while writing a program
-- **rights and privileges of first-class citizens:** Chris Strachey was advocate for making procedures/functions should be first class citizens in a programming language
-  - to be named by variables
-  - to be passed as arguments to procedures
-  - to be returned as values of procedures
-  - to be incorporating into data structures
+- **example: Netwon's method to find square roots:** used to find zeroes/roots of a function  
+to find `y` such that `f(y) = 0`, start with a guess `y0` and then iterate with `yn+1 = yn - f(yn)/f'(yn)`
+  ```lisp
+  (define (sqrt x)
+    (newton (lambda (y) (- x (square y)))  ; the value of "y" for which "x - y^2 = 0" or "y = sqrt(x)"
+            1))
 
-- [continue](https://www.youtube.com/watch?v=DrFkf-T-6Co&list=PLE18841CABEA24090&index=5)
+  (define (newton f guess)
+    (define df (derive f))
+    (fixed_point
+      (lambda(x) (- x (/ (f x) (df x))))  ; x - f(x)/f'(x)
+      guess))
 
+  (define deriv                           ; compound procedure
+    (lambda (f)
+      (lambda (x)
+        (/ (- (f (+ x dx))                ; (f(x+dx) - f(x))/dx
+              (f x))
+           dx))))
+
+  (define dx 0.00001)
+
+  ; newton without block structure
+  (define (newton f guess)
+    (fixed_point
+      (lambda(x) (- x (/ (f x) ((deriv f) x))))  ; x - f(x)/f'(x)
+      guess))
+  ```
+- Chris Strachey was a advocate for making procedures/functions first class citizens in a programming language, rights and privileges of first-class citizens are to be:
+  - named by variables
+  - passed as arguments to procedures
+  - returned as values of procedures
+  - incorporated into data structures
+
+# compound data
+- **layered system:** when we’re building things we divorce the task of building things from the task of implementing the parts  
+example:someone else could have written `goodenough?` for us when we wrote `sqrt`, as long as it works we don't know the implementation (abstraction layer)  
+similarly we have means of combination for data as well
+- **example: rational number arithmetic:** to express the arithmetic operators for fractions  
+we already know that `n1/d1 + n2/d2 = (n1d2 + n2d1)/d1d2` and `n1/d1 * n2/d2 = n1n2/d1d2`  
+so here computation is easy but to represent a fraction we apply the strategy of wishful thinking and just assume we already have `make_rat` to create fraction from numbers, `numer` to get numerator from rational number & `denom` to get denominator from rational number
+  ```lisp
+  ; "x" & "y" are rational numbers
+  (define (+rat x y)
+    (make_rat)
+      (+ (* (numer x) (denom y))   ; numerator
+         (* (numer y) (denom x)))
+      (* (denom x) (denom y)))     ; denominator
+
+  (define (*rat x y)
+    (make_rat)
+      (* (numer x) (numer y))      ; numerator
+      (* (denom x) (denom y)))     ; denominator
+  ```
+  `make_rat` is called a constructor and `numer` & `denom` are called selectors  
+- **why bother with these instead of passing four numbers:** with compound data `(x + y) * (s + t)` can be represented as `(*rat (+rat x y) (+rat s t))`  
+but without:
+  - we need to temporarily store two numbers (numerator & denominator) after evaluating `(x + y)` and two more after evaluating `(s + t)` and then those four need to be operated on, so we are spilling the internals of rational numbers in the program
+  - more importantly we would like programming language  to explain concepts in our heads like rational numbers are things that you can add
+  - now if we need a type having 10 rational numbers, then we cannot have 20 unrelated arguments which is also not scalable
 
 # misc
 - programming requires dividing a unit of work into smaller units of work with the goal to replace units of work with one of the programming constructs:
