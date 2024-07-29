@@ -3,14 +3,15 @@
 - [procedures \& processes](#procedures--processes)
 - [higher order procedures](#higher-order-procedures)
 - [compound data](#compound-data)
-- [misc](#misc)
 - [clean code](#clean-code)
+- [misc](#misc)
 
 # links  <!-- omit from toc -->
 - [[playlist] structure and interpretation of computer programs
 ](https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/) ([notes](https://mk12.github.io/sicp/lecture/1a.html))
 - [scheme interpreter](https://try.scheme.org/)
 - [SICP distilled](https://www.sicpdistilled.com/)
+- [SICP video notes](https://nebhrajani-a.org/sicp/video_notes)
 
 # todo  <!-- omit from toc -->
 - [iterative process for fibonacci & towers of hanoi](https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution)
@@ -342,7 +343,7 @@ any time you see things that are almost identical think of an abstraction to cov
     (define (foo x) (average (f x) x))
     foo)                                   ; and returns a procedure
   ```
-- **top-down design:** allows us to use names of procedures that we haven’t defined yet while writing a program
+- **top-down design:** allows us to use names of procedures that we haven't defined yet while writing a program
 - **example: Netwon's method to find square roots:** used to find zeroes/roots of a function  
 to find `y` such that `f(y) = 0`, start with a guess `y0` and then iterate with `yn+1 = yn - f(yn)/f'(yn)`
   ```lisp
@@ -378,7 +379,7 @@ to find `y` such that `f(y) = 0`, start with a guess `y0` and then iterate with 
   - incorporated into data structures
 
 # compound data
-- **layered system:** when we’re building things we divorce the task of building things from the task of implementing the parts  
+- **layered system:** when we're building things we divorce the task of building things from the task of implementing the parts  
 example:someone else could have written `goodenough?` for us when we wrote `sqrt`, as long as it works we don't know the implementation (abstraction layer)  
 similarly we have means of combination for data as well
 - **example: rational number arithmetic:** to express the arithmetic operators for fractions  
@@ -403,14 +404,60 @@ but without:
   - we need to temporarily store two numbers (numerator & denominator) after evaluating `(x + y)` and two more after evaluating `(s + t)` and then those four need to be operated on, so we are spilling the internals of rational numbers in the program
   - more importantly we would like programming language  to explain concepts in our heads like rational numbers are things that you can add
   - now if we need a type having 10 rational numbers, then we cannot have 20 unrelated arguments which is also not scalable
+- **list structure:** is a way of glueing things together (like numerator & denominator to form a rational number)  
+it provides `cons` (constructor) which takes two arguments and returns a compound data object (pair) that contains the two arguments  
+given a pair we can extract the two parts using the `car` & `cdr`
+  ```lisp
+  (cons 3 4)        ; (3 . 4)
+  (car (cons 3 4))  ; 3
+  (cdr (cons 3 4))  ; 4
+  ```
+  pairs can be represented with two boxes side by side with an arrow coming from each. This is called box-and-pointer notation  
+  ![](./media/programming/box_structure.png)
+- **example: rational number arithmetic with list structure:**
+  ```lisp
+  (define (make_rat n d)
+    (cons n d))
+  (define (numer x) (car x))
+  (define (denom x) (cdr x))
+  ```
+  but adding `3/4` and `1/4` gives `16/16` instead of `1` that we know, here `make_rat` should be responsible for reducing to lowest terms
+  ```lisp
+  (define (make_rat n d)
+    (let ((g (gcd n d))))       ; get greatest-common-divisor (gcd)
+      (cons (/ n g) ( / d g)))  ; reduce by dividing gcd
+  ```
+- *as systems designers you're forced with the necessity to make decisions about how you're going to do things, and in general the way you'd like to retain flexibility is to never make up your mind about anything until you're forced to do it, so you'd like to make progress but also at the same time never be bound by the consequences of your decisions*
+- *the real power is that you can pretend that you’ve made the decision and then later on figure out which decision you ought to have made, and when you can do that you have the best of both worlds*
+- **data abstraction:** most important thing in our rational arithmetic system is the abstraction layer with operators (`+rat`) on one side and pair ctor (`make_pair`) & selectors (`numer` & `denom`) on other  
+we always separate the use of data objects from its representation  
+one advantage of this is the flexibility to use alternative representations (like reduce in `numer` & `denom` instead) hence letting us postpone decisions  
+it is a way of controlling complexity in large systems, the real power comes from their use as building blocks for more complicated things  
+example: use `cons`, `car` & `cdr` to represent points on a plane, then use points as building blocks to make line segments, now we have a multi-layered system of line segments, points and pair  
+without data abstraction, the procedure for calculating length of a line segment is very hard to read and worse it locks you into decisions about representation
+- the procedures we wrote earlier using `make_rat`, `numer` & `denim` were written using abstract data with only the assured property being if `x = (make_rat n d)` then `(numer x)/(denom x) = n/d`, beyond this basic interface contract we know nothing about its implementation  
+they could even be implemented using lambdas without using any special primitives
+  ```lisp
+  (define (cons a b)
+    (lambda (pick)
+      (cond ((= pick 1) a)     ; car
+            ((= pick 2) b))))  ; cdr
+  (define (car x) (x 1))
+  (define (cdr x) (x 2))
+  ```
+  so we don't data at all for data abstraction, this blurs the line between code & data  
+  procedures are not just the act of doing something, they are conceptual entities or objects
+- **closure:** means of combination in your system are such that when you put things together using them, you can then put those together with the same means of combination  
+example: numbers combined to form pair, then we can combine to have pair of pairs as well
 
-# misc
-- programming requires dividing a unit of work into smaller units of work with the goal to replace units of work with one of the programming constructs:
-  - **sequential:** used if task can be broken down into two subtasks one following the other
-  - **conditional:** used if the task consists of doing one of two subtasks but not both
-  - **iterative:** used if the task consists of doing a subtask a number of times but only as long as some condition is true
-  ![](./media/programming/programming_constructs.png)
-- **reentrancy:** a function/subroutine can be interrupted and then resumed before it finishes executing, this also means that the function can be called again before it completes its previous execution, so reentrant code needs to be safe & predictable when multiple instances of the same function are called simultaneously or in quick succession
+
+
+
+
+
+
+
+
 
 # clean code
 - **fundamentals:**
@@ -433,3 +480,11 @@ but without:
   // camelCase: functions & classes
   int someFunction(void);
   ```
+
+# misc
+- programming requires dividing a unit of work into smaller units of work with the goal to replace units of work with one of the programming constructs:
+  - **sequential:** used if task can be broken down into two subtasks one following the other
+  - **conditional:** used if the task consists of doing one of two subtasks but not both
+  - **iterative:** used if the task consists of doing a subtask a number of times but only as long as some condition is true
+  ![](./media/programming/programming_constructs.png)
+- **reentrancy:** a function/subroutine can be interrupted and then resumed before it finishes executing, this also means that the function can be called again before it completes its previous execution, so reentrant code needs to be safe & predictable when multiple instances of the same function are called simultaneously or in quick succession
