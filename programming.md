@@ -3,6 +3,7 @@
 - [procedures \& processes](#procedures--processes)
 - [higher order procedures](#higher-order-procedures)
 - [compound data](#compound-data)
+- [Henderson-Escher example](#henderson-escher-example)
 - [clean code](#clean-code)
 - [misc](#misc)
 
@@ -428,7 +429,7 @@ given a pair we can extract the two parts using the `car` & `cdr`
       (cons (/ n g) ( / d g)))  ; reduce by dividing gcd
   ```
 - *as systems designers you're forced with the necessity to make decisions about how you're going to do things, and in general the way you'd like to retain flexibility is to never make up your mind about anything until you're forced to do it, so you'd like to make progress but also at the same time never be bound by the consequences of your decisions*
-- *the real power is that you can pretend that you’ve made the decision and then later on figure out which decision you ought to have made, and when you can do that you have the best of both worlds*
+- *the real power is that you can pretend that you've made the decision and then later on figure out which decision you ought to have made, and when you can do that you have the best of both worlds*
 - **data abstraction:** most important thing in our rational arithmetic system is the abstraction layer with operators (`+rat`) on one side and pair ctor (`make_pair`) & selectors (`numer` & `denom`) on other  
 we always separate the use of data objects from its representation  
 one advantage of this is the flexibility to use alternative representations (like reduce in `numer` & `denom` instead) hence letting us postpone decisions  
@@ -446,15 +447,75 @@ they could even be implemented using lambdas without using any special primitive
   (define (cdr x) (x 2))
   ```
   so we don't data at all for data abstraction, this blurs the line between code & data  
-  procedures are not just the act of doing something, they are conceptual entities or objects
-- **closure:** means of combination in your system are such that when you put things together using them, you can then put those together with the same means of combination  
+  procedures are not just the act of doing something, they are conceptual entities or objects  
+  using procedures as objects we can write  
+  ```lisp
+  (define make_rat cons)
+  (define numer car)
+  (define denom cdr)
+  ```
+- **closure:** means of combination in your system are such that when you put things together using them, you can then put those together with the same means of combination (things that we combine can themselves be combined)  
 example: numbers combined to form pair, then we can combine to have pair of pairs as well
 
+# Henderson-Escher example
+- there are a lot of ways of building list structure using pairs, but lisp has a convention for representing a sequence as chained pairs  
+**list:** `car` of pair is first item and `cdr` is the rest of the sequence  
+`cdr` of the last pair has a special marker `nil`, predicate `null?` can be used to check if list is empty `()`  
+`list` procedure is an abbreviation for the nested pairs  
+![](./media/programming/list_box_structure.png)
+  ```lisp
+  (define one_to_four (list 1 2 3 4))
+  
+  one_to_four             ; (1 2 3 4)
+  (cdr (one_to_four))     ; (2 3 4)
+  (car(cdr one_to_four))  ; 2
+  ```
+- **example: scale list:** multiply a scalar value with each item in the list
+  ```lisp
+  (define scale_list s l)
+    (if (null? l)
+        nil                             ; if input list empty
+        (cons (* (car l) s)             ; first element
+              (scale_list s (cdr l))))  ; rest of the scaled list
+  ```
+  **`map`:** rather than recursively transforming each element we can use a higher-order procedure, now we can support any mapping operation on lists
+  ```lisp
+  (define map p l)
+    (if (null? l)
+        nil
+        (cons (p (cat l))        ; apply procedure to first element
+              (map p (cdr l))))  ; map down the rest of the list
 
-
-
-
-
+  (define (scale_list s l)
+    (map (lambda (elem) (* elem s))
+         l))
+  ```
+  **`for_each`:** is like map but it doesn't build up a new list, it is just for side effects (like print list to screen)
+  ```lisp
+  (define (for_each p l)
+    (cond ((null? l) "done")
+          (else (p (car l))              ; do it for first element
+                (for_each p (cdr l)))))  ; do it for the rest of the elements
+  ```
+- **example: Henderson-Escher painting language:** we have construct a design language for describing self-similar fractal like figures (metalinguistic abstraction)  
+![](./media/programming/henderson_escher_diagram.png)  
+this language has only one primitive: as figure scaled to fit any given frame  
+we have four means of combination: `rotate` (counter-clockwise), `flip` (across given axis), `beside` (merge/stitch images side by side in a certain ratio), `above` (same as beside but vertically)  
+thanks to closure property we can build up complexity quickly  
+![](./media/programming/henderson_escher_example_1.png)
+![](./media/programming/henderson_escher_example_2.png)
+![](./media/programming/henderson_escher_example_3.png)  
+`painter` is a procedure that takes a frame and draws its image within the frame, since they are just procedures, everything that lisp supplies for procedures is automatically available to us in this painting language (like recursive painters)
+- the difference between merely implementing something in a language and embedding something in the language is that you don't lose the original power of the language
+- **software engineering methodology:** usually is to:  
+figure out your task ⟶ break it into sub-tasks ⟶ repeat for each sub-task ⟶ work your way up to the top  
+where each part does a specific task is supposed fit perfectly into the whole thing  
+but with painting language we had a sequence of layers of language where each layer depends on the layers beneath it  
+primitive picture ⟶ geometric combinators ⟶ schemes of combination  
+here each level is doing a whole range of things not a single task, which makes the system more robust (easier to adapt to changes), whereas a small change in the top-down tree might cause the whole thing to fall down  
+now we are talking about levels of language rather than a strict hierarchy where each level has its own vocabulary
+- *lisp is a lousy language for doing any particular problem, what it's good for is figuring out the right language that you want and embedding that in lisp  
+the design process is not so much implementing programs as implementing languages*
 
 
 
