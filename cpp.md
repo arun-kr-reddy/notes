@@ -970,35 +970,32 @@ doesn't allow narrowing so used in member initializer list for argument type che
   - **thread_local:** variable has thread storage duration  
     can be combined with static/extern to specify internal/external linkage  
     static implied when thread_local applied to block scope variable
+- **endianness:** order in which bytes within a word are stored  
+  big-endian stores most significant byte (big end) data first  
+  ![](./media/cplusplus/endianness.png)
+  - **check endianness:**
+    ```cpp
+    int n = 1;
+    if (*(char *)&n == 1)  // check most significant byte
+    {
+        std::cout << "little endian" << std::endl;
+    }
+    ```
+  - **swap endianness:**
+    ```cpp
+    uint32_t input = 0x12345678;
+    uint32_t b0, b1, b2, b3;
+    uint32_t output;
 
-[review]
+    b0 = (input & 0x000000ff) << 24;
+    b1 = (input & 0x0000ff00) << 8;
+    b2 = (input & 0x00ff0000) >> 8;
+    b3 = (input & 0xff000000) >> 24;
 
-- **endianness:** order in which bytes within a word is stored/transmitted  
-big-endian has most significant byte (big end) data first (smallest address) and little-endian has least significant byte data first  
-![](./media/cplusplus/endianness.png)  
-**find endianness of system:**
-  ```cpp
-  int n = 1;
-  if (*(char *)&n == 1)  // check most significant byte set
-  {
-      std::cout << "little endian" << std::endl;
-  }
-  ```
-  **swap endianness:**
-  ```cpp
-  uint32_t input = 0x12345678;
-  uint32_t b0, b1, b2, b3;
-  uint32_t output;
+    output = b0 | b1 | b2 | b3;
 
-  b0 = (input & 0x000000ff) << 24;
-  b1 = (input & 0x0000ff00) << 8;
-  b2 = (input & 0x00ff0000) >> 8;
-  b3 = (input & 0xff000000) >> 24;
-
-  output = b0 | b1 | b2 | b3;
-
-  printf("0x%x", output);  // 0x78563412
-  ```
+    printf("0x%x", output);  // "0x78563412"
+    ```
 - **memory layout:** each different segment stores different parts of code and have their own read & write permissions  
 ![](./media/cplusplus/memory_layout.png)
   - **text:** contains executable instructions, usually read-only to prevent accidental modification  
@@ -1192,28 +1189,19 @@ in modern C++ owning memory means being responsible for its cleanup, so raw poin
 first allocate pointer array (double pointer) then allocate memory for each element (1D row array)  
 ![](./media/cplusplus/2d_pointer.png)
   ```cpp
-  // method1: non contiguous
+  // non contiguous
   uint8_t **array1 = (uint8_t **)malloc(num_rows * sizeof(uint8_t *));  // or sizeof(*array1)
   for (size_t i = 0; i < num_rows; i++)
+  {
       array1[i] = (uint8_t *)malloc(num_cols * sizeof(uint8_t));  // or sizeof(**array1)
+  }
 
-  // method2: contiguous
+  // contiguous
   uint8_t **array2 = (uint8_t **)malloc(num_rows * sizeof(int *));
   array2[0]        = (uint8_t *)malloc(num_rows * num_cols * sizeof(int));
   for (int i = 1; i < num_rows; i++)
-      array2[i] = array2[0] + i * num_cols;
-
-  // print matrix
-  void printArray2d(uint8_t **arr, size_t num_rows, size_t num_cols)
   {
-      for (size_t row = 0; row < num_rows; row++)
-      {
-          for (size_t col = 0; col < num_cols; col++)
-          {
-              printf("%u ", arr[row][col]);
-          }
-          printf("\n");
-      }
+      array2[i] = array2[0] + i * num_cols;
   }
   ```
 

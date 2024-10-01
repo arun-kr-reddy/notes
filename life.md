@@ -12,6 +12,9 @@
 - [upskilling](#upskilling)
 - [quotes](#quotes)
 
+# links  <!-- omit from toc -->
+- [resume tips](https://www.reddit.com/r/developersIndia/comments/1b401so/few_tips_to_get_your_naukri_resume_shortlisted_by/)
+
 # [why save money](https://www.reddit.com/r/personalfinanceindia/comments/1ax2xrp/is_saving_money_really_worth_it/#:~:text=You'll%20learn%20to%20be,didn't%20save%20or%20invest)
 - **financial freedom:** it would be relieving to know you don't have to work and could walk away from your job if you wanted  
 - **future:** is an unknown territory with rise in inflation, AI taking over jobs etc so it's best to save for the future while also enjoying the present  
@@ -30,7 +33,7 @@ you don't want to see the stock falling due to mismanagement in the future and y
 also your unvested stocks and potential salary increases already give you a lot of exposure to your company's growth
 
 # [why not track every rupee](https://www.reddit.com/r/PersonalFinanceCanada/comments/17jmyhv/comment/k72jgx3)
-- tracking spending is a waste of time once you've already got your impulses under control, it might be good to review your spending once a year but on an ongoing basis would be a huge time suck for not much value  
+- tracking spending is a waste of time once you've already got your impulses under control, it might be good to review your spending once a year but on an ongoing basis would be a huge time sink for not much value  
 more energy should be spent on making money and keeping yourself healthy & happy, you are on track as long as you hit your savings goal
 
 # [why stay back in India](https://www.reddit.com/r/developersIndia/comments/18oyg3t/comment/kekhbt7)

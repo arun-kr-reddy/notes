@@ -32,6 +32,7 @@
   - [connected component labelling](https://en.wikipedia.org/wiki/Connected-component_labeling)
   - [postfix vs infix](https://www.geeksforgeeks.org/postfix-to-infix/)
   - [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
+  - [every programmer should know](https://github.com/mtdvio/every-programmer-should-know)
 - **computer architecture:**
   - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
   - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
@@ -109,6 +110,7 @@
   - [first BillG review](https://www.joelonsoftware.com/2006/06/16/my-first-billg-review/)
   - [SOLID principles](https://www.youtube.com/watch?v=zHiWqnTWsn4)
   - [design patterns](https://www.youtube.com/playlist?list=PLrhzvIcii6GNjpARdnO4ueTUAVR9eMBpc)
+    - [when to use DP](https://www.linkedin.com/feed/update/urn:li:activity:7202356498864250880)
   - system design
   - code complete
   - clean code
