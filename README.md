@@ -63,6 +63,7 @@
   - [neural networks](https://www.3blue1brown.com/topics/neural-networks)
   - [single variable calculus](https://www.youtube.com/playlist?list=PL590CCC2BC5AF3BC1)
 - **computer vision:**
+  - [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/)
   - [[playlist] first principles of computer vision](https://fpcv.cs.columbia.edu/)
   - [feature detection & matching algos](https://medium.com/data-breach/introduction-to-feature-detection-and-matching-65e27179885d)
   - [stanford CV tutorial](https://ai.stanford.edu/~syyeung/cvweb/tutorials.html)

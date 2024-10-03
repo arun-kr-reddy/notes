@@ -788,6 +788,36 @@ doesn't allow narrowing so used in member initializer list for argument type che
   ```
   **abstract class:** class with at-least one pure virtual function, object cannot be created  
   **interface:** abstract class with only pure virtual functions (no data members)
+- **example: pointer polymorphism:** preferred over reference since pointer can be reassigned
+  ```cpp
+  std::vector<abstractShapeType *> shapes;
+  squareType square;
+  triangleType triangle;
+
+  shapes.push_back(square);
+  shapes.push_back(triangle);
+
+  for (const auto *shape : shapes)
+  {
+      shape->print();  // executes respective derivedClass implementation
+  }
+  ```
+- **example: smart pointer polymorphism:**
+  ```cpp
+  std::vector<std::unique_ptr<abstractShape>> shapes;
+
+  // method1: "new derivedClass" passed to ctor of unique_ptr
+  shapes.emplace_back(new squareClass);
+
+  // method2: need to move since unique_ptr cannot be copied
+  auto var = std::unique_ptr<triangleClass>(new triangleClass);
+  shapes.push_back(std::move(var));
+
+  for (const auto &shape : shapes)
+  {
+      shape->print();  // respective derivedClass implementation
+  }
+  ```
 
 # streams
 - **stream:** interface for sending/receiving data to/from anything
@@ -996,159 +1026,95 @@ doesn't allow narrowing so used in member initializer list for argument type che
 
     printf("0x%x", output);  // "0x78563412"
     ```
-- **memory layout:** each different segment stores different parts of code and have their own read & write permissions  
-![](./media/cplusplus/memory_layout.png)
-  - **text:** contains executable instructions, usually read-only to prevent accidental modification  
-  - **initialized data:** initialized `global` & `static` variables (`static` functions will be in text section)  
-  also contains read-only `.rodata` section for static/global constants
-  - **uninitialized data:** uninitialized `global` & `static` variables, aka `bss` (b​lock started by symbol)  
-  only size mentioned in executable, allocated & zero-initialized after program load
-  - **heap:** for memory allocated at run-time  
-  internally use `sbrk` and `brk` system calls to change memory allocation within the heap segment
+- **memory layout:** C program memory organization  
+  ![](./media/cplusplus/memory_layout.png)
+  - **text:** executable instructions, read-only to prevent modification
+  - **data:** global, static & const variables  
+    initialized segment with `.rodata` sub-section for consts  
+    uninitialized segment (b​lock started by symbol) with only size mentioned in executable, allocated & zero-initialized at program load
+  - **heap:** dynamically allocated memory
     ```cpp
     type *ptr = (type *)malloc(size);        // memory allocation
     type *ptr = (type *)calloc(size);        // contiguous allocation, zero-initialization
     type *ptr = (type *)realloc(ptr, size);  // re-allocation
     free(ptr);
-
-    // C++ only
+    ```
+    ```cpp
     type *ptr = new type;       // declare variable & allocate for one element
     delete ptr;                 // delete variable
     type *ptr = new type[num];  // allocate array
     delete[] ptr;               // delete array
     ```
-    `new` throws `std::bad_alloc` exception if out of heap, to instead get NULL addr use `new (std::nothrow)`
-    ```cpp
-    int *p = new (std::nothrow) int;
-
-    if (!p)
-    {
-        std::cout << "mem allocation failed" << std::endl;
-    }
-    ```
-  - **stack:** simple last-in-first-out (LIFO) structure that stores local variables, function arguments & return addr  
-  **stack frame:** set of values (return addr, arguments, local variables) pushed onto stack for a function call (on ARM first 4 args stored `r0` to `r3`), stack pointer keeps track of top of the stack  
-  `ebp` (frame pointer) is used to backup `esp` (stack pointer), while `esp` is being modified by the current function  
-  ![](./media/cplusplus/stack.png)
-- **memory leak:** when heap not dealloced or address lost (pointer reassigned)  
-compiler throws `double free or corruption` if we try to free memory twice  
-**dangling pointer:** points to dealloced memory  
-**wild pointer:** pointing to random address, usually due to uninitialized pointer so use `nullptr` for initialization  
-**segmentation fault:** occurs when a program attempts to access a memory location it does not have permission to access or access differently than it is supposed to  
-example: write to a read-only location, read a `nullptr`  
-dereferencing a free-up pointer might not lead to a fault since standard library might be collecting memory deallocs before returning them back to OS  
-**stack overflow:** program attempts to use more memory than is available on stack, usually due to deep/infinite recursion leading to stack shortage
-- **shallow copying:** just copy pointer not the underlying data (used in default copy ctor/assignment operator)  
-can lead to dangling pointer when object shallow copied  
-**deep copying:** create new pointers and copy data into it  
-shallow copy duplicate as little as possible while deep copy duplicate everything
+    use `new (std::nothrow)` to get nullptr instead of `std::bad_alloc` exception if out of heap
+  - **stack:** local variables & function calls (arguments & return addr)  
+    function stack frame pushed onto stack when function called and is popped when function returns  
+    `ebp` (base pointer) used to backup `esp` (stack pointer tracking top of stack), before it is modified by the current function  
+    ![](./media/cplusplus/stack.png)
+- **memory leak:** heap not dealloced or address lost (pointer reassigned)  
+  **dangling pointer:** to dealloced memory  
+  **wild pointer:** (uninitialized) pointer to random address  
+  **segmentation fault:** program attempts to access memory location it doesn't have permission to (nullptr) or access differently than it is supposed to (write to a read-only location)  
+  **stack overflow:** program attempts to use more memory than is available on stack  
+  usually deep/infinite recursion leading to stack shortage
+- **shallow copying:** create new object but share same data with original object  
+  **deep copying:** copies all data including nested objects
 
 # pointers
-- **pointer:** holds the memory address of another object (variable/function) as its value  
-in modern C++ owning memory means being responsible for its cleanup, so raw pointer should never own memory
-- **nullptr:** implicitly converts to any pointer type (but never an integral type)
-- **pointer vs reference:** use references wherever you can (passing parameters), and pointers wherever you must (polymorphic interfaces are `NULL` initialized)
-  - own memory vs alias
-  - no init required vs init in declaration
-  - can reassign vs cannot
-  - can be NULL vs cannot
-  - indirection (levels of pointers) vs single level
-  - can apply arithmetic operations vs cannot
-  - can store in vector/array vs cannot
-- **address operator (`&`):** returns the address of the variable in memory  
-**dereferencing operator (`*`):** returns the value of the variable to which the pointer points to  
-**arrow operator (`->`):** to call class/struct members, `obj->myFunc()` is same as `(*obj).myFunc()`
-- **example: pointer polymorphism:** pointer polymorphism preferred over reference since pointer can be reassigned
-  ```cpp
-  std::vector<abstractShapeType *> shapes;
-  squareType square;
-  triangleType triangle;
-
-  shapes.push_back(square);
-  shapes.push_back(triangle);
-
-  for (const auto *shape : shapes)
-  {
-      shape->print();  // executes respective derivedClass implementation
-  }
-  ```
-- **function pointer:** is a variable that contains the address of a function
+- **pointer:** stores memory address of an identifier (variable/function)  
+  raw pointer should never own memory else it is responsible for its cleanup  
+  `nullptr` implicitly converts to any pointer type (but never integral type)
+- 
+  | **pointer**                      | **reference**       |
+  | -------------------------------- | ------------------- |
+  | own memory                       | alias               |
+  | no init required                 | init in declaration |
+  | can reassign or NULL             | cannot              |
+  | indirection (levels of pointers) | single level        |
+  | can apply arithmetic operations  | cannot              |
+  | can store in vector/array        | cannot              |
+- **function pointer:**
   ```cpp
   int foo(int);     // function
   int *foo(int);    // function returning int*
-  int (*foo)(int);  // function pointer, by changing precedence using ()
+  int (*foo)(int);  // function pointer, by forcing precedence using ()
   ```
   ```cpp
   int foo(int arg)
   {
       printf("foo %d\n", arg);
-
       return arg;
   }
 
-  int main()
-  {
-      int ret = 0;
-      int (*func_ptr)(int);
-      func_ptr = &foo;
-      ret      = (*func_ptr)(10);  // foo 10
-
-      // OR
-      func_ptr = foo;
-      ret      = func_ptr(20);  // foo 20
-
-      printf("ret %d\n", ret);  // ret 20
-
-      return 0;
-  }
+  int (*func_ptr)(int) = &foo;
+  int ret              = func_ptr(10);  // "foo 10"
   ```
 - **spiral/right-left rule:**
   ```
-  read these symbols as:
-  *     pointer of                      - always on left side
-  []    array of                        - always on right side
-  ()    function returning/expecting    - always on right side
+  *     pointer of
+  []    array of
+  ()    function returning/expecting
 
-  step1: find the identifier, this is the starting point
-  step2: look at symbols on the right of identifier, continue until you run out of symbols or hit `)`
-  step3: look at the symbols to the left of identifier, continue until you run out of symbols ot hit `(`
-  step4: repeat step 2 & 3 still complete declaration is formed
+  step1: find the identifier
+  step2: look right of identifier until you hit `)` or the end
+  step3: now look left until `(` or end
+  step4: repeat step 2 & 3
   ```
   ```cpp
-  int *p[];
+  int *(*foo())();
 
-  int *p[];          // step1
-      ^              // p is
 
-  int *p[];          // step2, cant move right
-        ^^           // p is array of
-
-  int *p[];          // step3
-      ^              // p is array of pointer to
-
-  int *p[];          // step3
-  ^^^                // p is array of pointer to int
-  ```
-  ```cpp
-  int *(*func())();
-
-  int *(*func())();  // step1
-         ^^^^        // func is
-
-  int *(*func())();  // step2, cant move right
-             ^^      // func is function returning
-
-  int *(*func())();  // step3, cant move left
-        ^            // func is function returning pointer to
-
-  int *(*func())();  // step2, cant move right
-                ^^   // func is function returning pointer to function returning
-
-  int *(*func())();  // step3
-      ^              // func is function returning pointer to function returning pointer to
-
-  int *(*func())();  // step3
-  ^^^                // func is function returning pointer to function returning pointer to int
+  int *(*foo())();  // step1: foo is
+         ^^^^
+  int *(*foo())();  // step2: function returning
+             ^^
+  int *(*foo())();  // step3: pointer to
+        ^
+  int *(*foo())();  // step2: function returning
+                ^^
+  int *(*foo())();  // step3: pointer to
+      ^
+  int *(*foo())();  // step3: int
+  ^^^
   ```
   ```cpp
   int (*(*foo)(char*,double))[9][20];
@@ -1157,58 +1123,32 @@ in modern C++ owning memory means being responsible for its cleanup, so raw poin
   int (*(*foo)())[][];
 
   // foo is pointer to function expecting (char*, double) and 
-  // returning pointer to 2D array (size 9X20) of int
+  // returning pointer to 2D array (9x20) of int
   ```
+- **example: 2D array (matrix) as double pointer:**
+  ![](./media/cplusplus/2d_pointer.png)
   ```cpp
-  int i;           // an int
-  int *p;          // an int pointer (ptr to an int)
-  int a[];         // an array of ints
-  int f();         // a function returning an int
-  int **pp;        // a pointer to an int pointer (ptr to a ptr to an int)
-  int (*pa)[];     // a pointer to an array of ints
-  int (*pf)();     // a pointer to a function returning an int
-  int *ap[];       // an array of int pointers (array of ptrs to ints)
-  int aa[][];      // an array of arrays of ints
-  int *fp();       // a function returning an int pointer
-  int ***ppp;      // a pointer to a pointer to an int pointer
-  int (**ppa)[];   // a pointer to a pointer to an array of ints
-  int (**ppf)();   // a pointer to a pointer to a function returning an int
-  int *(*pap)[];   // a pointer to an array of int pointers
-  int (*paa)[][];  // a pointer to an array of arrays of ints
-  int *(*pfp)();   // a pointer to a function returning an int pointer
-  int **app[];     // an array of pointers to int pointers
-  int (*apa[])[];  // an array of pointers to arrays of ints
-  int (*apf[])();  // an array of pointers to functions returning an int
-  int *aap[][];    // an array of arrays of int pointers
-  int aaa[][][];   // an array of arrays of arrays of int
-  int **fpp();     // a function returning a pointer to an int pointer
-  int (*fpa())[];  // a function returning a pointer to an array of ints
-  int (*fpf())();  // a function returning a pointer to a function returning an int
-  ```
-- **example: matrix (2D array) as double pointer:** double pointer is a pointer to pointers (array of pointers)  
-first allocate pointer array (double pointer) then allocate memory for each element (1D row array)  
-![](./media/cplusplus/2d_pointer.png)
-  ```cpp
-  // non contiguous
-  uint8_t **array1 = (uint8_t **)malloc(num_rows * sizeof(uint8_t *));  // or sizeof(*array1)
+  // allocate pointer array (double pointer)
+  uint8_t **array = (uint8_t **)malloc(num_rows * sizeof(uint8_t *));
+
+  // method1: non-contiguous
   for (size_t i = 0; i < num_rows; i++)
   {
-      array1[i] = (uint8_t *)malloc(num_cols * sizeof(uint8_t));  // or sizeof(**array1)
+      array[i] = (uint8_t *)malloc(num_cols * sizeof(uint8_t));
   }
 
-  // contiguous
-  uint8_t **array2 = (uint8_t **)malloc(num_rows * sizeof(int *));
-  array2[0]        = (uint8_t *)malloc(num_rows * num_cols * sizeof(int));
+  // method2: contiguous
+  array[0] = (uint8_t *)malloc(num_rows * num_cols * sizeof(int));
   for (int i = 1; i < num_rows; i++)
   {
-      array2[i] = array2[0] + i * num_cols;
+      array[i] = array[0] + i * num_cols;
   }
   ```
 
 # smart pointers
-- **smart pointer:** is a wrapper class over a heap memory owning raw pointer and is used to manage its lifetime (memory freed when object destroyed), crucial for the RAII programming idiom  
-  just create a standard raw pointer then pass that to the smart pointer immediately  
-  pass smart pointer only to manipulate its properties (lifetime, raw pointer), else pass objects by `*`/`&` to functions
+- **smart pointer:** wrapper over (heap) memory owning raw pointer to manage its lifetime (RAII)  
+  pass smart pointer only to manipulate its properties (refcount/lifetime, underlying raw pointer)  
+  else pass objects to functions using pointer/reference
   ```cpp
   #include <memory>
   smartPointerType<type> sPtr(new type());  // declaration
@@ -1218,15 +1158,16 @@ first allocate pointer array (double pointer) then allocate memory for each elem
                         // and starts managing new_ptr now instead
   ```
   use `unique_ptr` by default, if multiple objects must share ownership then use `shared_ptr`
-  - **unique_ptr:** guarantees that memory is always owned by a single unique pointer, can be moved to a new owner but not copied or shared (copy ctor deleted)  
-  as fast as raw pointer
+  - **unique_ptr:** guarantees that given object owned by only one `unique_ptr`  
+    can be moved but not copied/shared (copy ctor deleted)
     ```cpp
     auto uPtr = std::unique_ptr<myType>(new myType());      // default ctor
     auto uPtr = std::unique_ptr<myType>(new myType(args));  // custom ctor
     auto uPtr = std::make_unique<myType>(args);             // cleaner (type mentioned once)
     ```
-  - **shared_ptr:** allows you to make a copy of the pointer which will hold the memory until all the pointers holding that memory gets out of scope which is done by maintaining a reference counter (*last one turns off the light*, memory freed when refcount reaches zero)
-  `reset()` revokes the ownership over the memory that the pointer holds (decreases `usage_count`)  
+  - **shared_ptr:** multiple `shared_ptr` share ownership of same object  
+    dealloced only when all pointers holding that object go out of scope (using refcount `usage_count`)  
+    `reset(new_ptr)` replaces managed object (decrement refcount) with new object  
     ```cpp
     auto sPtr = std::shared_ptr<myType>(new myType());      // default ctor
     auto sPtr = std::shared_ptr<myType>(new myType(args));  // custom ctor
@@ -1234,32 +1175,34 @@ first allocate pointer array (double pointer) then allocate memory for each elem
 
     sPtr.use_count();  // return usage_count
     ```
-  - **weak_ptr:** similar to `shared_ptr` but does not affect the refcount, used to observe a `shared_ptr`(like check if still holds the memory or not)
-    ```cpp
-    class someClass
-    {
-      public:
-        someClass() { std ::cout << "alive" << std::endl; }
-        ~someClass() { std ::cout << "dead" << std::endl; }
-    };
+  - **weak_ptr:** similar to `shared_ptr` but doesn't affect refcount  
+    used to pass `shared_ptr` to users who can then S check if object already deleted using `expired()`
+- **example: shared pointer refcount:**
+  ```cpp
+  class someClass
+  {
+    public:
+      someClass() { std ::cout << "alive" << std::endl; }
+      ~someClass() { std ::cout << "dead" << std::endl; }
+  };
 
-    int main()
-    {
-        auto a = std::make_shared<someClass>();     // alive
-        std ::cout << a.use_count() << std ::endl;  // 1
-        {
-            auto b = a;
-            std ::cout << b.use_count() << std ::endl;  // 2
-        }
-        std ::cout << a.use_count() << std ::endl;  // 1
+  int main()
+  {
+      auto a = std::make_shared<someClass>();     // alive
+      std ::cout << a.use_count() << std ::endl;  // 1
+      {
+          auto b = a;
+          std ::cout << b.use_count() << std ::endl;  // 2
+      }
+      std ::cout << a.use_count() << std ::endl;  // 1
 
-        auto c = std::weak_ptr<someClass>(a);
-        std ::cout << a.use_count() << std ::endl;  // 1
+      auto c = std::weak_ptr<someClass>(a);
+      std ::cout << a.use_count() << std ::endl;  // 1
 
-        return 0;
-    }  // dead
-    ```
-- **example: smart pointer with local variable:** both stack & smart pointer will try to dealloc that memory leading to error
+      return 0;
+  }  // dead
+  ```
+- **example: smart pointer with local variable:** both stack & smart pointer will try to dealloc leading to error
   ```cpp
   int main()
   {
@@ -1268,94 +1211,42 @@ first allocate pointer array (double pointer) then allocate memory for each elem
       return 0;
   }  // error: "invalid pointer" or "double free or corruption"
   ```
-- **example: smart pointer polymorphism:** good way of using smart pointer
-  ```cpp
-  std::vector<std::unique_ptr<abstractShape>> shapes;
-
-  // method1: "new derivedClass" passed to ctor of unique_ptr
-  shapes.emplace_back(new squareClass);  // note emplaced_back
-
-  // method2: need to move since unique_ptr cannot be copied
-  auto var = std::unique_ptr<triangleClass>(new triangleClass);
-  shapes.push_back(std::move(var));
-
-  for (const auto &shape : shapes)
-  {
-      shape->print();  // executes respective derivedClass implementation
-  }
-  ```
-- **type casting:** converting value of given data type into another  
-![](./media/cplusplus/typecasting.png)
-  - **implicit/automatic:** are done automatically by the compiler, tries to prevent changing the value by up-casting it to highest data type present in the expression
+- **cast operator:** easily recognizable/searchable notations for different tasks that eliminate unintended errors  
+  ![](./media/cplusplus/typecasting.png)
+  - **static_cast:** compile time exlicit type conversion
+  - **dynamic_cast:** runtime conversion between polymorphic types (base ⟷ derived)  
+    returns `nullptr` if conversion failed (not inheritance heirarchy)  
+  - **reinterpret_cast:** reinterpret the bits of value as different type
+  - **const_cast:** add/remove const qualifier from a variable  
+    example: remove const from const reference of non-const variable
     ```cpp
-    short a = 1024;
-    int b   = 5;
-    b       = a;  // implicit conversion
+    int i            = 3;         // non-const variable
+    const int &i_ref = i;         // const ref
+    std::cout << i << std::endl;  // 3
+
+    int &k = const_cast<int &>(i_ref);
+    k      = 4;
+    std::cout << i << std::endl;  // 4
     ```
+    example: prevent code duplication
     ```cpp
-    float a    = 10.5;
-    uint32_t b = a;               // decimal dropped
-    std::cout << b << std::endl;  // 10
+    const std::string &shorterString(const std::string &s1, const std::string &s2)
+    {
+        return s1.size() <= s2.size() ? s1 : s2;
+    }
+
+    std::string &shorterString(std::string &s1, std::string &s2)
+    {
+        // add const to args
+        const std::string &r = shorterString(const_cast<const std::string &>(s1),
+                                             const_cast<const std::string &>(s2));
+
+        // discard const
+        return const_cast<std::string &>(r);
+    }
     ```
-  - **explicit:** deliberate modification of a variable's data type by the programmer
-    - **assignment operator:** aka forced casting
-      ```cpp
-      float a = 1.2;
-      int b   = (int)a + 1;  // C-like notation
-      int c   = int(a) + 1;  // functional C-like notation
-      ```
-      ```cpp
-      unsigned char u = (unsigned char)(-9);  // same bit pattern
-      printf("%d \n", u);                     // 247
-      ```
-    - **cast operator:** has different easily recognizable & searchable (in codebase) notations for different tasks that eliminate unintended errors  
-      - **static_cast:** can perform all the conversions compile time that can be done implicitly
-      - **dynamic_cast:** runtime conversion of pointer/reference to classes up/down/sideways along the inheritance hierarchy  
-      if failed returns `nullptr` for pointer or throws `std::bad_alloc` for pointers
-      - **reinterpret_cast:** reinterpret bytes of one type as another type, mainly used to work with bits
-      - **const_cast:** add/remove constness to an object  
-        remove const from const reference of non-const variable  
-        ```cpp
-        int i            = 3;         // non-const variable
-        const int &i_ref = i;         // const ref
-        std::cout << i << std::endl;  // 3
 
-        int &k = const_cast<int &>(i_ref);
-        k      = 4;
-        std::cout << i << std::endl;  // 4
-        ```
-        another usecase is to prevent code duplication
-        ```cpp
-        const std::string &shorterString(const std::string &s1, const std::string &s2)
-        {
-            return s1.size() <= s2.size() ? s1 : s2;
-        }
-
-        std::string &shorterString(std::string &s1, std::string &s2)
-        {
-            const std::string &r = shorterString(const_cast<const std::string &>(s1),
-                                                 const_cast<const std::string &>(s2));  // add const qualifier to args
-            return const_cast<std::string &>(r);  // discard const qualifier
-        }
-        ```
-- **run-time type information (RTTI):** is a mechanism that exposes information stored about each polymorphic object's data type at runtime, this is useful when `dynamic_cast` is used
-- **type aliasing:** using the memory of one type as if it were a different type when the memory layout of two types are compatible, compatible types can be converted using `reinterpret_cast`
-  ```cpp
-  struct point
-  {
-      int x;
-      int y;
-  };
-
-  struct location
-  {
-      int x;
-      int y;
-  };
-
-  point p{1, 2};
-  auto *loc = reinterpret_cast<location *>(&p);
-  ```
+[continue review]
 
 # templates
 - **don't repeat yourself (DRY):** is aimed at reducing repetition of information which is likely to change, instead replacing it with abstractions that are less likely to change or using data normalization which avoids redundancy in the first place
