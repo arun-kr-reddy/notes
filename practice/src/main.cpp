@@ -32,14 +32,11 @@ int foo(int arg)
 
 int main()
 {
-    short a = 1024;
-    int b   = 5;
-    b       = a;                  // implicit conversion
-    std::cout << b << std::endl;  // "5"
+    int a = 1024;
+    int b = 5;
+    int c = 1;
 
-    float c    = 10.5;
-    uint32_t d = c;               // decimal dropped
-    std::cout << d << std::endl;  // "10"
+    int d = ++a+++b+c++;
 
     return 0;
 }

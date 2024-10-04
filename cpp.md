@@ -1213,7 +1213,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
   ```
 - **cast operator:** easily recognizable/searchable notations for different tasks that eliminate unintended errors  
   ![](./media/cplusplus/typecasting.png)
-  - **static_cast:** compile time exlicit type conversion
+  - **static_cast:** compile-time exlicit type conversion
   - **dynamic_cast:** runtime conversion between polymorphic types (base ⟷ derived)  
     returns `nullptr` if conversion failed (not inheritance heirarchy)  
   - **reinterpret_cast:** reinterpret the bits of value as different type
@@ -1246,40 +1246,39 @@ doesn't allow narrowing so used in member initializer list for argument type che
     }
     ```
 
-[continue review]
-
 # templates
-- **don't repeat yourself (DRY):** is aimed at reducing repetition of information which is likely to change, instead replacing it with abstractions that are less likely to change or using data normalization which avoids redundancy in the first place
-- **generic programming:** enables the programmer to write a general algorithm which will work with all data types (separate algorithms from data type)
-- **template:** enable you to define the operations of a function/function and later specify what types those operations should work on  
-**instantiation:** compiler generates concrete functions/classes based on the supplied argument type (`<T>` expanded)  
-so for the compiler to generate the code it must see both the template definition (not just declaration) and the specific types used to fill-in the template, so keep declaration & definition in a header then include it in source files
-  - **template function:** can use any type that is copy constructable, assignable & defined by the time template compiled (custom classes)  
-  pass explicit type if compiler is not able to determine the type
-    ```cpp
-    template <typename T>  // can use typename or class keyword
-    T foo(const T &arg1)
-    {
-    }
+- **don't repeat yourself (DRY):** avoid duplicate code by creating reusable components (functions/classes)  
+  **generic programming:** reusable code that can work with different data types  
+  reduce redundancy ((separate algorithms from data type)) and improve code maintainability
+- **template:** compiler generates concrete functions/classes based on supplied argument type (`<T>` expanded)  
+  compiler must see both template definition (not just declaration) and specific types used to generate code
+  ```cpp
+  // template function
+  template <typename T>
+  T foo(const T &arg1)
+  {
+  }
 
-    foo(10);     // type inferred by compiler
-    foo<int>();  // explicit type
-    ```
-  - **template class:** used for meta-programming in which templates are used to generate temporary source code
-    ```cpp
-    template <typename T>
-    class someClass
-    {
-      public:
-        someClass(const T &var) : var_(var){};
+  foo(10);     // type inferred by compiler
+  foo<int>();  // explicit type passed
+  ```
+  ```cpp
+  // template class
+  template <typename T>
+  class someClass
+  {
+    public:
+      someClass(const T &data) : data_(data){};
+      void set(T value) { data = value; }
+      void get() { return data; }
 
-      private:
-        T var_;
-    };
+    private:
+      T data_;
+  };
 
-    someClass<int> my_object(10);
-    ```
-- **example: get type size in bytes (meta-programming):**
+  someClass<int> my_object(10);
+  ```
+- **example: sizeof() implementation:**
   ```cpp
   template <typename T>
   size_t sizeOf()
@@ -1289,10 +1288,10 @@ so for the compiler to generate the code it must see both the template definitio
       return size;
   }
 
-  std::cout << "int: " << sizeOf<int>() << std::endl;              // int: 4
-  std::cout << "someClass: " << sizeOf<someClass>() << std::endl;  // someClass: 16
+  std::cout << "int: " << sizeOf<int>() << std::endl;              // "int: 4"
+  std::cout << "someClass: " << sizeOf<someClass>() << std::endl;  // "someClass: 16"
   ```
-- **specialization:** special (different) function/class implementation for a specific type
+- **specialization:** special different implementation for specific types
   ```cpp
   template <typename T>  // generic
   T foo()
@@ -1306,15 +1305,15 @@ so for the compiler to generate the code it must see both the template definitio
       std::cout << "specialized int" << std::endl;
   }
 
-  foo<int>();     // specialized int
-  foo<double>();  // generic
+  foo<int>();     // "specialized int"
+  foo<double>();  // "generic"
   ```
 
 # exceptions
-- **exception:** provides consistent interface to handle errors through the `throw` expression  
-an exception can be caught at any point of the program (`try - catch`) or even thrown further (`throw`)  
-ctor of exception receives a string error message as argument which can accessed later using `what()`  
-`std::exception` is the base class from which various error types like `logic_error` & `runtime_error` inherit
+- **exception:** consistent interface to handle errors  
+  can be caught at any point (`try - catch`) or even thrown further (`throw`)  
+  `what()` to get error message string passed to exception  
+  various error types like `logic_error` & `runtime_error` inherit from `std::exception`
 - **example: `try` ⟶ `throw` ⟶ `catch`:**
   ```cpp
   #include <stdexcept>
@@ -1338,7 +1337,7 @@ ctor of exception receives a string error message as argument which can accessed
       }
       catch (std::runtime_error &exp)
       {
-          std::cerr << "runtime error: " << exp.what() << std::endl;  // runtime error: null pointer
+          std::cerr << "runtime error: " << exp.what() << std::endl;  // "runtime error: null pointer"
       }
       catch (std::logic_error &exp)
       {
@@ -1354,47 +1353,11 @@ ctor of exception receives a string error message as argument which can accessed
       }
   }
   ```
-- **noexcept:** specifies whether a function could throw exceptions, checked at compile-time
-  ```cpp
-  // pass by ref
-  void set_name(const std::string &name) { name_ = name; }  // name_ allocation can throw exception
-
-  // pass by rvalue
-  void set_name(std::string &&name) noexcept
-  {
-      name_ = std::move(name);  // no exception expected in moving
-  }
-
-  // pass by value
-  void set_name(std::string name) noexcept  // no exception in function body but this noexcept is a lie
-  {                                         // string construction in argument can throw exception, so exception moved to caller
-      name_ = std::move(name);              // this is acceptable for ctors since the allocation can be reused by member variables
-  }
-  ```
-- **stack unwinding:** destroying already constructed local objects if exception thrown
+- **stack unwinding:** undoing function calls (and destroying already constructed local objects) from the call stack when exception is thrown
 
 
 # misc
-- **using type alias:** similar to `typedef` but compatible with complex types (like templates & arrays)  
-creates local alias if used within function scope
-  ```cpp
-  // not possible with typedef
-  using image3f  = image<float, 3>;  // template
-  using vector3d = double[3];        // array
-  ```
-- **why typedef over macro:**
-  ```cpp
-  #define type1 int *
-  typedef int *type2;
-
-  type1 a, b;  // "a" pointer but "b" just int
-  type2 c, d;  // both "c" & "d" pointer
-  ```
-- **maximum munch rule:** compiler bites off biggest legal chunk
-  ```cpp
-  d = ++a+++b++c++;  // ++a + ++b + +c++
-  ```
-- **format specifiers:** are placeholders to represent data types
+- **format specifier:**
   ```cpp
   %c  // char
   %s  // string
@@ -1407,7 +1370,7 @@ creates local alias if used within function scope
   %g  // shorter of %f & %e (no trailing zeroes)
   %p  // pointer
   ```
-  C99 has added fixed length integer format specifiers, replace `PRI` with `SCN` for `scanf()`
+  C99 added fixed-length integer format specifiers, replace `PRI` with `SCN` for `scanf()`
   ```cpp
   #include <inttypes.h>
 
@@ -1417,28 +1380,29 @@ creates local alias if used within function scope
   ```
 - **constant integer literals:**
   ```cpp
-  // pre
+  // prefix
   0b  // binary
   0x  // hex
   0   // oct
 
-  // post
-  U   // uint
-  L   // long int, UL
-  LL  // long long int, ULL
+  // suffix
+  U   // unsigned int
+  L   // long int (UL)
+  LL  // long long int (ULL)
   F   // float
   ```
   ```cpp
   uint32_t a = 0b10, b = 0x10, c = 052;
-  LOG("a %" PRIi32 " b %" PRIi32 " c %" PRIi32, a, b, c);  // a 2 b 16 c 42
+  LOG("a:%" PRIi32 " b:%" PRIi32 " c:%" PRIi32, a, b, c);  // "a:2 b:16 c:42"
   ```
-- **enum:** user-defined type that consists of a set of named integral constants, by default starts with 0
+- **enum:** user defined named integer constants
   - **unscoped:** can implicitly convert to primitives
-  - **scoped:** add `class` to create a new scope, implicit conversion leads to error (use `static_cast` if required)
+  - **scoped:** add `class` to create scope (enum name qualifier required)  
+    implicit conversion leads to error, if required use `static_cast`
   ```cpp
   enum uFoo  // unscoped
   {
-      a,         // 0
+      a,         // 0 (default start)
       b,         // 1
       c = 1,     // 1
       d = b + c  // 2
@@ -1452,22 +1416,26 @@ creates local alias if used within function scope
       d = b + c
   };
 
-  int enumValue = a;        // visible without qualifier, implicit conversion
-  int enumValue = sFoo::a;  // sFoo qualifier required, error for conversion
+  int enumValue = a;        // implicit conversion
+  int enumValue = sFoo::a;  // error for conversion
   ```
-- **union:** is a type consisting of a sequence of members whose storage overlaps  
-use when member variables are used in either-or-but-never-both fashion
+- **type alias:** similar to `typedef` but compatible with aggregates (like templates & arrays)  
+  local alias created if declared within function scope
   ```cpp
-  union someUnion  // size 8bytes
-  {
-      uint32_t a;
-      uint8_t b;
-      uint64_t c;
-  };
+  using image3f  = image<float, 3>;  // template
+  using vector3d = double[3];        // array
   ```
-- **typedef struct:** used to define an alias for the structure data type
+  some things only possible with typedef over macro
   ```cpp
-  typedef struct someStruct_  // someStruct_ not necessary
+  #define type1 int *
+  typedef int *type2;
+
+  type1 a, b;  // "a" pointer but "b" just int
+  type2 c, d;  // both "c" & "d" pointer
+  ```
+- **typedef struct:**
+  ```cpp
+  typedef struct someStruct_  // "someStruct_" not necessary
   {
       int x;
   } someStruct;
@@ -1479,7 +1447,7 @@ use when member variables are used in either-or-but-never-both fashion
   };
   typedef struct someStruct_ someStruct;
   ```
-- **nested `struct`/`union`:** do not repeat anonymous/nameless struct/union member names
+- **nested struct:** don't repeat nameless (aka anonymous) struct/union member names
   ```cpp
   typedef struct
   {
@@ -1507,6 +1475,9 @@ use when member variables are used in either-or-but-never-both fashion
       };
   } byte;
   ```
+
+[continue here]
+
 - **functor (function object)** class/struct that acts like a function by overloading `operator ()`  
 **lambdas:** define an anonymous function object right at the location where it's invoked or passed as an argument
   ```cpp
@@ -1673,7 +1644,7 @@ more performant for types with an inefficient move constructor
 
   tp       = make_tuple(val1, ...);     // create tuple
   T1 val1  = get<i>(tp);                // extract ith element
-  T2 val2  = get<T2>(tp);               // extract element based on type, compile time error if multiple members of that type
+  T2 val2  = get<T2>(tp);               // extract element based on type, compile-time error if multiple members of that type
   ```
   `std::tie` creates a tuple of lvalue references
   ```cpp

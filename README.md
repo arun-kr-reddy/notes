@@ -1,7 +1,7 @@
 - [algorithms](./algorithms.md)
 - [computer architecture](./computer_architecture.md)
 - [computer vision](./computer_vision.md)
-- [C++](./cpp.md)
+- [cplusplus](./cpp.md)
 - [life](./life.md)
 - [maths](./maths.md)
 - [operating system](./operating_system.md)
