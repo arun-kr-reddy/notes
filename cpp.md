@@ -28,7 +28,7 @@
 - [IEEE754 conversion](https://www.youtube.com/watch?v=8afbTaA-gOQ&pp=ygUIaWVlZSA3NTQ%3D)
 - [storage specifiers, linkage, storage duration](https://en.cppreference.com/w/cpp/language/storage_duration)
 - [2D pointer](https://c-faq.com/aryptr/dynmuldimary.html)
-- [copy elision](https://www.youtube.com/watch?v=IZbL-RGr_mk)
+- [copy elision](https://stackoverflow.com/questions/12953127/what-are-copy-elision-and-return-value-optimization)([RVO](https://www.youtube.com/watch?v=IZbL-RGr_mk))
 - [designated initializer](https://gcc.gnu.org/onlinedocs/gcc/Designated-Inits.html)
 - [copy-and-swap idiom](https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom) ([video](https://www.youtube.com/watch?v=7LxepUEcXA4))
 - [stack unwinding](https://stackoverflow.com/questions/2331316/what-is-stack-unwinding)
@@ -1475,42 +1475,40 @@ doesn't allow narrowing so used in member initializer list for argument type che
       };
   } byte;
   ```
-
-[continue here]
-
-- **functor (function object)** class/struct that acts like a function by overloading `operator ()`  
-**lambdas:** define an anonymous function object right at the location where it's invoked or passed as an argument
+- **functor (function object)** class that can be called like a function by overloading `operator ()`  
+  **lambdas:** anonymous function object that can be defined inline
   ```cpp
   struct  // functor
   {
       bool operator()(int a, int b) const { return a < b; }
-  } customLessFunc;
+  } lessFunc;
 
-  std::sort(vec.begin(), vec.end(), customLessFunc);                      // using functor
+  std::sort(vec.begin(), vec.end(), lessFunc);                            // using functor
   std::sort(vec.begin(), vec.end(), [](int a, int b) { return a > b; });  // using lambdas
   ```
-- **copy elision:** is an optimization implemented by most compilers to prevent extra (potentially expensive) copies in certain situations, can be applied even if copying/moving the object has side-effects  
-example: compiler implementation eliminates both copies being made (`C()` ⟶ `return C()` ⟶ `obj`)
+
+[continue]
+- **copy elision:** eliminate redundant copies of objects  
+  **return value optimization (RVO):** avoid creating temp object when function returns by value  
+  example: both copies avoided (`C()` ⟶ `return C()` ⟶ `obj`)
   ```cpp
-  class C
+  class foo
   {
     public:
-      C() {}
-      C(const C &) { std::cout << "A copy was made.\n"; }
+      foo() { std::cout << "ctor" << std::endl; }
+      foo(const foo &) { std::cout << "copy ctor" << std::endl; }
   };
 
-  C f()
+  foo createFoo()
   {
-      return C();
+      return foo();  // "ctor"
   }
 
   int main()
   {
-      std::cout << "Hello World!\n";
-      C obj = f();  // no prints
+      foo obj = createFoo();  // no "copy ctor" print
   }
   ```
-  **return value optimization (RVO):** involves eliminating the temporary object created to hold a function's return value  
   example: with un-optimized compiler string is first constructed on stack frame and then copied to location pointed by the caller, but with RVO string is constructed directly in the location pointed by the caller
   ```cpp
   std::string foo()

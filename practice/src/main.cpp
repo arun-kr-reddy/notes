@@ -24,19 +24,26 @@ using std::vector;
 // ************************************************************************************************************************************************************
 // definitions
 // ************************************************************************************************************************************************************
-int foo(int arg)
+class foo
 {
-    printf("foo %d\n", arg);
-    return arg;
+  public:
+    foo() { std::cout << "ctor" << std::endl; }
+    foo(const foo &) { std::cout << "copy ctor" << std::endl; }
+};
+
+foo createFoo_1()
+{
+    foo object;  // "ctor"
+    return object;
+}
+
+foo createFoo_2()
+{
+    return foo(); // "ctor"
 }
 
 int main()
 {
-    int a = 1024;
-    int b = 5;
-    int c = 1;
-
-    int d = ++a+++b+c++;
-
-    return 0;
+    foo obj = createFoo_1();  // "copy ctor"
+    foo obj = createFoo_2();  // no "copy ctor" print
 }
