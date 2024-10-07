@@ -28,7 +28,6 @@
 - [IEEE754 conversion](https://www.youtube.com/watch?v=8afbTaA-gOQ&pp=ygUIaWVlZSA3NTQ%3D)
 - [storage specifiers, linkage, storage duration](https://en.cppreference.com/w/cpp/language/storage_duration)
 - [2D pointer](https://c-faq.com/aryptr/dynmuldimary.html)
-- [copy elision](https://stackoverflow.com/questions/12953127/what-are-copy-elision-and-return-value-optimization)([RVO](https://www.youtube.com/watch?v=IZbL-RGr_mk))
 - [designated initializer](https://gcc.gnu.org/onlinedocs/gcc/Designated-Inits.html)
 - [copy-and-swap idiom](https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom) ([video](https://www.youtube.com/watch?v=7LxepUEcXA4))
 - [stack unwinding](https://stackoverflow.com/questions/2331316/what-is-stack-unwinding)
@@ -1487,72 +1486,19 @@ doesn't allow narrowing so used in member initializer list for argument type che
   std::sort(vec.begin(), vec.end(), [](int a, int b) { return a > b; });  // using lambdas
   ```
 
-[continue]
-- **copy elision:** eliminate redundant copies of objects  
-  **return value optimization (RVO):** avoid creating temp object when function returns by value  
-  example: both copies avoided (`C()` ⟶ `return C()` ⟶ `obj`)
-  ```cpp
-  class foo
-  {
-    public:
-      foo() { std::cout << "ctor" << std::endl; }
-      foo(const foo &) { std::cout << "copy ctor" << std::endl; }
-  };
-
-  foo createFoo()
-  {
-      return foo();  // "ctor"
-  }
-
-  int main()
-  {
-      foo obj = createFoo();  // no "copy ctor" print
-  }
-  ```
-  example: with un-optimized compiler string is first constructed on stack frame and then copied to location pointed by the caller, but with RVO string is constructed directly in the location pointed by the caller
-  ```cpp
-  std::string foo()
-  {
-      std::string a("A");
-      int b{23};
-      .
-      .
-      .
-
-      return a;
-  }
-  ```
-  here copy cannot be skipped since return object is not known
-  ```cpp
-  someType foo()
-  {
-      someType a, b;
-
-      if (someFlag)
-          return a;
-      else
-          return b;
-  }
-  ```
-- **zero cost abstractions (zero overhead principle):** you don't pay (in time or space) for what you don't use and what you do use is just as efficient as what you could reasonably write by hand  
-so adding higher-level programming concepts like templates will come at extra compile-time cost not run-time cost and usually is as fast as you would write out matching functionality by hand
-- **small string optimization:** most implementations of `std::string` create a small static array (like `char [20]`) within class definition  
-so smaller strings are stored on stack avoiding the need to allocate heap memory which speeds things up a bit
-
 # STL containers
-- **iterator:** used to point at the memory addresses of STL containers (similar to a pointer) which allows quick & efficient navigation through any STL container (even unordered ones)  
-  `rbegin + 1` will point to the second-last element  
-![](./media/cplusplus/iterator.png)
+- **iterator:** pointer generalization for navigating & manipulating  different data structs
+  ![](./media/cplusplus/iterator.png)
   ```cpp
   T::iterator itr = container.begin();  // vector<double>::iterator itr;
 
   T val = *itr;  // current element
   ++itr;         // increment iterator, now points to next element
-  ```  
+  ```
 
-### sequence
-- **sequence containers:** data structures that can be accessed sequentially (`O(n)`)
-- **string:** sequences of characters, better than C-style arrays (which is faster) because this has dynamic size & useful member functions
+## sequence
+- **sequence containers:** sequential access
+- **string:** dynamic size character sequence
   ```cpp
   #include <string>
   std::string str;                      // std::string str("hello world");
@@ -1571,8 +1517,7 @@ so smaller strings are stored on stack avoiding the need to allocate heap memory
                                         // optional second arg for initializing new elements
   str.shrink_to_fit();                  // dealloc unused memory
   ```
-- **vector:** dynamic contiguous (so cache-friendly) array  
-  has move semantics, so local vector declared in function will be moved on return
+- **vector:** dynamic contiguous (cache-friendly) array  
   ```cpp
   #include <vector>
   std::vector<T> vec;                   // std::vector<int> vec{1, 2, 3, 4};
@@ -1583,7 +1528,7 @@ so smaller strings are stored on stack avoiding the need to allocate heap memory
   new_val_itr = insert(itr, val);       // insert element, emplace()
   // =, empty, size, data, at(i), clear, erase, push_back, reserve, shrink_to_fit
   ```
-- **array:** static contiguous array, fixed size container so more optimization opportunities
+- **array:** static (fixed-size) contiguous array
   ```cpp
   #include <array>
   std::array<T, size> arr;              // std::array<int, 4> arr{1, 2, 3, 4};
@@ -1591,8 +1536,8 @@ so smaller strings are stored on stack avoiding the need to allocate heap memory
   arr.fill(value)                       // assign value to all elements
   // =, empty, size, data, at(i), clear
   ```
-- **deque:** double-ended queue, basically a two-sided vector with non contiguous mem  
-usually implemented as variable size array of fixed size arrays, this makes growing faster than a vector (which requires allocation & copying)
+- **deque:** non-contiguous two-sided vector (double-ended queue)  
+  usually implemented as variable size array of fixed size arrays
   ```cpp
   #include <deque>
   std::deque<T> dq;                     // std::deque<int> dq{1, 2, 3, 4};
@@ -1615,19 +1560,20 @@ usually implemented as variable size array of fixed size arrays, this makes grow
   // =, empty, clear, push_front
   // no size since not θ(1)
   ```
-- **list:** doubly-linked list (traversal to both direction)'
+- **list:** doubly-linked list (both direction traversal)
   ```cpp
   #include <list>
   std::list<T> lst;                     // std::list<int> lst = {1, 2, 3, 4};
 
   // =, empty, size, clear, insert, erase, push_back, sort, unique, merge, reverse
   ```
-- **why `emplace_back`:** it constructs the object in place with the ctor arguments, while `push_back` will construct a temporary object then copy/move it into the container  
-more performant for types with an inefficient move constructor
+- `push_back` constructs temporary object then copy/move it  
+  `emplace_back` constructs object in place with ctor arguments  
+  more performant for types with inefficient move ctor
 
-### associative
-- **associative containers:** sorted data structures that can be quickly searched (`O(logn)`)
-- **pair:** provides a way to store two heterogeneous objects as a single unit
+## associative
+- **associative containers:** sorted data structs
+- **pair:** store two heterogeneous objects as a single unit
   ```cpp
   #include <utility>
   std::pair<T1, T2> pr;                 // std::pair<int, string> pr(1, "hello");
@@ -1635,26 +1581,24 @@ more performant for types with an inefficient move constructor
   pr       = make_pair(val1, val2);     // create pair
   pr.first = val3;                      // modify first element, second
   ```
-- **tuple:** fixed-size collection of heterogeneous values, generalization of `pair`
+- **tuple:** generalization of `pair`
   ```cpp
   #include <tuple>
-  std::pair<T1, T2, T3, ...> tp;        // std::tuple<int, string, float> pr(1, "hello", 2.5);
+  std::tuple<T1, T2, T3, ...> tp;        // std::tuple<int, string, float> pr(1, "hello", 2.5);
 
   tp       = make_tuple(val1, ...);     // create tuple
   T1 val1  = get<i>(tp);                // extract ith element
   T2 val2  = get<T2>(tp);               // extract element based on type, compile-time error if multiple members of that type
   ```
-  `std::tie` creates a tuple of lvalue references
+  `std::tie` to pack or unpack tuple
   ```cpp
-  std::pair<std::set<int>::iterator, bool> a;
-  a = st.insert(1);
+  // pack (instead of make_tuple)
+  std::tuple<int, int, int> tp = std::tie(first, second, third);
 
-  // same as
-  std::set<int>::iterator itr;
-  bool flag;
-  std::tie(itr, flag) = st.insert(1);
+  // unpack (instead of multiple get<i>)
+  std::tie(first, second, third) = tp;
   ```
-- **set:** collection of unique keys which is always sorted
+- **set:** sorted unique keys
   ```cpp
   #include <set>
   std::set<T> st;                       // std::set<T> st{1, 2, 3, 4};
@@ -1664,8 +1608,7 @@ more performant for types with an inefficient move constructor
   if (mp.count(key) > 0)                // number of matching keys (0/1 for set & map)
   // empty, size, clear
   ```
-- **map:** collection of key-value pairs which is sorted by unique keys  
-anything with a defined less-than operator (`<`) can be used as key
+- **map:** key-value pairs sorted by unique keys (with `<` operator)
   ```cpp
   #include <map>
   std::map<keyT, valT> mp;              // std::map<int, string> mp{{1, "hello"}, {2, "world"}};
@@ -1673,17 +1616,16 @@ anything with a defined less-than operator (`<`) can be used as key
   mp[key] = val;                        // assign (insert if not present)
   // empty, size, at(key), clear, insert(pair), find, count
   ```
-- **multiset & multimap:** are same as set & map but keys are not unique (duplicates allowed), so `count(key)` can greater than 1  
-  defined in same headers as set & map
+- **multiset & multimap:** set & map with duplicate keys allowed (`count(key)` can greater than 1)
 
-### unordered associative
-- **unordered associative containers:** unsorted  but hashed data structures that can be quickly searched (average `O(1)` but worst case `O(n)`)  
-worst case if hash function is producing collision for every insertion into container
-- **unordered_set, unordered_map, unordered_multiset & unordered_multimap:** same as ordered associate containers with headers: `#include <unordered_set>` & `#include <unordered_map>`
+## unordered associative
+- **unordered associative containers:** hashed (unsorted) data structs  
+  worst case if same hash value for every element
+- **unordered_set, unordered_map, unordered_multiset & unordered_multimap:** `#include <unordered_set>` & `<unordered_map>`
 
-### container adaptors
-- **container adaptors:** provide a different interface for sequential containers
-- **stack:** deque wrapper with functionality of a LIFO data structure by forcing push/pop on one side only
+## container adaptors
+- **container adaptors:** different interface for sequential containers
+- **stack:** deque wrapper with only push/pop on one side (LIFO)
   ```cpp
   #include <stack>
   std::stack<T> stk;                    // new dequeue created
@@ -1694,7 +1636,7 @@ worst case if hash function is producing collision for every insertion into cont
                                         // pop() doesn't return value so store top() first
   // empty, size
   ```
-- **queue:** deque wrapper with functionality of a FIFO data structure by forcing push one side and pop on other
+- **queue:** deque wrapper with only push on one side & pop on other size (FIFO)
   ```cpp
   #include <queue>
   std::queue<T> que;                    // new dequeue created
@@ -1705,8 +1647,9 @@ worst case if hash function is producing collision for every insertion into cont
                                         // pop() doesn't return value so store front() first
   // empty, size
   ```
-- **priority_queue:** vector wrapper which provides `O(1)` (top element) lookup at the expense of `O(logn)` insertion/extraction by taking more effort into how to insert new elements in the underlying vector  
-stack & queue based on queue since growing is faster, priority queue uses vector because insertion into sorted vector (data shifts) is faster with contiguous memory (same cache line)
+- **priority_queue:** vector wrapper with const-time top element lookup with sorted insertion/extraction  
+  stack & queue use deque since growing is faster  
+  priority queue use vector because insertion into sorted vector is faster with contiguous memory
   ```cpp
   #include <queue>
   std::priority_queue<T> pq();          // new vector created & uses less<T> by default
@@ -1717,6 +1660,9 @@ stack & queue based on queue since growing is faster, priority queue uses vector
   // push will insert into sorted array
   ```
  # STL functions
+
+[continue]
+
 - standard template library
   ```cpp
   #include <algorithm>

@@ -9,6 +9,8 @@
 #include <iostream>
 #include <vector>
 
+#include <tuple>
+
 using std::cout;
 using std::endl;
 using std::vector;
@@ -24,26 +26,18 @@ using std::vector;
 // ************************************************************************************************************************************************************
 // definitions
 // ************************************************************************************************************************************************************
-class foo
-{
-  public:
-    foo() { std::cout << "ctor" << std::endl; }
-    foo(const foo &) { std::cout << "copy ctor" << std::endl; }
-};
-
-foo createFoo_1()
-{
-    foo object;  // "ctor"
-    return object;
-}
-
-foo createFoo_2()
-{
-    return foo(); // "ctor"
-}
-
 int main()
 {
-    foo obj = createFoo_1();  // "copy ctor"
-    foo obj = createFoo_2();  // no "copy ctor" print
+    int first = 1, second = 2, third = 3;
+
+    std::tuple<int, int, int> tp = std::tie(first, second, third);
+
+    std::tie(first, second, third) = tp;
+
+    // alternate
+    // first  = std::get<0>(tp);
+    // second = std::get<1>(tp);
+    // third  = std::get<2>(tp);
+
+    return 0;
 }
