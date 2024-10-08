@@ -1,5 +1,5 @@
 - [introduction](#introduction)
-- [algorithmic thinking](#algorithmic-thinking)
+- [search](#search)
 - [models of computation](#models-of-computation)
 - [sorting](#sorting)
 - [heap](#heap)
@@ -11,60 +11,42 @@
 - [big O notation](https://adrianmejia.com/how-to-find-time-complexity-of-an-algorithm-code-big-o-notation/ )
 
 # introduction
-- **data structures:** way to store, update & retrieve data in computer memory  
-  **algorithm:** efficient process (set of rules) to be followed in solving a problem (on large inputs like human genome)
-- **asymptotic complexity:** used for estimation of (worst-case) computational complexity of algorithms  
-  example: for `f(n) = n^2 + 3n`, `n^2` grows at a much faster rate than `3n` (insignificant for large `n`)  
-  so `f(n)` is asymptotically equivalent to `n^2`  
+- **data structures:** organize & store data for efficient access & manipulation  
+  **algorithm:** efficient procedure to solve a large-scale problem
+- **asymptotic complexity:** estimate algorithm's worst-case computational complexity as input scales  
   ![](./media/algorithms/time_complexity.png)
-  - **sequential:** `s1 + s2`
-    ```cpp
-    s1;  // statement
-    s2;
-    ```
-  - **conditional:** `max(s1, s2)`
-    ```cpp
-    if (flag)
-        s1;
-    else
-        s2;
-    ```
-  - **linear loop:** `itr * (s1 + s2)`
-    ```cpp
-    for (int i = 0; i < itr; i++)
-    {
-        s1;
-        s2;
-    }
-    ```
-  - **nested loop:** `itr_i * (s1 + j * s2)`
-    ```cpp
-    for (int i = 0; i < itr_i; i++)
-    {
-        s1;
-        for (int j = 0; j < itr_j; j++)
-        {
-            s2;
-        }
-    }
-    ```
-  - **logarithmic loop:** `log2(itr) * (s1 + s2)`
-    ```cpp
-    for (int i = itr; i >= 1; i /= 2)
-    {
-        s1;
-        s2;
-    }
-    ```
-- **divide & conquer algorithm:** recursively break down a problem into sub-problems until they become simple enough to be solved directly (base case)  
-  solutions to sub-problems are then combined to form solution to the original problem  
-  ![](./media/algorithms/divide_and_conquer.png)
-- **tail call recursion:** pass the results of current step to the next recursive step  
-  so no need to save current function's stack frame (compiler optimization)  
-  if the final action of a function is to call itself (no operations on recursion output)  
-  example: binary search recursive call returns search position
+- **divide & conquer algorithm:** break down a problem into smaller subproblems, solve them recursively then combine the solutions
+- **tail call recursion:** recursive call is the last action before returning  
+  current step result needed by next step pass it as arg  
+  compiler will reuse current function's stack frame  
+  example: binary search recursive call directly returns search position
+  ```cpp
+  int binarySearch(int arr[], int low, int high, int x)
+  {
+      if (high >= low)
+      {
+          int mid = low + (high - low) / 2;
 
-# algorithmic thinking
+          if (arr[mid] == x)
+              return mid;
+
+          if (arr[mid] > x)  // left half
+              return binarySearch(arr, low, mid - 1, x);
+          else  // right half
+              return binarySearch(arr, mid + 1, high, x);
+      }
+
+      return -1;
+  }
+  ```
+
+[continue](https://youtu.be/HtSuA80QTyo?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=927)
+
+# search
+
+
+
+
 - **peak:** position whose value is `>=` (or `>`) all its neighbors, aka local maximum
 - **1D peak finding:** with `>=` a peak will always exist in an array since transition has to take place at some index (edges for sorted arrays)  
   but with `>` a peak might not exist (all elements have same value)  

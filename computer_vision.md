@@ -1,7 +1,7 @@
 - [introduction](#introduction)
 
 # links  <!-- omit from toc -->
-- [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/)
+- [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/) ([latest PPTs](https://courses.cs.washington.edu/courses/cse576/22sp/notes/3_Resizing_20.pdf))
 - [[playlist] first principles of computer vision](https://fpcv.cs.columbia.edu/)
 
 # introduction
@@ -16,9 +16,13 @@
   ![](./media/computer_vision/pixel_coordinates.png)
 - **HSV:** hue (which color), saturation (how much color) & value (how bright)  
   makes recognizing colors much easier since hue remains same under varying lighting conditions  
-    white if saturation zero (no color), black if value zero (zero brightness)  
+  white if saturation zero (no color), black if value zero (zero brightness)  
   ![](./media/computer_vision/rgb_to_hsv_1.png)  
   ![](./media/computer_vision/rgb_to_hsv_2.png)
 
 
-[continue](https://www.youtube.com/watch?v=hpqrDUuk7HY&list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&index=4&t=2741s)
+[histogram](https://en.wikipedia.org/wiki/Histogram_equalization)
+[interpolation](https://courses.cs.washington.edu/courses/cse576/22sp/notes/3_Resizing_20.pdf)
+
+
+[continue](https://www.youtube.com/watch?v=hpqrDUuk7HY&list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&index=5)
