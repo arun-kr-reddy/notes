@@ -17,8 +17,8 @@
   ![](./media/algorithms/time_complexity.png)
 - **divide & conquer algorithm:** break down a problem into smaller subproblems, solve them recursively then combine the solutions
 - **tail call recursion:** recursive call is the last action before returning  
-  current step result needed by next step pass it as arg  
-  compiler will reuse current function's stack frame  
+  if next step needs current step result then pass it as arg  
+  compiler will reuse current function's stack frame (prevent stack overflow)  
   example: binary search recursive call directly returns search position
   ```cpp
   int binarySearch(int arr[], int low, int high, int x)
@@ -40,41 +40,62 @@
   }
   ```
 
-[continue](https://youtu.be/HtSuA80QTyo?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=927)
-
 # search
-
-
-
-
-- **peak:** position whose value is `>=` (or `>`) all its neighbors, aka local maximum
-- **1D peak finding:** with `>=` a peak will always exist in an array since transition has to take place at some index (edges for sorted arrays)  
-  but with `>` a peak might not exist (all elements have same value)  
+- **peak:** position whose value is `>=` (or `>`) all its neighbors, aka local maximum  
+  with `>=` peak will always exist since (increasing ⟶ decreasing/equal) transition must take place at some index (edges for sorted arrays)  
+  but with `>` peak might not exist (all array elements same value)
+- **1D peak finding:**  
   ![](./media/algorithms/1d_peak.png)
-  - **linear:** walk across all elements, worst case `θ(n)` if last element is the peak
-  - **recursive:** start at the midpoint and pick a half based on which side's neighbor is higher, if neither higher then `n/2` is the peak  
-    ![](./media/algorithms/1d_divide_conquer_complexity.png)  
-    each recursion divides the input size by half `T(n) = T(n/2) + θ(1) = T(n/4) + θ(1) + θ(1) = ... = T(n/(2^k)) + k * θ(1)`  
-    base case we have one element `T(1) = θ(1)` for which `n/(2^k) = 1` ⟶ `k = log2(n)`  
-    so `T(n) = T(1) + log(n) * θ(1) = (log(n) + 1) * θ(1) ≈ θ(log(n))`
-- **2D peak finding:** higher than all four neighbors in a  `n` rows x `m` columns matrix  
+  - **linear:** walk across all elements  
+    worst case `θ(n)` if last element peak
+  - **divide & conquer:** start at midpoint then pick higher neighbor's half  
+    if neither higher then midpoint is the peak
+    ```
+    each recursion divides the input size by half:
+    T(n) = T(n/2) + θ(1)          ⟶ θ(1) for midpoint comparison
+         = T(n/4) + θ(1) + θ(1)
+         .
+         .
+         = T(n/(2^k)) + k * θ(1)
+
+    base case one element: T(1) = θ(1)
+    n/(2^k) = 1
+    k = log2(n)
+
+    T(n) = T(1) + log(n) * θ(1)
+         = (log(n) + 1) * θ(1)
+         ≈ θ(log(n))
+    ```
+- **2D peak finding:**  
   ![](./media/algorithms/2d_peak.png)
-  - **greedy ascent:** start at the midpoint and keep moving in the direction of the highest neighbor until the peak is found  
+  - **greedy ascent:** from midpoint keep moving in the direction of highest neighbor until peak is found  
     worst-case `θ(n * m)` if all elements traversed  
     ![](./media/algorithms/2d_greedy_ascent.png)
-  - **recursive 1:** find the 1D peak `(i, j)` in the middle column (`j == m/2`) and then find the 1D peak in that row (`i`)  
-    but a 2D peak may not exist on row `i` so this algorithm is efficient (`θ(log(m) * log(n))`) but incorrect  
+  - **divide & conquer 1:** find 1D peak `(i, j)` in middle column (`j == m/2`) and then find 1D peak in that row (`i`)  
+    but 2D peak may not exist on row `i`  
+    efficient (`θ(log(m) * log(n))`) but incorrect algorithm  
     example: 12 is a column 1D peak and in that row 14 is the 1D peak but is not a 2D peak  
     ![](./media/algorithms/2d_divide_conquer_1.png)
-  - **recursive 2:** find the global maximum `(i, j)` in the middle column (`j == m/2`)  
-    then compare its left and right elements to select one half & solve it (maximum then comparison), `(i, j)` peak if neither higher  
-    vertically global maximum & horizontally 1D recursive peak finding  
-    ![](./media/algorithms/2d_divide_conquer_2.png)  
-    ![](./media/algorithms/2d_divide_conquer_complexity.png)  
-    `T(n, m) = T(n, m/2) + θ(n) = T(n, m/4) + θ(n) + θ(n) = ... = T(n, m/(2^k)) + k * θ(n)`  
-    base case we have one row `T(n, 1) = θ(n)` and `m/(2^k) = 1` ⟶ `k = log(m)`  
-    `T(n) = T(n, 1) + log(m) * θ(n) = (log(m) + 1) * θ(n) ≈ θ(n * log(m))`  
-    worst case if peak one of the corners of matrix
+  - **divide & conquer 2:** find (global) maximum `(i, j)` in middle column (`j == m/2`)  
+    then pick higher left/right neighbor's half, 2D peak if neither higher  
+    ![](./media/algorithms/2d_divide_conquer_2.png)
+    ```
+    T(n, m) = T(n, m/2) + θ(n)          ⟶ θ(n) for global max
+            = T(n, m/4) + θ(n) + θ(n)
+            .
+            .
+            = T(n, m/(2^k)) + k * θ(n)
+
+    base case one row: T(n, 1) = θ(n)
+    m/(2^k) = 1
+    k = log(m)
+
+    T(n) = T(n, 1) + log(m) * θ(n)
+         = (log(m) + 1) * θ(n)
+         ≈ θ(n * log(m))                ⟶ worst case if matrix corner peak
+    ```
+
+[continue](https://www.youtube.com/watch?v=Zc54gFhdpLA&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=2)
 
 # models of computation
 - algorithm is a computational procedure for solving a problem
