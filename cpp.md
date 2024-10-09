@@ -934,7 +934,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
   ```cpp
   263.3                           // float
   100000111.0100110011...         // binary
-  1.000001110100110011... x 2^8   // scientific notation, true_exponent = 8
+  1.000001110100110011... * 2^8   // scientific notation, true_exponent = 8
                                   // 1 is invisible leading bit
   sign = 0
   exp = 8 + 127 = 10000111        // exponent = true_exponent + bias
