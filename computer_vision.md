@@ -7,6 +7,7 @@
 - [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/)
 - [[playlist] first principles of computer vision](https://fpcv.cs.columbia.edu/)
 - [binomial as gaussian approximation](https://bartwronski.com/2021/10/31/practical-gaussian-filter-binomial-filter-and-small-sigma-gaussians/)
+- [edge detection](https://blog.roboflow.com/edge-detection/)
 
 # introduction
 - **computer vision:** enable computers to analyse & understand images
@@ -25,7 +26,12 @@
   ![](./media/computer_vision/rgb_to_hsv_2.png)
 
 # histogram
-
+- **histogram:** pixel intensities distribution
+- **histogram equalization:** improve image contrast by stretching its histogram to cover the full range of possible pixel values
+  - calculate histogram
+  - compute cumulative distribution function (`<=` pixel frequencies cumulative sum)
+  - normalize CDF array elements (between 0 & 1) by dividing by total num pixels
+  - map pixel values by multiplying corresponding CDF value with max possible pixel value
 # resizing
 - **interpolation:** estimate values at unknown locations using known data  
   ![](./media/computer_vision/interpolation.png)
@@ -59,7 +65,7 @@
   - **Gaussian:** weighted average with more weight to closer pixels  
     smoother transitions so better edge preservation  
     ![](./media/computer_vision/gaussian_2d.png)
-  - **binomial:** approximation to gaussian using Pascal's triangle  
+  - **binomial:** good & fast approximation to Gaussian using Pascal's triangle  
     ![](./media/computer_vision/gaussian_vs_binomial.png)  
     ![](./media/computer_vision/pascals_triangle.png)
     ```
@@ -67,7 +73,39 @@
     [1 2 1] * [2] = [2 4 2]
               [1]   [1 2 1]
     ```
-- **edge (high pass) filters:**
+- **edge (high pass) filters:** emphasize edges (sharp transitions)  
+  most semantic & shape info can be deduced from edges  
+  low-pass filter first to remove noise
+  - **first derivative:**  
+    ![](./media/computer_vision/differentiation.png)  
+    assume `∆x = 1` for pixels then approx filter is `[-1 0 1]`  
+    need to run vertically & horizontally
+    - **Prewitt:** box * derivative
+      ```
+                 [1]   [-1 0 1]
+      [-1 0 1] * [1] = [-1 0 1]   ⟶ horizontal
+                 [1]   [-1 0 1]
+      ```
+    - **Sobel:** gaussian * derivative
+      ```
+                 [1]   [-1 0 1]
+      [-1 0 1] * [2] = [-2 0 2]
+                 [1]   [-1 0 1]
+      ```
+  - **Laplacian:** sum of second derivative wrt x & y  
+    ![](./media/computer_vision/laplacian_1.png)  
+    approximation of second derivative in one dimension  
+    ![](./media/computer_vision/laplacian_2.png)  
+    ![](./media/computer_vision/laplacian_3.png)  
+    single pass but loses direction info
+    ```
+    [ 0 -1  0]
+    [-1  4 -1]
+    [ 0 -1  0]
+    ```
+- canny:
+- sharpen: add edges to image (idenity + edge)
+- non-linear filter:
 
 
 [histogram](https://en.wikipedia.org/wiki/Histogram_equalization)
