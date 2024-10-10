@@ -267,7 +267,7 @@
   example: wrong `cout` overloaded if client code has own implementation
 - **library:** collection of pre-compiled code that can be reused by programs
   - **static:** linked directly into the final executable  
-    fast but takes lot of space since always a part of final binary (`.a` archive)
+    fast but takes lot of space since always part of final binary (`.a` archive)
     ```sh
     ar rcs lib.a module1.o module2.o
     # rcs: replace, create, sort
@@ -275,7 +275,7 @@
     # r: replace old files within library (if already exists)
     # s: create sorted index of library
     ```
-  - **dynamic:** exists as a separate file that will be loaded run-time at first call  
+  - **dynamic:** exists as separate file that will be loaded run-time at first call  
     slower but can be copied and shared by multiple executables (`.so` shared object)  
     ability to change the library functions without having to re-link to the executable
     ```sh
@@ -286,7 +286,7 @@
 # encapsulation
 - **object oriented programming:** programming model that organizes software design around data rather than functions  
   programs are made out of objects (containing data & functions) that interact with one another
-- **encapsulation:** bind together data and the functions that operate on them so no other part of code can access this data except that function  
+- **encapsulation:** bind together data and functions that operate on them so no other part of code can access this data except that function  
 - **class:** user-defined data type holding data & function members  
   class is like a blueprint for all objects (class instances) of a type  
   `this` is pointer to current object for use in member functions  
