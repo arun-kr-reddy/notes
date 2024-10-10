@@ -1,7 +1,7 @@
 - [introduction](#introduction)
 - [histogram](#histogram)
 - [resizing](#resizing)
-- [convolution](#convolution)
+- [filtering](#filtering)
 
 # links  <!-- omit from toc -->
 - [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/)
@@ -24,6 +24,8 @@
   white if saturation zero (no color), black if value zero (zero brightness)  
   ![](./media/computer_vision/rgb_to_hsv_1.png)  
   ![](./media/computer_vision/rgb_to_hsv_2.png)
+- **binary image:** obtained from grayscale image by thresholding (like histogram valley)  
+  ![](./media/computer_vision/binary_thresholding.png)
 
 # histogram
 - **histogram:** pixel intensities distribution
@@ -31,7 +33,7 @@
   - calculate histogram
   - compute cumulative distribution function (`<=` pixel frequencies cumulative sum)
   - normalize CDF array elements (between 0 & 1) by dividing by total num pixels
-  - map pixel values by multiplying corresponding CDF value with max possible pixel value
+  - map pixel values by multiplying corresponding CDF value with max possible pixel value (255)
 # resizing
 - **interpolation:** estimate values at unknown locations using known data  
   ![](./media/computer_vision/interpolation.png)
@@ -56,16 +58,16 @@
   original_y = new_y / height_scale
   ```
 
-# convolution
+# filtering
 - **convolution:** applying a kernel/filter to image  
   kernel slides over the image, multiplying pixels and summing the products  
   ![](./media/computer_vision/convolution.gif)
 - **averaging (low pass) filters:** smooth out by replacing with average value of neighbor
   - **box/mean:** simple average
-  - **Gaussian:** weighted average with more weight to closer pixels  
+  - **gaussian:** weighted average with more weight to closer pixels  
     smoother transitions so better edge preservation  
     ![](./media/computer_vision/gaussian_2d.png)
-  - **binomial:** good & fast approximation to Gaussian using Pascal's triangle  
+  - **binomial:** good & fast approximation to gaussian using pascal's triangle  
     ![](./media/computer_vision/gaussian_vs_binomial.png)  
     ![](./media/computer_vision/pascals_triangle.png)
     ```
@@ -80,19 +82,19 @@
     ![](./media/computer_vision/differentiation.png)  
     assume `∆x = 1` for pixels then approx filter is `[-1 0 1]`  
     need to run vertically & horizontally
-    - **Prewitt:** box * derivative
+    - **prewitt:** box * derivative
       ```
                  [1]   [-1 0 1]
       [-1 0 1] * [1] = [-1 0 1]   ⟶ horizontal
                  [1]   [-1 0 1]
       ```
-    - **Sobel:** gaussian * derivative
+    - **sobel:** gaussian * derivative
       ```
                  [1]   [-1 0 1]
       [-1 0 1] * [2] = [-2 0 2]
                  [1]   [-1 0 1]
       ```
-  - **Laplacian:** sum of second derivative wrt x & y  
+  - **laplacian:** sum of second derivative wrt x & y  
     ![](./media/computer_vision/laplacian_1.png)  
     approximation of second derivative in one dimension  
     ![](./media/computer_vision/laplacian_2.png)  
@@ -103,11 +105,10 @@
     [-1  4 -1]
     [ 0 -1  0]
     ```
-- canny:
+  - **canny:**
 - sharpen: add edges to image (idenity + edge)
-- non-linear filter:
+- **median:** cannot be implemented as convolution (non-linear filter)  
+  to remove extreme outliers
 
-
-[histogram](https://en.wikipedia.org/wiki/Histogram_equalization)
-
-[continue](https://youtu.be/5xdbJ7z4Nrc?list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&t=3293)
+[continue](https://www.youtube.com/watch?v=f-5l8Cdcb8k&list=PL2zRqk16wsdorCSZ5GWZQr1EMWXs2TDeu&index=2&pp=iAQB)
+[continue](https://www.youtube.com/watch?v=z5WSV6CXsxs&list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&index=5)

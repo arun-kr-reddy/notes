@@ -34,9 +34,9 @@
 
 # introduction
 - *within C++ there is a much smaller & cleaner language struggling to get out*
-- **standard I/O channels:** are pre-connected I/O communication channels  
-  one input (`cin`) and two output channels (`cout` & `cerr`)  
-  in linux these channels are assigned numerical file descriptors: 0 `stdin`, 1 `stdout` & 2 `stderr`
+- **standard I/O channels:** pre-connected I/O communication channels  
+  one input (`cin`) & two output channels (`cout` & `cerr`)  
+  are usually assigned numerical file descriptors: 0 `stdin`, 1 `stdout` & 2 `stderr`
   ```cpp
   // C++
   std::cout << "out log" << std::endl;  // endl: endline
@@ -44,7 +44,7 @@
   // C
   fprintf(stderr, "error log");
   ```
-- **command line arguments:** define `main()` with num arguments (`int argc`) and list of arguments (`char const *argv[]`)
+- **command line arguments:**
   ```cpp
   // ./exe_main command line arguments
 
@@ -54,14 +54,15 @@
       // argv[] == {"exe_main", "command", "line", "arguments"}
   }
   ```
-- **compilation process:** transforms a human-readable code into a machine-readable format  
+- **compilation process:** transform human-readable code to machine-readable format  
   ![](./media/cplusplus/compilation_stages.png)
-  - **preprocessor:** process all `#` statements like comments removal, file inclusion, macros expansion & conditional expansion
-  - **compiler:** convert pre-processed intermediate code (`.i`) to an assembly code (`.s`)
-  - **assembler:** convert assembly code to machine-readable object (binary) code (`.o`)
-  - **linker:** combine the object files with other necessary libraries & modules (object files) to create an executable file (`.exe`/`.out`)  
+  - **preprocessor:** process all `#` statements  
+    like comments removal, file inclusion, macros expansion & conditional expansion
+  - **compiler:** pre-processed intermediate code (`.i`) to assembly code (`.s`)
+  - **assembler:** assembly code to machine-readable object (binary) code (`.o`)
+  - **linker:** combine object files with other necessary libs & modules (object files) to create executable file (`.exe`/`.out`)  
     ensures that all necessary (referenced) functions & variables from different modules are correctly connected
-  - **example: GCC compiler flags:** MSVC flags are use `/` instead of `-`
+  - **example: GCC compiler flags:** MSVC flags use `/` instead of `-`
     ```sh
     -std=c++11        # set C++ standard
     -Wall             # all warnings
@@ -103,13 +104,13 @@
       return 0;
   }
   ```
-  - **variadic macros:** `__VA_ARGS__` replaced by all the tokens after the last named-argument in the argument list
+  - **variadic macros:** `__VA_ARGS__` replaced by tokens after last named-argument
     ```cpp
     // append new line to format string then place arguments
     #define LOG(str, ...) printf(str "\n", __VA_ARGS__);  // "str" last named-argument
     ```
-- **declaration:** introduces an identifier and describes its type, compiler needs this to accept references to that identifier  
-  **definition:** actually implements the identifier, linker needs this to link identifier references
+- **declaration:** identifier & its type, compiler needs this to accept references to it  
+  **definition:** identifier implementation, linker needs this to link identifier references
   ```cpp
   // declaration
   extern int bar;
@@ -125,11 +126,11 @@
   {
   };
   ```
-- **variable shadowing:** variable declared in a specific scope takes precedence over another variable with same name declared in an outer scope
-- **auto:** directs the compiler to use the initialization expression to deduce its type
-  - makes code more robust in the face of change (like function return type changed)
-  - guarantees no implicit conversion, no narrowing conversions and no uninitialized variables
-  - only good option for hard-to-spell types like lambdas
+- **variable shadowing:** variable in specific scope takes precedence over same-name variable in outer scope
+- **auto:** directs compiler to use initialization expression to deduce its type
+  - makes code more robust (like function return type changed)
+  - guarantees no implicit/narrowing conversion and no uninitialized variables
+  - only good option for hard-to-spell types (like lambdas)
   ```cpp
   auto var = 13;     // int
   auto var = 13.0f;  // float
@@ -137,12 +138,13 @@
 
   auto a = 0, b = 3.14;  // error: "inconsistent types for a and b"
   ```
-  to make type deduce `auto var = init;`, to make type stick `auto var = type{ init };`
-- **reference:** is an alias (alternative name) for an existing variable declared using `&` to avoid copying data  
+  to make type deduce `auto var = init;`  
+  to make type stick `auto var = type{ init };`
+- **reference:** alias for existing variable declared using `&` to avoid copying data  
   similar to a pointer but cannot be modified after initialization
 - **++i vs i++:** `i++` increments `i` but returns original value so needs to be stored for later use  
-  modern compilers will optimize this for primitive data types  
-  but if `i` is a class then stored temp will involve calling a copy ctor which can be expensive
+  optimized by compilers for primitive data types  
+  for aggregate type stored temp will involve calling copy ctor which can be expensive
 - **bitwise operators:** variants of AND (`&&`), OR (`||`) & NOT (`!`)
   ```
   A      = 0011 1100
@@ -167,12 +169,12 @@
     #define clearBit(num, idx) (num &= ~(1 << idx))
     #define flipBit(num, idx)  (num ^= (1 << idx))
     ```
-  - **example: check power of 2:** `2^n` will have `n+1`th bit set and `2^n - 1` will have `n` lower bits set, so bitwise-AND of two should be zero
+  - **example: check power of 2:** bitwise-AND of `2^n` (`n+1`th bit set) and `2^n - 1` (`n` lower bits set) zero
     ```cpp
     // first part to check if number is zero
     return (x && !(x & (x - 1)));
     ```
-  - **example: count set bits:** `n & (n-1)` will reset least-significant set-bit every iteration
+  - **example: count set bits:** `n & (n-1)` will reset least-significant set-bit per iteration
     ```cpp
     while (n)  // run till n equals 0
     {
@@ -184,16 +186,16 @@
     // 1010 & 1001 ⟶ 1000  2nd bit reset
     // 1000 & 0001 ⟶ 0     4th bit reset
     ```
-- `||` & `&&` order of evaluation is guaranteed to be left-to-right  
+- for  `||` & `&&` guaranteed to be left-to-right  
   example: with `(left && right)` evaluate left operand first, if false then avoid evaluating right operand
-- **ternary (three parts) operator (`?:`):** to write if-else statements in the shortest way possible
+- **ternary (three parts) operator:** if-else statements in shortest way possible
   ```cpp
   var = (predicate) ? (consequent) : (alternative);
   ```
-- **comma operator (`,`):** first left expression evaluated then right, value of right expression returned  
+- **comma operator:** left expression evaluated first then right, value of right expression returned  
   example: `for (; x < y; ++x, --y)` loop with converging x & y  
   example: `while (read_string(s), s.len() > 5)` read string and enter loop if length greater than five
-- when number of iterations are known use `for` loop else use `while` loop (easy to form an infinite loop)
+- use `for` when num iterations known else use `while` (easy to form infinite loop)
 - **ranged for loop:** more readable `for` loop for iterating over standard containers using their iterators (so avoids mistakes with indices)
   ```cpp
   std::vector<int> vec{0, 1, 5};
@@ -215,8 +217,8 @@
   ...
   return 0;
   ```
-- **goto:** good rule-of-thumb is to only jump forward and always to end of the block  
-  example: break out of some complex code (multiple nested loops) without returning for running some cleanup code
+- **goto:** good rule-of-thumb is to only jump forward and always to end of block  
+  example: break out of some complex code (multiple nested loops) without returning to run cleanup code
   ```cpp
   int foo()
   {
@@ -231,15 +233,15 @@
       return 0;
   }
   ```
-- **function overloading:** multiple functions having the same name but with different argument list  
-  compiler determines the function to use based on arguments (return type plays no role)
+- **function overloading:** functions having same name but with different argument list  
+  compiler determines which function to use based on arguments (return type plays no role)
   ```cpp
   void printSum(int a, int b);
   void printSum(double a, double b);
   void printSum(double a, double b, double c);
   ```
-- **name mangling:** function/variable names are encoded so that linker can separate common names due to overloading and namespaces  
-  use `extern "C" { .... }` makes a function name in C++ have C linkage so client C code can use it (no name mangling in C)
+- **name mangling:** identifiers are encoded so that linker can separate common names due to overloading and namespaces  
+  `extern "C" { .... }` makes function name in C++ have C linkage so client C code can use it (no name mangling in C)
   ```cpp
   // individual declaration
   extern "C" void foo(int);
@@ -258,9 +260,11 @@
   ```cpp
   int printSum(int a, int b, int c = 0, int d = 0);
   ```
-- **namespace:** declarative region that provides a scope to the identifiers inside it, all identifiers at namespace scope are visible to one another without qualification  
+- **namespace:** declarative region that provides a scope to identifiers inside it  
+  all identifiers at namespace scope are visible to one another without qualification  
   used to organize code into logical groups and to prevent name collisions  
-  don't add `using namespace std;` or `using std::cout;` in headers, example: wrong `cout` overloaded if client code has his own implementation
+  don't add `using namespace std;` or `using std::cout;` in headers  
+  example: wrong `cout` overloaded if client code has own implementation
 - **library:** collection of pre-compiled code that can be reused by programs
   - **static:** linked directly into the final executable  
     fast but takes lot of space since always a part of final binary (`.a` archive)
