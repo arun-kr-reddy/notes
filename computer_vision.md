@@ -29,11 +29,13 @@
 
 # histogram
 - **histogram:** pixel intensities distribution
-- **histogram equalization:** improve image contrast by stretching its histogram to cover the full range of possible pixel values
+- **histogram equalization:** stretching its histogram to cover the full range of possible pixel values  
+  improve image contrast to increase visual distinction between features
   - calculate histogram
   - compute cumulative distribution function (`<=` pixel frequencies cumulative sum)
   - normalize CDF array elements (between 0 & 1) by dividing by total num pixels
   - map pixel values by multiplying corresponding CDF value with max possible pixel value (255)
+
 # resizing
 - **interpolation:** estimate values at unknown locations using known data  
   ![](./media/computer_vision/interpolation.png)
@@ -62,9 +64,12 @@
 - **convolution:** applying a kernel/filter to image  
   kernel slides over the image, multiplying pixels and summing the products  
   ![](./media/computer_vision/convolution.gif)
+- **separable kernel:** 2D kernel from two 1D kernels  
+  `k^2` ⟶ `2k` multiplications, `k^2 - 1` ⟶ `2(k - 1)` additions  
+  ![](./media/computer_vision/separable_kernel.png)
 - **averaging (low pass) filters:** smooth out by replacing with average value of neighbor
   - **box/mean:** simple average
-  - **gaussian:** weighted average with more weight to closer pixels  
+  - **gaussian:** weighted average with closer pixels weighted more (spatial weights)  
     smoother transitions so better edge preservation  
     ![](./media/computer_vision/gaussian_2d.png)
   - **binomial:** good & fast approximation to gaussian using pascal's triangle  
@@ -77,7 +82,7 @@
     ```
 - **edge (high pass) filters:** emphasize edges (sharp transitions)  
   most semantic & shape info can be deduced from edges  
-  low-pass filter first to remove noise
+  to remove noise low-pass filter cascaded (combine kernels)
   - **first derivative:**  
     ![](./media/computer_vision/differentiation.png)  
     assume `∆x = 1` for pixels then approx filter is `[-1 0 1]`  
@@ -105,10 +110,15 @@
     [-1  4 -1]
     [ 0 -1  0]
     ```
-  - **canny:**
-- sharpen: add edges to image (idenity + edge)
-- **median:** cannot be implemented as convolution (non-linear filter)  
-  to remove extreme outliers
+- sharpen: add edges to image (impulse/identity + edge)
+- **non-linear filter:** cannot be implemented using convolution
+  - **median:** to remove extreme outliers (like salt-pepper noise)
+  - **bilateral:** gaussian blurs across edges, so add tonal weights (besides spatial)  
+    pixel values similar to center pixel value weighted more  
+    constantly changing filter that preserves edges while smoothing flat regions  
+    ![](./media/computer_vision/bilateral.png)
 
-[continue](https://www.youtube.com/watch?v=f-5l8Cdcb8k&list=PL2zRqk16wsdorCSZ5GWZQr1EMWXs2TDeu&index=2&pp=iAQB)
-[continue](https://www.youtube.com/watch?v=z5WSV6CXsxs&list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&index=5)
+- **canny:**
+
+
+- template matching: 

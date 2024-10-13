@@ -95,8 +95,6 @@
          ≈ θ(n * log(m))                ⟶ worst case if matrix corner peak
     ```
 
-[continue](https://www.youtube.com/watch?v=Zc54gFhdpLA&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=2)
-
 # models of computation
 - algorithm is a computational procedure for solving a problem
   **model of computation:** specifies what operations an algorithm is allowed and the its associated cost (time, space, etc)  
