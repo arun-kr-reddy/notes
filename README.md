@@ -89,6 +89,9 @@
   - static sparse graph using CSR
   - concurrent vs parallel
 - **tools:**
+  - [useful tools](https://cs.baylor.edu/~donahoo/tools/)
+  - [CMake](https://codevion.github.io/#!cpp/cmake.md)
+  - [Makefile](https://makefiletutorial.com/)
   - [undo (almost) anything with git](https://github.blog/2015-06-08-how-to-undo-almost-anything-with-git/)
   - [regex basics](https://www.youtube.com/watch?v=sa-TUpSx1JA)
     - negative look ahead
@@ -121,9 +124,16 @@
 
 # misc
 - **build:**
-  ```bash
-  cd .\build\
-  cmake .. -G "Visual Studio 17 2022"
+  ```sh
+  # windows
+  cd .\build\windows\
+  cmake ..\.. -G "Visual Studio 17 2022"
+
+  # linux
+  cd ./build/linux/
+  cmake ../..
+  make
+  ./main_exe
   ```
 - **symbols:**
   ```sh

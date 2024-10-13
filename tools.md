@@ -1,5 +1,14 @@
 - [git](#git)
-- [mermaid UML](#mermaid-uml)
+- [create new repo:](#create-new-repo)
+- [repo checkout:](#repo-checkout)
+- [add \& commit:](#add--commit)
+- [push changes:](#push-changes)
+- [branching:](#branching)
+- [update \& merge:](#update--merge)
+- [diff:](#diff)
+- [tag:](#tag)
+- [log:](#log)
+- [misc:](#misc)
 - [powershell](#powershell)
 - [ffmpeg](#ffmpeg)
 - [vlc](#vlc)
@@ -12,73 +21,61 @@
 
 # git
 - ![](./media/tools/git_workflow.png)
-- **create a new repo:**
-  ```sh
-  git init  # create a new git repo
-  ```
-- **checkout a repo:**
-  ```sh
+- ```sh
+  # create new repo:
+  git init                               # create a new git repo
+
+  # repo checkout:
   git clone /path/to/repo                # copy of a local repo
   git clone username@host:/path/to/repo  # from a remote server
-  ```
-- **workflow:** local repo consists of 3 trees maintained by git
-  - **working directory:** holds actual files
-  - **index:** acts as staging area
-  - **head:** points to last commit made by you
-- **add & commit:**
-  ```sh
-  git add   <filename>       # working ⟶ index
-  git commit -m "<message>"  # index ⟶ head
-  ```
-- **pushing changes:**
-  ```sh
-  git push origin <branch>        # head ⟶ remote
-  git remote add origin <server>  # connect local repo to a remote server
-  ```
-- **branching:** used to develop features isolated from each other, `master` is the default branch, use other branches for development and merge them back to master upon completion
-  ```sh
-  git checkout <branch>     # checkout/switch-to a branch
-  git checkout -b <branch>  # create a branch & switch to it
-  git branch -d <branch>    # delete a branch
-  ```
-- **update & merge:** git always tries to auto merge, resolve conflicts manually then `git add <filename>` to mark them as merged
-  ```sh
-  git fetch <name>           # fetch changes (but doesn't change anything in workspace)
-  git merge <name>/<branch>  # integrate changes from someone else
-  git pull                   # detach & merge in a single command
-  ```
-- **diff:**
-  ```sh
-  git diff              # working vs index
-  git diff --staged     # index vs commit
-  git diff HEAD         # working vs head
-  git diff <from> <to>  # commit vs commit
-  ```
-- **tagging:** recommended to create tags for software releases
-  ```sh
-  git tag -l              # list current tags
-  git tag <tag> <commit>  # create a tag pointing to a commit
-  ```
-- **log:**
-  ```sh
-  git log                   # look at repo history
-  git log --author=<user>   # only commits from certain author
-  git log --pretty=oneline  # compressed log
-  git log --name-status     # only see files that have changed
-  ```
-- **misc:**
-  ```sh
-  git checkout -- <filename>  # replace working directory file changes with one in HEAD
-  git status                  # changes in working directory & index
+
+  # add & commit:
+  git add   <filename>                   # working ⟶ index
+  git commit -m "<message>"              # index ⟶ head
+
+  # push changes:
+  git push origin <branch>               # head ⟶ remote
+  git remote add origin <server>         # connect local repo to a remote server
+
+  # branching:
+  git checkout <branch>                  # checkout/switch-to a branch
+  git checkout -b <branch>               # create a branch & switch to it
+  git branch -d <branch>                 # delete a branch
+
+  # update & merge:
+  git fetch <name>                       # fetch changes (but doesn't change anything in workspace)
+  git merge <name>/<branch>              # integrate changes from someone else
+  git pull                               # detach & merge in a single command
+
+  # diff:
+  git diff                               # working vs index
+  git diff --staged                      # index vs commit
+  git diff HEAD                          # working vs head
+  git diff <from> <to>                   # commit vs commit
+
+  # tag:
+  git tag -l                             # list current tags
+  git tag <tag> <commit>                 # create a tag pointing to a commit
+
+  # log:
+  git log                                # look at repo history
+  git log --author=<user>                # only commits from certain author
+  git log --pretty=oneline               # compressed log
+  git log --name-status                  # only see files that have changed
+
+  # misc:
+  git status                             # changes in working directory & index
+  git checkout -- <filename>             # replace working directory file changes with one in HEAD
   git fetch origin && git reset --hard origin/master  # drop all local changes & commits
   ```
 
 # [mermaid UML](https://jojozhuang.github.io/tutorial/mermaid-cheat-sheet/)
-- **flowchart:** graph direction: `TB` , `BT`, `RL`, `LR`  
-nodes shape: rect `[ ]`, rounded rect `( )`, circle `(( ))`, rhombus `{ }`  
-link types: link `---`, arrow `-->`, dotted arrow `-.->`  
-![](./media/tools/flowchart_symbols.png)
-  ```bash
+- **flowchart:**
+  - **direction:** `TB` , `BT`, `RL`, `LR`
+  - **shape:** rect `[ ]`, rounded rect `( )`, circle `(( ))`, rhombus `{ }`  
+    ![](./media/tools/flowchart_symbols.png)
+  - **connection:** link `---`, arrow `-->`, dotted arrow `-.->`
+  ```sh
   graph LR
     a((start))
     b[func1]
@@ -106,13 +103,14 @@ link types: link `---`, arrow `-->`, dotted arrow `-.->`
     d -- no --> e
     c --> e
   ```
-- **sequence diagram:** participants in order of declaration  
-message types: line `->`, dotted line `-->`, arrow `->>`, dotted arrow `-->>`  
-show activation period by appending `+`/`-` to message  
-notes can be added `Note [direction] [participants]: [message]` where direction can be `right of`, `left of`, `over`  
-for `over` notes multiple comma-separated participants can be added  
-for loops `loop <title>\n  statements...  \nend`
-  ```bash
+- **sequence diagram:** participants in order of declaration
+  - **connection:** line `->`, dotted line `-->`, arrow `->>`, dotted arrow `-->>`  
+    activation period by appending `+` & `-` to message
+  - **notes:** `Note [direction] [participants]: [message]`  
+    direction can be `right of`, `left of`, `over`  
+    for `over` multiple comma-separated participants can be added  
+  - **loops:** `loop <title>\n  statements...\n  end`
+  ```sh
   sequenceDiagram
     participant thread1
     participant thread2
@@ -152,7 +150,7 @@ for loops `loop <title>\n  statements...  \nend`
   ```
 
 # powershell
-- **replace string in all files:**
+- **replace string in all filenames:**
   ```sh
   get-childitem *.mp4 | foreach { rename-item $_ $_.Name.Replace("Lecture ","") }
   ```
@@ -178,11 +176,10 @@ for loops `loop <title>\n  statements...  \nend`
   ```
 
 # vlc
-- **filename as title:**  
-![](./media/tools/vlc_filename_title.png)
-- **always on top:** `View` ⟶ `Always on Top`
-- **minimal view default:** `Tools` ⟶ `Preferences` ⟶ `All` ⟶ `Interface` ⟶ `Main interfaces` ⟶ `Qt` ⟶ `Start in minimal view`
-- **always continue playback:** `Tools` ⟶ `Preferences` ⟶ `Interface` ⟶ `Continue Playback` ⟶ `Always`
+- **filename as title:** `tools` ⟶ `preferences` ⟶ `all` ⟶ `input/codecs` ⟶ `all` ⟶ `change title..` ⟶ `$U`
+- **always on top:** `view` ⟶ `always on Top`
+- **default minimal view:** `tools` ⟶ `preferences` ⟶ `all` ⟶ `interface` ⟶ `main interfaces` ⟶ `qt` ⟶ `start in minimal view`
+- **always continue playback:** `tools` ⟶ `preferences` ⟶ `interface` ⟶ `continue Playback` ⟶ `always`
 
 # youtube
-- **all channel uploads playlist:** copy channel ID from channel's about section, the second letter should be an `C` replace it with `U` & paste it after `https://www.youtube.com/playlist?list=`
+- **channel playlist:** replace second char `C` with `U` in channel ID (from its about section) and append it to `https://www.youtube.com/playlist?list=`

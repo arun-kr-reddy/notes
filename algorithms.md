@@ -1,6 +1,5 @@
 - [introduction](#introduction)
 - [search](#search)
-- [models of computation](#models-of-computation)
 - [sorting](#sorting)
 - [heap](#heap)
 - [binary search trees](#binary-search-trees)
@@ -12,7 +11,9 @@
 
 # introduction
 - **data structures:** organize & store data for efficient access & manipulation  
-  **algorithm:** efficient procedure to solve a large-scale problem
+  **algorithm:** efficient procedure for solving a (large-scale) problem  
+  **model of computation:** specifies what operations an algorithm is allowed & its cost (time, space, etc)  
+  total cost of an algorithm is sum of operation costs  
 - **asymptotic complexity:** estimate algorithm's worst-case computational complexity as input scales  
   ![](./media/algorithms/time_complexity.png)
 - **divide & conquer algorithm:** break down a problem into smaller subproblems, solve them recursively then combine the solutions
@@ -48,7 +49,7 @@
   ![](./media/algorithms/1d_peak.png)
   - **linear:** walk across all elements  
     worst case `θ(n)` if last element peak
-  - **divide & conquer:** start at midpoint then pick higher neighbor's half  
+  - **divide & conquer (binary):** start at midpoint then pick higher neighbor's half  
     if neither higher then midpoint is the peak
     ```
     each recursion divides the input size by half:
@@ -94,37 +95,6 @@
          = (log(m) + 1) * θ(n)
          ≈ θ(n * log(m))                ⟶ worst case if matrix corner peak
     ```
-
-# models of computation
-- algorithm is a computational procedure for solving a problem
-  **model of computation:** specifies what operations an algorithm is allowed and the its associated cost (time, space, etc)  
-  total cost of an algorithm is sum of operation costs  
-  ![](./media/algorithms/algorithm_analog.png)
-- **example: random access machine:** RAM is modeled by big array of registers (one word each)  
-  in `θ(1)` time an algorithm can load `θ(1)` words, do `θ(1)` computations and then store `θ(1)` words  
-  is realistic & powerful, so used to implement abstractions
-  example: used for assembly programming  
-  ![](./media/algorithms/random_access_machine.png)
-- **example: pointer machine:** dynamically allocated objects with each object having `θ(1)` fields (word or pointer)  
-  pointer machine can be implemented in RAM (LL in C) hence is weaker but is simpler for programmer  
-  example: object oriented programming  
-  ![](./media/algorithms/pointer_machine.png)  
-this can be implemented in RAM where pointer becomes index in array
-- **python model:** either mode of thinking: array `*i = *(i + 1)` or objects `x = x.next`  
-  either of the operations will take `θ(1)` time
-- **document distance:** similarities between two text documents, example: similarities between search phrase and webpage for search results  
-  think of document (`D`) as a vector of words (`w`) with whitespace & punctuations ignored, where `D[w]` gives frequency of word `w`  
-  ![](./media/algorithms/document_distance.png)  
-  document distance can be defined as dot product of the two vectors  
-  ![](./media/algorithms/document_distance_equation_1.png)  
-  but this is not scale-invariant (large documents with any % similarity will score higher than smaller documents)  
-  fixed through normalization by dividing by the length of documents  
-  ![](./media/algorithms/document_distance_equation_2.png)  
-  recall that dot product is `x . y = |x| |y| cosθ`  
-  arccosine (inverse function of cosine) of previous equation to get geometric representation (in radians)  
-  ![](./media/algorithms/document_distance_equation_3.png)  
-  split each document into words ⟶ count word frequencies in document vectors -> compute dot product and divide  
-  if a word shows up only in one vector then its respective dot product term is zero, so only iterate through shorter vector
 
 # sorting
 - **sorting:** ordering data in an increasing/decreasing manner according to some linear relationship among the data items  
