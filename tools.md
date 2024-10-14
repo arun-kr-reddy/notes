@@ -1,14 +1,4 @@
 - [git](#git)
-- [create new repo:](#create-new-repo)
-- [repo checkout:](#repo-checkout)
-- [add \& commit:](#add--commit)
-- [push changes:](#push-changes)
-- [branching:](#branching)
-- [update \& merge:](#update--merge)
-- [diff:](#diff)
-- [tag:](#tag)
-- [log:](#log)
-- [misc:](#misc)
 - [mermaid UML](#mermaid-uml)
 - [powershell](#powershell)
 - [ffmpeg](#ffmpeg)
@@ -25,7 +15,7 @@
 
 # git
 - ![](./media/tools/git_workflow.png)
-- ```sh
+  ```sh
   # create new repo:
   git init                               # create a new git repo
 

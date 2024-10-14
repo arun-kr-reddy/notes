@@ -98,6 +98,7 @@
   - gtest (check on cppcon)
   - gprof (check on cppcon)
   - valgrind (check on cppcon)
+  - make
   - thread sanitizers
   - basic linux commands
   - bash scripting

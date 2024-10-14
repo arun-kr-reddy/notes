@@ -2,12 +2,13 @@
 - [histogram](#histogram)
 - [resizing](#resizing)
 - [filtering](#filtering)
+- [features](#features)
 
 # links  <!-- omit from toc -->
 - [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/)
 - [[playlist] first principles of computer vision](https://fpcv.cs.columbia.edu/)
 - [binomial as gaussian approximation](https://bartwronski.com/2021/10/31/practical-gaussian-filter-binomial-filter-and-small-sigma-gaussians/)
-- [edge detection](https://blog.roboflow.com/edge-detection/)
+- [canny demo](https://bigwww.epfl.ch/demo/ip/demos/edgeDetector/)
 
 # introduction
 - **computer vision:** enable computers to analyse & understand images
@@ -63,8 +64,10 @@
 # filtering
 - **convolution:** applying a kernel/filter to image  
   kernel slides over the image, multiplying pixels and summing the products  
-  ![](./media/computer_vision/convolution.gif)
-- **separable kernel:** 2D kernel from two 1D kernels  
+  ![](./media/computer_vision/convolution.gif)  
+  practivally implemented as cross-correlation  
+  ![](./media/computer_vision/convolution_vs_correlation.png)
+- **separable kernel:** vertical & horizonal 1D kernels from 2D kernel  
   `k^2` ⟶ `2k` multiplications, `k^2 - 1` ⟶ `2(k - 1)` additions  
   ![](./media/computer_vision/separable_kernel.png)
 - **averaging (low pass) filters:** smooth out by replacing with average value of neighbor
@@ -80,20 +83,23 @@
     [1 2 1] * [2] = [2 4 2]
               [1]   [1 2 1]
     ```
-- **edge (high pass) filters:** emphasize edges (sharp transitions)  
+- **edge (high pass) filters:** emphasize edges (rapid pixel value changes)  
   most semantic & shape info can be deduced from edges  
-  to remove noise low-pass filter cascaded (combine kernels)
+  to remove noise smooth first then derivative
   - **first derivative:**  
     ![](./media/computer_vision/differentiation.png)  
-    assume `∆x = 1` for pixels then approx filter is `[-1 0 1]`  
-    need to run vertically & horizontally
+    for pixels `∆x = 1` so filter is `[0 -1 1]` approxed to `[-1 0 1]`  
+    need to run vertically & horizontally  
+    edge pixels (local maxima) give very high ± response
     - **prewitt:** box * derivative
       ```
                  [1]   [-1 0 1]
       [-1 0 1] * [1] = [-1 0 1]   ⟶ horizontal
                  [1]   [-1 0 1]
       ```
-    - **sobel:** gaussian * derivative
+    - **sobel:** gaussian * derivative  
+      basically first derivative of gaussian  
+      ![](./media/computer_vision/gaussian_derivative.png)
       ```
                  [1]   [-1 0 1]
       [-1 0 1] * [2] = [-2 0 2]
@@ -104,13 +110,31 @@
     approximation of second derivative in one dimension  
     ![](./media/computer_vision/laplacian_2.png)  
     ![](./media/computer_vision/laplacian_3.png)  
-    single pass but loses direction info
+    single pass but loses direction info  
+    edge pixels (local maxima) give zero response
     ```
     [ 0 -1  0]
     [-1  4 -1]
     [ 0 -1  0]
     ```
-- sharpen: add edges to image (impulse/identity + edge)
+    laplacian of gaussian to reduce noise  
+    ![](./media/computer_vision/gaussian_laplacian.png)  
+    difference of gaussian good approximation to LoG  
+    ![](./media/computer_vision/log_vs_dog.png)  
+    substracting two gaussian filters with different `σ`  
+    ![](./media/computer_vision/gaussian_difference.png)
+- **canny:** precise localization (to single pixel), noise reduction (only strong edges), edge continuty (even when gaps present)
+  - use sobel filter to smooth image and calculate gradient magnitude & direction
+  - non-maximum suppression perpendicular to edge  
+    thins down edge to single pixel
+  - threshold into strong (`R > T`), weak (`> t` and `< T`), no edge (`< t`)
+  - connect together strong edges, weak edges connected iff neighbor to strong
+- **sharpen:** add edges to image (impulse/identity filter)
+  ```
+  [0 0 0]   [ 0 -1  0]   [ 0 -1  0]
+  [0 1 0] + [-1  4 -1] = [-1  5 -1]
+  [0 0 0]   [ 0 -1  0]   [ 0 -1  0]
+  ```
 - **non-linear filter:** cannot be implemented using convolution
   - **median:** to remove extreme outliers (like salt-pepper noise)
   - **bilateral:** gaussian blurs across edges, so add tonal weights (besides spatial)  
@@ -118,7 +142,12 @@
     constantly changing filter that preserves edges while smoothing flat regions  
     ![](./media/computer_vision/bilateral.png)
 
-- **canny:**
+[continue](https://youtu.be/z5WSV6CXsxs?list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&t=3985)
 
+- template matching: sum squared diff
+- hough transform:
 
-- template matching: 
+# features
+- **features:** highly descriptive local region  
+  ![](./media/computer_vision/features_flat_edge_corner_1.png)  
+  ![](./media/computer_vision/features_flat_edge_corner_2.png)
