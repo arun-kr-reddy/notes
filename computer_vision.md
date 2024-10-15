@@ -65,7 +65,7 @@
 - **convolution:** applying a kernel/filter to image  
   kernel slides over the image, multiplying pixels and summing the products  
   ![](./media/computer_vision/convolution.gif)  
-  practivally implemented as cross-correlation  
+  practically implemented as cross-correlation  
   ![](./media/computer_vision/convolution_vs_correlation.png)
 - **separable kernel:** vertical & horizonal 1D kernels from 2D kernel  
   `k^2` ⟶ `2k` multiplications, `k^2 - 1` ⟶ `2(k - 1)` additions  
@@ -83,14 +83,14 @@
     [1 2 1] * [2] = [2 4 2]
               [1]   [1 2 1]
     ```
-- **edge (high pass) filters:** emphasize edges (rapid pixel value changes)  
+- **edge (high pass) filters:** emphasize edges (rapid change in pixel value)  
   most semantic & shape info can be deduced from edges  
   to remove noise smooth first then derivative
   - **first derivative:**  
     ![](./media/computer_vision/differentiation.png)  
     for pixels `∆x = 1` so filter is `[0 -1 1]` approxed to `[-1 0 1]`  
     need to run vertically & horizontally  
-    edge pixels (local maxima) give very high ± response
+    edge pixels (local extrema) give very high ± response
     - **prewitt:** box * derivative
       ```
                  [1]   [-1 0 1]
@@ -117,6 +117,12 @@
     [-1  4 -1]
     [ 0 -1  0]
     ```
+    enhance filter to detect diagonal edges as well
+    ```
+    [-1 -4 -1]
+    [-4 20 -4]
+    [-1 -4 -1]
+    ```
     laplacian of gaussian to reduce noise  
     ![](./media/computer_vision/gaussian_laplacian.png)  
     difference of gaussian good approximation to LoG  
@@ -127,7 +133,7 @@
   - use sobel filter to smooth image and calculate gradient magnitude & direction
   - non-maximum suppression perpendicular to edge  
     thins down edge to single pixel
-  - threshold into strong (`R > T`), weak (`> t` and `< T`), no edge (`< t`)
+  - (hysteresis) threshold into strong (`R > T`), weak (`> t` and `< T`), no edge (`< t`)
   - connect together strong edges, weak edges connected iff neighbor to strong
 - **sharpen:** add edges to image (impulse/identity filter)
   ```
@@ -142,12 +148,15 @@
     constantly changing filter that preserves edges while smoothing flat regions  
     ![](./media/computer_vision/bilateral.png)
 
-[continue](https://youtu.be/z5WSV6CXsxs?list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&t=3985)
+[continue]
 
-- template matching: sum squared diff
 - hough transform:
 
 # features
-- **features:** highly descriptive local region  
+- **features:** unique highly descriptive region  
   ![](./media/computer_vision/features_flat_edge_corner_1.png)  
   ![](./media/computer_vision/features_flat_edge_corner_2.png)
+- template matching: measure similarity between two patches  
+  check uniqueness of a patch
+  - sum squared diff
+  - auto correlation

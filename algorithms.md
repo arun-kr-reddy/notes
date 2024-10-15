@@ -97,15 +97,15 @@
     ```
 
 # sorting
-- **sorting:** ordering data in an increasing/decreasing manner according to some linear relationship among the data items  
-  useful for obvious usecases like find the median or binary search and not-so-obvious usecases like finding duplicates during data compression
-- **insertion sort:** insert key `A[j]` into the (already sorted) sub-array `A[1 ... j-1]` by pairwise-swaps down to its correct position  
+- **sorting:** ordering data in increasing/decreasing manner  
+  obvious usecases: finding median, binary search  
+  not-so-obvious usecases: finding duplicates during data compression
+- **insertion sort:** insert key `A[j]` into (already sorted) sub-array `A[1 ... j-1]` by pairwise-swaps down to correct position  
   ![](./media/algorithms/insertion_sort.png)  
   ![](./media/algorithms/insertion_sort_example.png)  
-  we have `θ(n)` steps (indexes), for each step `θ(n)` pairwise compare-and-swap operations  
-  example: average `n/2` swaps per step for reverse-sorted list  
-  total `θ(n^2)` compares & `θ(n^2)` swaps, for primitives compare & swap take `θ(1)` each  
-  but comparing other data structures could be more complex
+  each step has `θ(n)` pairwise compare-and-swap operations  
+  total `θ(n^2)` compares & swaps for `θ(n)` steps (indexes)  
+  for primitives compare & swap take `θ(1)` each, but aggregates could be more complex
   - **binary insertion sort:** use binary search to find the correct position  
     useful when compare complexity is much higher than swap complexity, cost of pairwise-swaps remains same (`θ(n)` per step)  
     example: for sorting strings each compare would be `θ(n)` (& swap `θ(1)`)  
