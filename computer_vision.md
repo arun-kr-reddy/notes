@@ -64,10 +64,8 @@
 # filtering
 - **convolution:** applying a kernel/filter to image  
   kernel slides over the image, multiplying pixels and summing the products  
-  ![](./media/computer_vision/convolution.gif)  
-  practically implemented as cross-correlation  
-  ![](./media/computer_vision/convolution_vs_correlation.png)
-- **separable kernel:** vertical & horizonal 1D kernels from 2D kernel  
+  ![](./media/computer_vision/convolution.gif)
+- **separable kernel:** seperate 2D kernel into vertical & horizonal 1D kernels  
   `k^2` ⟶ `2k` multiplications, `k^2 - 1` ⟶ `2(k - 1)` additions  
   ![](./media/computer_vision/separable_kernel.png)
 - **averaging (low pass) filters:** smooth out by replacing with average value of neighbor
@@ -83,9 +81,9 @@
     [1 2 1] * [2] = [2 4 2]
               [1]   [1 2 1]
     ```
-- **edge (high pass) filters:** emphasize edges (rapid change in pixel value)  
+- **edge (high pass) filters:** emphasize edges (rapid change in pixel intensities)  
   most semantic & shape info can be deduced from edges  
-  to remove noise smooth first then derivative
+  smooth first to remove noise then derivative
   - **first derivative:**  
     ![](./media/computer_vision/differentiation.png)  
     for pixels `∆x = 1` so filter is `[0 -1 1]` approxed to `[-1 0 1]`  
@@ -117,23 +115,23 @@
     [-1  4 -1]
     [ 0 -1  0]
     ```
-    enhance filter to detect diagonal edges as well
+    enhanced filter to include diagonal edges
     ```
     [-1 -4 -1]
     [-4 20 -4]
     [-1 -4 -1]
     ```
-    laplacian of gaussian to reduce noise  
+    laplacian of gaussian (LoG) to reduce noise  
     ![](./media/computer_vision/gaussian_laplacian.png)  
-    difference of gaussian good approximation to LoG  
+    difference of gaussian (DoG) ia a good approximation to LoG  
     ![](./media/computer_vision/log_vs_dog.png)  
-    substracting two gaussian filters with different `σ`  
+    basically substracting two gaussian filters with different `σ`  
     ![](./media/computer_vision/gaussian_difference.png)
-- **canny:** precise localization (to single pixel), noise reduction (only strong edges), edge continuty (even when gaps present)
-  - use sobel filter to smooth image and calculate gradient magnitude & direction
+- **canny:** precise localization to single pixel, noise reduction by producing strong edges only, edge continuty even when gaps present
+  - use sobel filter to smooth image and get gradient magnitude & direction
   - non-maximum suppression perpendicular to edge  
     thins down edge to single pixel
-  - (hysteresis) threshold into strong (`R > T`), weak (`> t` and `< T`), no edge (`< t`)
+  - (hysteresis) thresholding edges into strong (`R > T`), weak (`> t` and `< T`), no edge (`< t`)
   - connect together strong edges, weak edges connected iff neighbor to strong
 - **sharpen:** add edges to image (impulse/identity filter)
   ```
@@ -143,7 +141,7 @@
   ```
 - **non-linear filter:** cannot be implemented using convolution
   - **median:** to remove extreme outliers (like salt-pepper noise)
-  - **bilateral:** gaussian blurs across edges, so add tonal weights (besides spatial)  
+  - **bilateral:** gaussian blurs across edges so add tonal weights (besides spatial)  
     pixel values similar to center pixel value weighted more  
     constantly changing filter that preserves edges while smoothing flat regions  
     ![](./media/computer_vision/bilateral.png)

@@ -59,7 +59,8 @@
          .
          = T(n/(2^k)) + k * θ(1)
 
-    base case one element: T(1) = θ(1)
+    base case one element:
+    T(1) = θ(1)
     n/(2^k) = 1
     k = log2(n)
 
@@ -87,7 +88,8 @@
             .
             = T(n, m/(2^k)) + k * θ(n)
 
-    base case one row: T(n, 1) = θ(n)
+    base case one row:
+    T(n, 1) = θ(n)
     m/(2^k) = 1
     k = log(m)
 
@@ -103,30 +105,42 @@
 - **insertion sort:** insert key `A[j]` into (already sorted) sub-array `A[1 ... j-1]` by pairwise-swaps down to correct position  
   ![](./media/algorithms/insertion_sort.png)  
   ![](./media/algorithms/insertion_sort_example.png)  
-  each step has `θ(n)` pairwise compare-and-swap operations  
-  total `θ(n^2)` compares & swaps for `θ(n)` steps (indexes)  
-  for primitives compare & swap take `θ(1)` each, but aggregates could be more complex
-  - **binary insertion sort:** use binary search to find the correct position  
-    useful when compare complexity is much higher than swap complexity, cost of pairwise-swaps remains same (`θ(n)` per step)  
-    example: for sorting strings each compare would be `θ(n)` (& swap `θ(1)`)  
-    per step insertion sort `θ(n) * θ(n) + θ(1) * θ(n) = θ(n^2)`  
-    but binary insertion sort `θ(n) * θ(log(n)) + θ(1) * θ(n) ≈ θ(n * log(n))`
-- **merge sort:** recursively divide input array into halves and sort those sub-arrays and merge them back to obtain the sorted array  
+  worst-case `θ(n^2)` since each element needs `θ(n)` pairwise compare-and-swaps  
+  for primitives compare & swap take `θ(1)` each, but aggregates compare could be more complex
+- **binary insertion sort:** use binary search to find correct position  
+  useful when compare complexity much higher than swap complexity  
+  example: for sorting strings each compare `θ(n)` (swap still `θ(1)`)  
+  per element insertion sort: `θ(n) * (θ(n) + θ(1)) = θ(n^2)`  
+  binary insertion sort: `θ(n) * (θ(log(n)) + θ(1)) ≈ θ(n * log(n))`
+- **merge sort:** recursively divide input array into halves and sort those sub-arrays then merge them back to obtain the sorted array  
   ![](./media/algorithms/merge_sort.png)  
-  **two-finger approach:** one finger is pointing to the bottom (smallest element) in left sub-array & other finger right  
-  compare two elements and copy smaller value to final merged array and keep going until sub-arrays are merged  
+  **two-finger approach:** initially pointing to bottom (smallest element) of two sub-arrays  
+  keep pushing smaller value of two elements to final merged array  
   ![](./media/algorithms/two_finger_algorithm.png)  
-  `θ(1)` for splitting input and `θ(n)` for merging two `n/2` sub-arrays  
-  `T(n) = θ(1) + 2 * T(n/2) + θ(n) = 4 * T(n/4) + θ(n) + θ(n) = ... = 2^k * T(n/(2^k)) + k * θ(n)`  
-  base case sub-array with two elements `T(2) = θ(1)` and `n/(2^k) = 2` ⟶ `k = log(n/2)`  
-  `T(n) = n/2 * T(2) + log(n/2) * θ(n) ≈ θ(n * log(n))`  
-  merge sort needs `θ(n)` auxiliary space, but insertion sort only needs `θ(1)` (for temp variable for swapping)  
-  one optimization is reusing memory for halves to reduce memory usage by half (but still `θ(n)`)
-- **recursion tree:** visualize flow execution flow of a recursive function and get its complexity by adding up the costs of each level  
-  each node is the cost of operations done for child nodes (`T(n/2)`), for merge-sort it is split & merge `θ(1) + θ(n)`  
-  `n` elements are being merged per level for total of `1 + log(n)` levels (root level + size halves per level)  
-  so `θ(n) * θ(1+log(n)) ≈ θ(n * log(n))`  
-  ![](./media/algorithms/merge_sort_tree.png)
+  `θ(1)` for splitting input and `θ(n)` for merging two `n/2` sub-arrays
+  ```
+  T(n) = θ(1) + 2 * T(n/2) + θ(n)             ⟶ θ(1) split, θ(n) merge sub-arrays
+       = 4 * T(n/4) + θ(n) + θ(n)
+       .
+       .
+       = 2^k * T(n/(2^k)) + k * θ(n)
+
+  base case sub-array with two elements:
+  T(2) = θ(1)
+  n/(2^k) = 2
+  k = log(n/2)
+
+  T(n) = n/2 * T(2) + log(n/2) * θ(n)
+       ≈ θ(n * log(n))
+  ```
+  needs `θ(n)` auxiliary space, but insertion sort only needs `θ(1)` (for swap temp var)  
+  memory for halves can be reused to reduce memory usage by half (but still `θ(n)`)
+- **recursion tree:** visual representation of recursive calls  
+  get complexity by adding up the costs of each level  
+  each node is the cost of operations done for child nodes (split + merge)  
+  ![](./media/algorithms/merge_sort_tree.png)  
+  `n` elements merged per level for total of `1 + log(n)` levels (root level + size halves per level)  
+  total `θ(n) * θ(1+log(n)) ≈ θ(n * log(n))`  
 
 # heap
 - **priority queue:** special type of queue in which each element is associated with a priority (key) value  
