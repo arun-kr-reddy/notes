@@ -136,7 +136,6 @@
 - **symbols:**
   ```sh
   ⟵  ⟶  ⟷ ↑ ↓  ## arrows
-  =                ## approximately
   ±                ## plus minus
   :                ## such that
   ∀                ## for all
@@ -148,7 +147,7 @@
   ∪                ## union
   ⇒                ## implies that
   ⇔                ## if and only if
-  =                ## approximately equal
+  ≈                ## approximately equal
   ≡                ## equivalent
   ∝                ## proportional
   ∞                ## infinity

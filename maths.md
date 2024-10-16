@@ -1,11 +1,48 @@
+- [](#)
+- [maths for CS](#maths-for-cs)
 - [introduction](#introduction)
 - [induction](#induction)
 - [number theory](#number-theory)
 
 # links  <!-- omit from toc -->
 - [[playlist] maths for CS](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2010/)
+- [[playlist] essence of calculus](https://www.3blue1brown.com/topics/calculus)
 
-# introduction
+# calculus
+- **integral:**  approximate continuous quantities as sums of small discrete values  
+  like dividing area under curve into very narrow rectangles  
+  lot of hard problem can be broken down & approximated as sum of many small quantities
+- **example: circle area:** slice circle into concentric rings of `dr` width  
+  ![](./media/maths/circle_area_1.png)  
+  circle area will be sum of concentric ring areas  
+  ![](./media/maths/circle_area_2.png)  
+  straightened ring area `≈ 2π * r * dr`  
+  ![](./media/maths/circle_area_3.png)  
+  straightened rings placed next to each other form area under `2π * r`
+  ![](./media/maths/circle_area_4.png)  
+  approximation improves as `dr ⟶ 0`  
+  ![](./media/maths/circle_area_5.png)  
+  circle area equal to triangle area under `2π * r`  
+  ![](./media/maths/circle_area_6.png)
+  ```
+  area = 1/2 * base * height
+       = 1/2 * R * 2π * R
+       = π * R^2
+  ```
+
+![](./media/maths/integral_derivative.png)
+
+
+
+
+
+
+
+
+
+
+# maths for CS
+## introduction
 - **proof:** is a method for ascertaining tht truth, what constitutes a proof differs among fields (like experimentation & observation for physics)  
 **mathematical proof:** is verification of a proposition by a chain of logical deductions from a base set of axioms  
 **proposition:** is a statement that is either true or false  
@@ -35,7 +72,7 @@ simplifying it `2 = a^2 / b^2` ⟶ `a^2 = 2 * b^2`, so `a^2` is even which impli
 `2 | a` ⟶ `4 | a^2` ⟶ `4 | 2 * b^2` ⟶ `2 | b^2` then b is even  
 so now we have a contradiction that if both `a` & `b` are even then `a / b` is not in lowest terms
 
-# induction
+## induction
 - **induction:** let `P(n)` be a predicate, then if `P(0)` is true and `∀ n ∈ N` `P(n) ⇒ P(n + 1)` is true then `∀ n ∈ N` `P(n)` is true  
 that is if `P(0)` is true then `P(0) ⇒ P(1)`, `P(1) ⇒ P(2)` and so on, so `P(0)`, `P(1)` ... `P(n)` is true  
 ![](./media/maths/induction_dominoes.png)  
@@ -95,7 +132,7 @@ if `n + 1` blocks are split into `k` & `n + 1 - k`, `S(n + 1) = k * (n + 1 - k) 
 since know that `S(1) = 0`, `S(2) = 1` ... `S(8) = 28`, we can make a stronger induction hypothesis by guessing `S(n) = (n * (n - 1)) / 2`  
 `k * (n + 1 - k) + P(k) + P(n + 1 - k)` ⟶ `k * (n + 1 - k) + (k * (k - 1)) / 2 + ((n + 1 - k) * (n - k)) / 2` ⟶ `((n + 1) * n) / 2` which is `S(n + 1)`
 
-# number theory
+## number theory
 - **example: die hard jugs:** assume you have two jugs of 3gallons & 5gallons capacity, how do you fill one of them to be exactly 4gallons  
 state of the system can be described using pair of numbers representing the amount of water is two jugs `(x, y)` (with max `(a, b)`gallons)  
 `(0, 0)` ⟶ fill  `(0, 5)` ⟶ b to a `(3, 2)` ⟶ empty a `(0, 2)` ⟶ b to a `(2, 0)` ⟶ fill b `(2, 5)` ⟶ b to a `(3, 4)`  
