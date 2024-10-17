@@ -33,6 +33,7 @@
   - [postfix vs infix](https://www.geeksforgeeks.org/postfix-to-infix/)
   - [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
   - [every programmer should know](https://github.com/mtdvio/every-programmer-should-know)
+  - [arden dertat 21 questions](https://gist.github.com/gabhi/2b39fdd74dfde98d6b11)
 - **computer architecture:**
   - [modern microprocessors](https://www.lighterra.com/papers/modernmicroprocessors/)
   - [Hamming code in software](https://www.youtube.com/watch?v=b3NxrZOu_CE)
