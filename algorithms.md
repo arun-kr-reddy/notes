@@ -8,6 +8,7 @@
 # links  <!-- omit from toc -->
 - [introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/) ([recitation files](https://courses.csail.mit.edu/6.006/fall11/notes.shtml))
 - [big O notation](https://adrianmejia.com/how-to-find-time-complexity-of-an-algorithm-code-big-o-notation/ )
+- [quick sort](https://www.youtube.com/watch?v=7h1s2SojIRw)
 
 # introduction
 - **data structures:** organize & store data for efficient access & manipulation  
@@ -22,22 +23,28 @@
   compiler will reuse current function's stack frame (prevent stack overflow)  
   example: binary search recursive call directly returns search position
   ```cpp
-  int binarySearch(int arr[], int low, int high, int x)
+  bool binarySearch(const std::vector<uint32_t> &input, uint32_t key, uint32_t low, uint32_t high)
   {
       if (high >= low)
       {
-          int mid = low + (high - low) / 2;
-
-          if (arr[mid] == x)
-              return mid;
-
-          if (arr[mid] > x)  // left half
-              return binarySearch(arr, low, mid - 1, x);
-          else  // right half
-              return binarySearch(arr, mid + 1, high, x);
+          uint32_t mid = low + (high - low) / 2;
+          if (key > input.at(mid))
+          {
+              return binarySearch(input, key, mid + 1, high);
+          }
+          else if (key < input.at(mid))
+          {
+              return binarySearch(input, key, low, mid - 1);
+          }
+          else
+          {
+              cout << "found key " << key << " at " << mid << endl;
+              return true;
+          }
       }
 
-      return -1;
+      cout << "key " << key << " not found" << endl;
+      return false;
   }
   ```
 

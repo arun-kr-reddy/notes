@@ -7,6 +7,7 @@
 # links  <!-- omit from toc -->
 - [[playlist] maths for CS](https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2010/)
 - [[playlist] essence of calculus](https://www.3blue1brown.com/topics/calculus)
+- [[playlist] essence of linear algebra](https://www.3blue1brown.com/topics/linear-algebra)
 
 # calculus
 - **integral:**  approximate continuous quantities as sums of small discrete values  
@@ -32,10 +33,26 @@
 
 ![](./media/maths/integral_derivative.png)
 
-
-
-
-
+# linear algebra
+- **vector:** row/column of numbers (components) on how to go from vector tail (at origin) to its tip  
+  ![](./media/maths/vector_representation.png)
+- **vector addition:** individual components added  
+  ![](./media/maths/vector_addition.png)
+- **vector scaling:** individual component multiplied by scalar  
+  ![](./media/maths/vector_scaling.png)
+- **linear combination:** addition of two scaled vectors  
+  ![](./media/maths/vector_linear_combination.png)  
+  vector components are basically scaling of basis vectors (`î` & `ĵ`)  
+  ![](./media/maths/vector_components.png)  
+  any two non-parallel vectors can describe every possible two-dimensional vector  
+  **span:** set of all linear combinations  
+  access to entire 3D space if third vector doesn't lie on the same plane  
+  ![](./media/maths/vector_3d_span.gif)  
+  **linearly dependent:** one vector linear combination of others  
+  so redundant and doesn't add anything to span  
+  ![](./media/maths/vector_linearly_dependent_2d.png)  
+  ![](./media/maths/vector_linearly_dependent_3d.png)  
+  **basis:** set of linearly independent vectors that span the full space
 
 
 
