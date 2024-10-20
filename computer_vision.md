@@ -9,6 +9,7 @@
 - [[playlist] first principles of computer vision](https://fpcv.cs.columbia.edu/)
 - [binomial as gaussian approximation](https://bartwronski.com/2021/10/31/practical-gaussian-filter-binomial-filter-and-small-sigma-gaussians/)
 - [canny demo](https://bigwww.epfl.ch/demo/ip/demos/edgeDetector/)
+- [eigen](https://medium.com/@avneesh.khanna/eigenvectors-eigenvalues-an-intuitive-visual-explanation-f2ddc0b88bf5)
 
 # introduction
 - **computer vision:** enable computers to analyse & understand images
@@ -158,3 +159,5 @@
   check uniqueness of a patch
   - sum squared diff
   - auto correlation
+- **eigen vectors:** results in scalar multiple of itself when multiplied with matrix (linear transformation)  
+  **eigen value:** how much eigen vector stretched or shrunk
