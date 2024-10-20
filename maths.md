@@ -48,13 +48,19 @@
   **span:** set of all linear combinations  
   access to entire 3D space if third vector doesn't lie on the same plane  
   ![](./media/maths/vector_3d_span.gif)  
-  **linearly dependent:** one vector linear combination of others  
-  so redundant and doesn't add anything to span  
-  ![](./media/maths/vector_linearly_dependent_2d.png)  
-  ![](./media/maths/vector_linearly_dependent_3d.png)  
+  **linearly dependent:** one vector linear combination of others, doesn't add anything to span (redundant)  
+  like second vector on same line or third vector on same plane
+  ![](./media/maths/vector_linearly_dependent.png)  
   **basis:** set of linearly independent vectors that span the full space
-
-
+- **linear transformation:** function that take vector as input & outputs a vector  
+  lines must remain lines (grid lines remain parallel & evenly-spaced) and origin remains fixed  
+  ![](./media/maths/linear_transformation.gif)  
+  any vector will end up as same linear combination of where basis vectors (`î` & `ĵ`) end up  
+  `x * î + y * ĵ` ⟶ `x * transformed_î + y * transformed_ĵ`
+  ![](./media/maths/linear_transformation.png)  
+  generalized by `x * (where î lands) + y * (where ĵ lands)`  
+  so 2D linear transformation can be described 2x2 matrix  
+  ![](./media/maths/linear_transformation_matrix.png)  
 
 
 
