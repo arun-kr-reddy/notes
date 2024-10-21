@@ -36,7 +36,7 @@
   - calculate histogram
   - compute cumulative distribution function (`<=` pixel frequencies cumulative sum)
   - normalize CDF array elements (between 0 & 1) by dividing by total num pixels
-  - map pixel values by multiplying corresponding CDF value with max possible pixel value (255)
+  - map pixel values by multiplying its corresponding CDF value with max possible pixel value (255)
 
 # resizing
 - **interpolation:** estimate values at unknown locations using known data  
@@ -152,6 +152,7 @@
 - hough transform:
 
 # features
+- **corner:** point where two edges meet
 - **features:** unique highly descriptive region  
   ![](./media/computer_vision/features_flat_edge_corner_1.png)  
   ![](./media/computer_vision/features_flat_edge_corner_2.png)

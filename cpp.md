@@ -10,7 +10,7 @@
 - [exceptions](#exceptions)
 - [misc](#misc)
 - [STL containers](#stl-containers)
-- [STL functions](#stl-functions)
+- [STL algorithms](#stl-algorithms)
 
 # links  <!-- omit from toc -->
 - [[playlist] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
@@ -1663,9 +1663,9 @@ doesn't allow narrowing so used in member initializer list for argument type che
   // empty, size, top, push, pop
   // push will insert into sorted array
   ```
- # STL functions
+ # STL algorithms
 
-[continue]
+[continue](https://youtu.be/gxZJ5JNuWMY?list=PLA0_W94naaYmk0uFVkUnXv0SiMIP5Jjlb&t=467)
 
 - standard template library
   ```cpp
