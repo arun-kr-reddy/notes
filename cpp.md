@@ -14,6 +14,7 @@
 
 # links  <!-- omit from toc -->
 - [[playlist] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
+- [[playlist] STL](https://www.youtube.com/playlist?list=PLA0_W94naaYmk0uFVkUnXv0SiMIP5Jjlb)
 - [compiler explorer](https://godbolt.org/)
 - [spiral rule](https://riptutorial.com/c/example/18833/using-the-right-left-or-spiral-rule-to-decipher-c-declaration)
 - [bit manipulation](https://www.hackerearth.com/practice/basic-programming/bit-manipulation/basics-of-bit-manipulation/tutorial/)
@@ -1499,84 +1500,6 @@ doesn't allow narrowing so used in member initializer list for argument type che
   T val = *itr;  // current element
   ++itr;         // increment iterator, now points to next element
   ```
-
-## sequence
-- **sequence containers:** sequential access
-- **string:** dynamic size character sequence
-  ```cpp
-  #include <string>
-  std::string str;                      // std::string str("hello world");
-
-  new_str = str                         // copy assign, "= move(str)" move assign
-  +                                     // concatenate operator
-  int pos          = str.find(substr);  // find substring pos
-  bool is_empty    = str.empty();       // check empty
-  int size         = str.size();        // size (doesn't include string end NULL character)
-  const char *data = str.data();        // underlying NULL terminated C array, same as c_str()
-  char c           = str.at(i);         // access with bounds checking, without check [i]
-  str.clear();                          // clear string
-  str.erase(itr);                       // remove element (character)
-  str.push_back(val);                   // add val char at the end, pop_back(), alternate to `emplace_back`
-  str.reserve(size);                    // reserve size to prevent frequent memory-allocs
-                                        // optional second arg for initializing new elements
-  str.shrink_to_fit();                  // dealloc unused memory
-  ```
-- **vector:** dynamic contiguous (cache-friendly) array  
-  ```cpp
-  #include <vector>
-  std::vector<T> vec;                   // std::vector<int> vec{1, 2, 3, 4};
-
-  std::vector<T> vec(size);             // std::vector<int> vec(4); ≡ {0, 0, 0, 0}
-                                        // std::vector<int> vec(4, 1); ≡ {1, 1, 1, 1}
-
-  new_val_itr = insert(itr, val);       // insert element, emplace()
-  // =, empty, size, data, at(i), clear, erase, push_back, reserve, shrink_to_fit
-  ```
-- **array:** static (fixed-size) contiguous array
-  ```cpp
-  #include <array>
-  std::array<T, size> arr;              // std::array<int, 4> arr{1, 2, 3, 4};
-
-  arr.fill(value)                       // assign value to all elements
-  // =, empty, size, data, at(i), clear
-  ```
-- **deque:** non-contiguous two-sided vector (double-ended queue)  
-  usually implemented as variable size array of fixed size arrays
-  ```cpp
-  #include <deque>
-  std::deque<T> dq;                     // std::deque<int> dq{1, 2, 3, 4};
-
-  dq.push_front(val)                    // add element at beginning, popfront()
-  // =, empty, size, at(i), clear, insert, erase, push_back, shrink_to_fit
-  // size not provided
-  ```
-- **forward_list:** singly-linked list (traversal direction always forward)
-  ```cpp
-  #include <forward_list>
-  std::forward_list<T> fl;              // std::forward_list<int> fl{1, 2, 3, 4};
-
-  new_val_itr = insert_after(itr, val); // emplace_after(), erase_after()
-  fl.sort();                            // sort elements
-  fl.unique();                          // remove consecutive duplicate elements (==)
-                                        // can pass binary predicate lambda instead
-  fl.merge(another_fl);                 // merge two sorted lists
-  fl.reverse();                         // reverse order of elements
-  // =, empty, clear, push_front
-  // no size since not θ(1)
-  ```
-- **list:** doubly-linked list (both direction traversal)
-  ```cpp
-  #include <list>
-  std::list<T> lst;                     // std::list<int> lst = {1, 2, 3, 4};
-
-  // =, empty, size, clear, insert, erase, push_back, sort, unique, merge, reverse
-  ```
-- `push_back` constructs temporary object then copy/move it  
-  `emplace_back` constructs object in place with ctor arguments  
-  more performant for types with inefficient move ctor
-
-## associative
-- **associative containers:** sorted data structs
 - **pair:** store two heterogeneous objects as a single unit
   ```cpp
   #include <utility>
@@ -1602,17 +1525,95 @@ doesn't allow narrowing so used in member initializer list for argument type che
   // unpack (instead of multiple get<i>)
   std::tie(first, second, third) = tp;
   ```
-- **set:** sorted unique keys
+
+## sequence
+- **sequence containers:** sequential access
+- **string:** dynamic size character sequence
+  ```cpp
+  #include <string>
+  std::string str;                      // std::string str("hello world");
+
+  new_str = str                         // copy assign, "= move(str)" move assign
+  +                                     // concatenate operator
+  int pos          = str.find(substr);  // find substring pos
+  bool is_empty    = str.empty();       // check empty
+  int size         = str.size();        // size (doesn't include string end NULL character)
+  const char *data = str.data();        // underlying NULL terminated C array, same as c_str()
+  char c           = str.at(i);         // access with bounds checking, without check [i]
+  str.clear();                          // clear string
+  str.erase(itr);                       // remove element (character)
+  str.push_back(val);                   // add val char at the end, pop_back(), alternate to `emplace_back`
+  str.reserve(size);                    // reserve size to prevent frequent memory-allocs
+                                        // optional second arg for initializing new elements
+  str.shrink_to_fit();                  // dealloc unused memory
+  str1.swap(str2);                      // swap contents
+  ```
+- **vector:** dynamic contiguous (cache-friendly) array  
+  `θ(1)` insert/move at back (`θ(n)` at front/middle), `θ(n)` search
+  ```cpp
+  #include <vector>
+  std::vector<T> vec;                   // std::vector<int> vec{1, 2, 3, 4};
+
+  std::vector<T> vec(size);             // std::vector<int> vec(4); ≡ {0, 0, 0, 0}
+                                        // std::vector<int> vec(4, 1); ≡ {1, 1, 1, 1}
+
+  new_val_itr = insert(itr, val);       // insert element, emplace()
+  // =, empty, size, data, at(i), clear, erase, push_back, reserve, shrink_to_fit, swap
+  ```
+- **array:** static (fixed-size) contiguous array  
+  `array<int, 3>` & `array<int, 4>` different types
+  ```cpp
+  #include <array>
+  std::array<T, size> arr;              // std::array<int, 4> arr{1, 2, 3, 4};
+
+  arr.fill(value)                       // assign value to all elements
+  // =, empty, size, data, at(i), clear, swap
+  ```
+- **deque:** non-contiguous two-sided vector (double-ended queue)  
+  usually implemented as variable size array of fixed size arrays (two pointer dereferences)  
+  `θ(1)` insert/move at back & front, `θ(n)` search
+  ```cpp
+  #include <deque>
+  std::deque<T> dq;                     // std::deque<int> dq{1, 2, 3, 4};
+
+  dq.push_front(val)                    // add element at beginning, popfront()
+  // =, empty, size, at(i), clear, insert, erase, push_back, shrink_to_fit, swap
+  ```
+- **list:** doubly-linked list (both direction traversal)  
+  `θ(1)` insert/remove/splice anywhere  
+  `θ(n)` search but low spatial locality so slower than vector  
+  no random access so no `at()`
+  ```cpp
+  #include <list>
+  std::list<T> lst;                     // std::list<int> lst = {1, 2, 3, 4};
+  lst.sort();                           // sort elements
+  lst.unique();                         // remove consecutive duplicate elements (==)
+                                        // can pass binary predicate lambda instead
+  lst.merge(another_lst);               // sort then merge
+  lst.reverse();                        // reverse order of elements
+  lst.splice(itr, another_lst, itr_start, itr_end);  // move elements between start & end
+  // =, empty, size, clear, insert, erase, push_back, sort, unique, merge, reverse
+  ```
+- `push_back` constructs temporary object then copy/move it  
+  `emplace_back` constructs object in place with ctor arguments  
+  more performant for types with inefficient move ctor
+
+## associative
+- **associative containers:** always sorted data structs (binary tree)
+- **set:** sorted unique (immutable) keys  
+  `θ(log(n))` insert & search  
+  slow traversing and no random access
   ```cpp
   #include <set>
-  std::set<T> st;                       // std::set<T> st{1, 2, 3, 4};
+  std::set<T> st;                       // std::set<int> st{1, 2, 3, 4};
 
-  <posItr, bool> = st.insert(val);      // insert value if not exists
+  <posItr, bool> = st.insert(val);      // insert value if not exists (check bool)
+  <posItr, bool> = st.insert(hint_itr, val);  // pass hint for `θ(1)` insertion
   posItr         = st.find(key);        // find element, (posItr == st.end()) if not present
   if (mp.count(key) > 0)                // number of matching keys (0/1 for set & map)
   // empty, size, clear
   ```
-- **map:** key-value pairs sorted by unique keys (with `<` operator)
+- **map:** key-value pairs sorted by unique (immutable) keys (with `<` operator)
   ```cpp
   #include <map>
   std::map<keyT, valT> mp;              // std::map<int, string> mp{{1, "hello"}, {2, "world"}};
@@ -1624,8 +1625,19 @@ doesn't allow narrowing so used in member initializer list for argument type che
 
 ## unordered associative
 - **unordered associative containers:** hashed (unsorted) data structs  
-  worst case if same hash value for every element
-- **unordered_set, unordered_map, unordered_multiset & unordered_multimap:** `#include <unordered_set>` & `<unordered_map>`
+  average `θ(1)` search & insert  
+  hash collision degrades performance, worst case `θ(n)` is all elements same bucket  
+  hash value index into array (bucket) of lists
+- **unordered_set, unordered_map, unordered_multiset & unordered_multimap:**
+  ```
+  #include <unordered_set>
+
+  std::unordered_set<T> ust;            // std::unordered_set<int> ust{"red", "green", "blue"};
+
+  float lf = ust.loadfactor();          // num_elements / num_buckets
+  size_t bc = ust.bucket_count();       // num num_buckets
+  size_t bct = ust.bucket(val);         // bucket of value
+  ```
 
 ## container adaptors
 - **container adaptors:** different interface for sequential containers
@@ -1663,10 +1675,10 @@ doesn't allow narrowing so used in member initializer list for argument type che
   // empty, size, top, push, pop
   // push will insert into sorted array
   ```
- # STL algorithms
 
-[continue](https://youtu.be/gxZJ5JNuWMY?list=PLA0_W94naaYmk0uFVkUnXv0SiMIP5Jjlb&t=467)
+[continue](https://www.youtube.com/watch?v=vO2AlrBf5rQ&list=PLA0_W94naaYmk0uFVkUnXv0SiMIP5Jjlb&index=5)
 
+# STL algorithms
 - standard template library
   ```cpp
   #include <algorithm>

@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <ctime>
 #include <iostream>
+#include <list>
 #include <vector>
 
 using std::cout;
@@ -20,7 +21,13 @@ using std::endl;
 // declarations
 // ************************************************************************************************************************************************************
 void fillVector(std::vector<uint32_t> &input, uint32_t max);
-void printVector(const std::vector<uint32_t> &input);
+
+template <typename T>
+void print(const T &input);
+
+template <typename T>
+void print(T start, T end);
+
 void quickSort(std::vector<uint32_t> &input, size_t start, size_t end);
 bool binarySearch(const std::vector<uint32_t> &input, uint32_t key, size_t start, size_t end);
 
@@ -29,6 +36,23 @@ bool binarySearch(const std::vector<uint32_t> &input, uint32_t key, size_t start
 // ************************************************************************************************************************************************************
 int main()
 {
+#if 1
+    std::list<int> a = {1, 2, 3, 3, 4, 5};
+    std::list<int> b = {1, 2, 3};
+    a.merge(b);
+    print(a);
+    a.unique();
+    print(a);
+    a.sort();
+    print(a);
+    a.reverse();
+    print(a);
+    auto itr = a.begin();
+    std::advance(itr, 2);
+    b.splice(b.begin(), a, itr, a.end());
+    print(a);
+    print(b);
+#else
     std::vector<uint32_t> input(10);
     fillVector(input, 100);
 
@@ -37,7 +61,7 @@ int main()
 
     printVector(input);
     binarySearch(input, input.at(2), 0, input.size());
-
+#endif
     return 0;
 }
 
@@ -52,22 +76,22 @@ void fillVector(std::vector<uint32_t> &input, uint32_t max)
     }
 }
 
-void printVector(const std::vector<uint32_t> &input)
+template <typename T>
+void print(const T &input)
 {
-    for (const uint32_t &element : input)
+    for (const auto &element : input)
     {
         cout << element << " ";
     }
     cout << endl;
 }
 
-void printVector(const std::vector<uint32_t> &input, size_t start_idx, size_t end_idx)
+template <typename T>
+void print(T start, T end)
 {
-    assert(start_idx <= end_idx);
-
-    for (size_t idx = start_idx; idx < end_idx; ++idx)
+    for (; start != end; ++start)
     {
-        cout << input.at(idx) << " ";
+        cout << *start << " ";
     }
     cout << endl;
 }
@@ -107,9 +131,8 @@ void quickSort(std::vector<uint32_t> &input, size_t start, size_t end)
     }
 }
 
-void mergeSort(std::vector<uint32_t>& input, size_t start, size_t end)
+void mergeSort(std::vector<uint32_t> &input, size_t start, size_t end)
 {
-
 }
 
 bool binarySearch(const std::vector<uint32_t> &input, uint32_t key, size_t start, size_t end)
