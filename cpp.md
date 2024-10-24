@@ -94,21 +94,21 @@
   __FILE__        // C:\workspace\code\src\main.cpp
   __LINE__        // 23
 
-  #define macroFunc(a, b) printf("val"#a " : %d, val"#b " : %d\n", \
+  #define macro_func(a, b) printf("val"#a " : %d, val"#b " : %d\n", \
                                 val##a, val##b)
 
   int main(void)
   {
       int val1 = 40;
       int val2 = 30;
-      macroFunc(2, 1);  // "val2 : 30, val1 : 40"
+      macro_func(2, 1);  // "val2 : 30, val1 : 40"
       return 0;
   }
   ```
   - **variadic macros:** `__VA_ARGS__` replaced by tokens after last named-argument
     ```cpp
     // append new line to format string then place arguments
-    #define LOG(str, ...) printf(str "\n", __VA_ARGS__);  // "str" last named-argument
+    #define log(str, ...) printf(str "\n", __VA_ARGS__);  // "str" last named-argument
     ```
 - **declaration:** identifier & its type, compiler needs this to accept references to it  
   **definition:** identifier implementation, linker needs this to link identifier references
@@ -166,9 +166,9 @@
     ```
   - **example: bit manipulation:**
     ```cpp
-    #define setBit(num, idx)   (num |= (1 << idx))
-    #define clearBit(num, idx) (num &= ~(1 << idx))
-    #define flipBit(num, idx)  (num ^= (1 << idx))
+    #define set_bit(num, idx)   (num |= (1 << idx))
+    #define clear_bit(num, idx) (num &= ~(1 << idx))
+    #define flip_bit(num, idx)  (num ^= (1 << idx))
     ```
   - **example: check power of 2:** bitwise-AND of `2^n` (`n+1`th bit set) and `2^n - 1` (`n` lower bits set) zero
     ```cpp
@@ -237,9 +237,9 @@
 - **function overloading:** functions having same name but with different argument list  
   compiler determines which function to use based on arguments (return type plays no role)
   ```cpp
-  void printSum(int a, int b);
-  void printSum(double a, double b);
-  void printSum(double a, double b, double c);
+  void print_sum(int a, int b);
+  void print_sum(double a, double b);
+  void print_sum(double a, double b, double c);
   ```
 - **name mangling:** identifiers are encoded so that linker can separate common names due to overloading and namespaces  
   `extern "C" { .... }` makes function name in C++ have C linkage so client C code can use it (no name mangling in C)
@@ -259,7 +259,7 @@
   ![](./media/cplusplus/pass_by_reference_vs_value.gif)
 - **default argument:** in function declaration (after mandatory arguments) is automatically assigned by the compiler if the calling function doesn't provide a value
   ```cpp
-  int printSum(int a, int b, int c = 0, int d = 0);
+  int print_sum(int a, int b, int c = 0, int d = 0);
   ```
 - **namespace:** declarative region that provides a scope to identifiers inside it  
   all identifiers at namespace scope are visible to one another without qualification  
@@ -293,25 +293,25 @@
   `this` is pointer to current object for use in member functions  
   pass arguments to parametrized ctor to help initialize the objects and avoid setters instead set data in ctor
   ```cpp
-  class someClass
+  class SomeClass
   {
     public:
-      someClass() {}   // constructor (ctor), atleast one, called upon object creation
-      ~someClass() {}  // destructor (dtor), exactly one, called upon object destruction
+      SomeClass() {}   // constructor (ctor), atleast one, called upon object creation
+      ~SomeClass() {}  // destructor (dtor), exactly one, called upon object destruction
 
-      someClass(int a, int b) : num_a_(a), num_b_(b) {}  // member initializer list
-      bool operator<(const someClass &other) {}          // operator overload (no space after operator keyword)
-      someFunc() const {}                                // const correctness, const object reference calls this
-      someFunc() {}                                      // function overload because const missing
-      static void someStaticFunc() {}                    // static member function
+      SomeClass(int a, int b) : num_a_(a), num_b_(b) {}  // member initializer list
+      bool operator<(const SomeClass &other) {}          // operator overload (no space after operator keyword)
+      some_func() const {}                               // const correctness, const object reference calls this
+      some_func() {}                                     // function overload because const missing
+      static void some_static_func() {}                  // static member function
       static int some_num;                               // static member variable
-      static int getNumA(){};                            // getter/accessor (setter/mutator)
+      static int get_num_a(){};                          // getter/accessor (setter/mutator)
 
     private:  // default access specifier
       int num_a_ = 0;
       int num_b_ = 0;
 
-      friend class anotherClass;  // friend class
+      friend class AnotherClass;  // friend class
   };
   ```
 - **class access specifiers/modifiers:** defines how the class member variables/functions can be accessed  
@@ -325,11 +325,11 @@
   ties resources to object lifetime/scope, so aka scope-bound resource management  
   resources like memory, file handles, mutex locks, threads  
   ```cpp
-  class someClass
+  class SomeClass
   {
     public:
-      someClass() { data_ = new someOtherClass; }
-      ~someClass()
+      SomeClass() { data_ = new SomeOtherClass; }
+      ~SomeClass()
       {
           delete data_;
           data_ = nullptr;
@@ -338,7 +338,7 @@
       // so implement all special functions (rule of all or nothing)
 
     private:
-      someOtherClass data_;
+      SomeOtherClass data_;
   };
   ```
 - **member initializer list:** initialize members that cannot be set in ctor body like `const` since they will be created by the time we reach the ctor scope (`{`) and call non-default ctor for object members
@@ -354,32 +354,32 @@
   example: count number of objects of a class
   ```cpp
   // header file declaration
-  class someClass
+  class SomeClass
   {
     public:
-      someClass() { someClass::numInstances++; }
-      ~someClass() { someClass::numInstances--; }
-      static int numInstances;
-      static void printInstances(void);
+      SomeClass() { SomeClass::num_instances++; }
+      ~SomeClass() { SomeClass::num_instances--; }
+      static int num_instances;
+      static void print_instances(void);
   };
 
   // source file definition
-  int someClass::numInstances = 0;
-  void someClass::printInstances(void)
+  int SomeClass::num_instances = 0;
+  void SomeClass::print_instances(void)
   {
-      std::cout << someClass::numInstances << std::endl;
+      std::cout << SomeClass::num_instances << std::endl;
   }
 
   // source file usage
   int main()
   {
-      someClass a;
-      someClass::printInstances();  // "1"
+      SomeClass a;
+      SomeClass::print_instances();  // "1"
       {
-          someClass b;
-          someClass::printInstances();  // "2"
+          SomeClass b;
+          SomeClass::print_instances();  // "2"
       }
-      someClass::printInstances();  // "1"
+      SomeClass::print_instances();  // "1"
 
       return 0;
   }
@@ -389,34 +389,34 @@
   permits encapsulation to be wider than own class (private members) or derived class (protected members)  
   ```cpp
   // forward declaration
-  class classB;
-  class classA;
+  class ClassB;
+  class ClassA;
 
-  class classA
+  class ClassA
   {
       // friend class
-      friend class classB;  // needs forward declaration
+      friend class ClassB;  // needs forward declaration
 
       // friend function
-      friend int sum(classA &a, classB &b);
+      friend int sum(ClassA &a, ClassB &b);
 
     private:
       int foo_;
   };
 
-  class classB
+  class ClassB
   {
-      // access classA private member
-      int add(classA &a, classB &b) { return a.foo_ + b.bla_; }
+      // access ClassA private member
+      int add(ClassA &a, ClassB &b) { return a.foo_ + b.bla_; }
 
-      friend int sum(classA &a, classB &b);
+      friend int sum(ClassA &a, ClassB &b);
 
     private:
       int bla_;
   };
 
-  // access classA & classB private members
-  int sum(classA &a, classB &b)
+  // access ClassA & ClassB private members
+  int sum(ClassA &a, ClassB &b)
   {
       return a.foo_ + b.bla_;
   }
@@ -443,28 +443,28 @@
     printf("%u %u %u\n", sizeof(temp), temp.a, temp.b);  // "1 5 1" since "b" overflowed
     ```
 - **uniform (braced) initialization:** consistent syntax to initialize variables/objects ranging by using `{}` to enclose initializer values  
-doesn't allow narrowing so used in member initializer list for argument type checking
+  doesn't allow narrowing so used in member initializer list for argument type checking
   ```cpp
   int i;                  // uninitialized built-in type
   int j = 10;             // initialized built-in type
   int k(10);              // initialized built-in type
   int a[] = {1, 2, 3, 4}  // aggregate initialization
-  someClass x1;           // default ctor
-  someClass x2(1);        // parameterized ctor
-  someClass x3 = 3;       // parameterized ctor with single argument
-  someClass x4 = x3;      // copy ctor
+  SomeClass x1;           // default ctor
+  SomeClass x2(1);        // parameterized ctor
+  SomeClass x3 = 3;       // parameterized ctor with single argument
+  SomeClass x4 = x3;      // copy ctor
 
   // uniform initialization
   int i{};             // initialized built-in type, equals to int i{0};
   int j{10};           // initialized built-in type
   int a[]{1, 2, 3, 4}  // aggregate initialization
-  someClass x1{};      // default ctor
-  someClass x2{1};     // parameterized ctor
-  someClass x4{x3};    // copy-ctor
+  SomeClass x1{};      // default ctor
+  SomeClass x2{1};     // parameterized ctor
+  SomeClass x4{x3};    // copy-ctor
   ```
 - **braced initialization:** objects initialized using uniform initialization for relatively simple types
   ```cpp
-  struct classA
+  struct SomeStruct
   {
       int station_id;
       time_t time_set;
@@ -473,8 +473,8 @@ doesn't allow narrowing so used in member initializer list for argument type che
 
   time_t time_to_set;
   // member initialization in order of declaration
-  // an empty brace initializer does value initialization = {0,0,0}
-  classA cla{45978, time(&time_to_set), 28.9};
+  // empty brace initializer does value initialization = {0,0,0}
+  SomeStruct var{45978, time(&time_to_set), 28.9};
   ```
 - **designated initializer:** initialize struct/union or array using a designator (field name or array index) in C  
   ```cpp
@@ -518,7 +518,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
   std::string str = "hello";
   vec.push_back(str);             // copy semantics
   vec.push_back(std::move(str));  // move semantics ("str" no longer needed)
-  vec.push_back(getData());       // move semantics ("getData()" output temp object moved)
+  vec.push_back(get_data());       // move semantics ("get_data()" output temp object moved)
 
   std::cout << str << std::endl;  // undefined
   ```
@@ -541,20 +541,20 @@ doesn't allow narrowing so used in member initializer list for argument type che
   copy semantics if other object type is lvalue ref, else move
   ```cpp
   // copy definition
-  myClass(myClass &other) {}             // copy ctor
-  myClass &operator=(myClass &other) {}  // copy assign op
+  SomeClass(SomeClass &other) {}             // copy ctor
+  SomeClass &operator=(SomeClass &other) {}  // copy assign op
 
-  myClass(myClass &&other) {}             // move ctor
-  myClass &operator=(myClass &&other) {}  // move assign op
+  SomeClass(SomeClass &&other) {}              // move ctor
+  SomeClass &operator=(SomeClass &&other) {}  // move assign op
 
   // use
-  myClass a;                 // default ctor
-  myClass b(a);              // copy ctor
-  myClass c = a;             // copy ctor
-  c         = b;             // copy assign op
-  myClass d(std::move(a));   // move ctor
-  myClass e = std::move(b);  // move ctor
-  e         = std::move(c);  // move assign op
+  SomeClass a;                 // default ctor
+  SomeClass b(a);              // copy ctor
+  SomeClass c = a;             // copy ctor
+  c         = b;               // copy assign op
+  SomeClass d(std::move(a));   // move ctor
+  SomeClass e = std::move(b);  // move ctor
+  e         = std::move(c);    // move assign op
   ```
   - **example: string move ctor:**
     ```cpp
@@ -576,7 +576,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
     compiler doesn't autogenerate move semantics functions if any of first three defined, then costly copy semantics used
   - **move assign op:** free left resource and transfer right one
   ```cpp
-  class Vec
+  class Vector
   {
     private:
       uint8_t *data_;
@@ -584,20 +584,20 @@ doesn't allow narrowing so used in member initializer list for argument type che
 
     public:
       // ctor
-      Vec(size_t size = 0)
+      Vector(size_t size = 0)
           : data_(new uint8_t[size]),
             size_(size)
       {
       }
 
       // dtor
-      ~Vec()
+      ~Vector()
       {
           delete[] data_;
       }
 
       // copy ctor
-      Vec(const Vec &other)
+      Vector(const Vector &other)
           : data_(new uint8_t[other.size_]),
             size_(other.size_)
       {
@@ -605,7 +605,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
       }
 
       // copy assign op
-      Vec &operator=(const Vec &other)
+      Vector &operator=(const Vector &other)
       {
           if (this != &other)  // assign same object "a = a"
           {
@@ -619,7 +619,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
       }
 
       // move ctor
-      Vec(Vec &&other) noexcept
+      Vector(Vector &&other) noexcept
           : data_(other.data_),
             size_(other.size_)
       {
@@ -628,7 +628,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
       }
 
       // move assign op
-      Vec &operator=(Vec &&other) noexcept
+      Vector &operator=(Vector &&other) noexcept
       {
           if (this != &other)
           {
@@ -654,10 +654,10 @@ doesn't allow narrowing so used in member initializer list for argument type che
   derived classes inherit data/functions from their base classes  
   private members, special functions & ctor not inherited
   ```cpp
-  class rectangleClass
+  class RectangleClass
   {
     public:
-      rectangleClass(int w, int h)
+      RectangleClass(int w, int h)
           : width_(w),
             height_(h) 
       {
@@ -668,12 +668,12 @@ doesn't allow narrowing so used in member initializer list for argument type che
       int height_;
   };
 
-  class squareClass
-      : public rectangleClass  // default private inheritance
+  class SquareClass
+      : public RectangleClass  // default private inheritance
   {
     public:
-      squareClass(int size)
-          : rectangleClass(size, size)
+      SquareClass(int size)
+          : RectangleClass(size, size)
       {
       }
   };
@@ -694,32 +694,32 @@ doesn't allow narrowing so used in member initializer list for argument type che
   extra runtime overhead to get correct function implementation from virtual table  
   aka base class member function shadowing
   ```cpp
-  class baseClass
+  class BaseClass
   {
     public:
       void print1()
       {
-          std::cout << "print1 baseClass" << std::endl;
+          std::cout << "print1 BaseClass" << std::endl;
           this->print2();
       }
 
-      virtual void print2() { std::cout << "print2 baseClass" << std::endl; }
+      virtual void print2() { std::cout << "print2 BaseClass" << std::endl; }
   };
 
-  class derivedClass
-      : public baseClass
+  class DerivedClass
+      : public BaseClass
   {
     public:
-      void print2() override { std::cout << "print2 derivedClass" << std::endl; }
+      void print2() override { std::cout << "print2 DerivedClass" << std::endl; }
       // pre-cpp11:   "virtual void print2() {}"
   };
 
   int main()
   {
-      derivedClass b;
-      b.print1();  // "print1 baseClass"
-      b.print2();  // "print2 derivedClass"
-                   // but without virtual: "print2 baseClass"
+      DerivedClass b;
+      b.print1();  // "print1 BaseClass"
+      b.print2();  // "print2 BaseClass"
+                   // but without virtual: "print2 BaseClass"
       return 0;
   }
   ```
@@ -751,28 +751,28 @@ doesn't allow narrowing so used in member initializer list for argument type che
 - **early binding:** function implementation decided compile-time based on type of callee pointer  
   **late binding:** function implementation decided run-time based on type callee pointer was originally constructed  
   ```cpp
-  class baseClass
+  class BaseClass
   {
     public:
-      void func1() { std::cout << "baseClass::func1" << std::endl; }
-      virtual void func2() { std::cout << "baseClass::func2" << std::endl; }
+      void func1() { std::cout << "BaseClass::func1" << std::endl; }
+      virtual void func2() { std::cout << "BaseClass::func2" << std::endl; }
   };
 
-  class derivedClass : public baseClass
+  class DerivedClass : public BaseClass
   {
     public:
       // adding override would result in an error, since no virtual base func1()
-      void func1() { std::cout << "derivedClass::func1" << std::endl; }
-      void func2() override { std::cout << "derivedClass::func2" << std::endl; }
+      void func1() { std::cout << "DerivedClass::func1" << std::endl; }
+      void func2() override { std::cout << "DerivedClass::func2" << std::endl; }
   };
 
   int main()
   {
-      // constructed as derivedClass but stored as baseClass
-      baseClass *basePtr = new derivedClass();
+      // constructed as DerivedClass but stored as BaseClass
+      BaseClass *base_ptr = new DerivedClass();
 
-      basePtr->func1();  // early binding "baseClass::func1"
-      basePtr->func2();  // late binding "derivedClass::func2"
+      base_ptr->func1();  // early binding "BaseClass::func1"
+      base_ptr->func2();  // late binding "DerivedClass::func2"
 
       return 0;
   }
@@ -782,21 +782,21 @@ doesn't allow narrowing so used in member initializer list for argument type che
   - **compile-time:** function/operator overloading (early binding)
   - **run-time:** function overriding (late binding)  
     ```cpp
-    derivedClass a;
-    derivedClass b;
-    baseClass *c = &a;  // can be generic reference for derivedClass1 or derivedClass2
+    DerivedClass1 a;
+    DerivedClass2 b;
+    BaseClass *c = &a;  // can be generic reference for DerivedClass1 or 2
     ```
 - **pure virtual function:** in base class to force all derived classes to implement it
   ```cpp
-  virtual myFunc() = 0;
+  virtual my_func() = 0;
   ```
   **abstract class:** class with at-least one pure virtual function, object cannot be created  
   **interface:** abstract class with only pure virtual functions (no data members)
 - **example: pointer polymorphism:** preferred over reference since pointer can be reassigned
   ```cpp
-  std::vector<abstractShapeType *> shapes;
-  squareType square;
-  triangleType triangle;
+  std::vector<AbstractShape *> shapes;
+  SquareType square;
+  TriangleType triangle;
 
   shapes.push_back(square);
   shapes.push_back(triangle);
@@ -808,18 +808,18 @@ doesn't allow narrowing so used in member initializer list for argument type che
   ```
 - **example: smart pointer polymorphism:**
   ```cpp
-  std::vector<std::unique_ptr<abstractShape>> shapes;
+  std::vector<std::unique_ptr<AbstractShape>> shapes;
 
-  // method1: "new derivedClass" passed to ctor of unique_ptr
-  shapes.emplace_back(new squareClass);
+  // method1: "new DerivedClass" passed to ctor of unique_ptr
+  shapes.emplace_back(new SquareType);
 
   // method2: need to move since unique_ptr cannot be copied
-  auto var = std::unique_ptr<triangleClass>(new triangleClass);
+  auto var = std::unique_ptr<TriangleType>(new TriangleType);
   shapes.push_back(std::move(var));
 
   for (const auto &shape : shapes)
   {
-      shape->print();  // respective derivedClass implementation
+      shape->print();  // respective DerivedClass implementation
   }
   ```
 
@@ -829,7 +829,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
   `ifstream` is fstream with default mode `in` (`ofstream` with `out`)
   ```cpp
   #include <fstream>
-  std::fstream file(string &filename, Mode std::ios_base::mode);
+  std::fstream file(string &filename, std::ios_base::mode);
 
   // modes
   in      // read
@@ -1155,44 +1155,44 @@ doesn't allow narrowing so used in member initializer list for argument type che
   else pass objects to functions using pointer/reference
   ```cpp
   #include <memory>
-  smartPointerType<type> sPtr(new type());  // declaration
+  SmartPointerType<type> sptr(new type());  // declaration
 
-  sPtr.get();           // get raw pointer
-  sPtr.reset(new_ptr);  // stops using currently-used pointer (freed if not required)
+  sptr.get();           // get raw pointer
+  sptr.reset(new_ptr);  // stops using currently-used pointer (freed if not required)
                         // and starts managing new_ptr now instead
   ```
   use `unique_ptr` by default, if multiple objects must share ownership then use `shared_ptr`
   - **unique_ptr:** guarantees that given object owned by only one `unique_ptr`  
     can be moved but not copied/shared (copy ctor deleted)
     ```cpp
-    auto uPtr = std::unique_ptr<myType>(new myType());      // default ctor
-    auto uPtr = std::unique_ptr<myType>(new myType(args));  // custom ctor
-    auto uPtr = std::make_unique<myType>(args);             // cleaner (type mentioned once)
+    auto uptr = std::unique_ptr<SomeClass>(new SomeClass());      // default ctor
+    auto uptr = std::unique_ptr<SomeClass>(new SomeClass(args));  // custom ctor
+    auto uptr = std::make_unique<SomeClass>(args);             // cleaner (type mentioned once)
     ```
   - **shared_ptr:** multiple `shared_ptr` share ownership of same object  
     dealloced only when all pointers holding that object go out of scope (using refcount `usage_count`)  
     `reset(new_ptr)` replaces managed object (decrement refcount) with new object  
     ```cpp
-    auto sPtr = std::shared_ptr<myType>(new myType());      // default ctor
-    auto sPtr = std::shared_ptr<myType>(new myType(args));  // custom ctor
-    auto sPtr = std::make_shared<myType>(args);             // cleaner
+    auto sptr = std::shared_ptr<SomeClass>(new SomeClass());      // default ctor
+    auto sptr = std::shared_ptr<SomeClass>(new SomeClass(args));  // custom ctor
+    auto sptr = std::make_shared<SomeClass>(args);             // cleaner
 
-    sPtr.use_count();  // return usage_count
+    sptr.use_count();  // return usage_count
     ```
   - **weak_ptr:** similar to `shared_ptr` but doesn't affect refcount  
     used to pass `shared_ptr` to users who can then S check if object already deleted using `expired()`
 - **example: shared pointer refcount:**
   ```cpp
-  class someClass
+  class SomeClass
   {
     public:
-      someClass() { std ::cout << "alive" << std::endl; }
-      ~someClass() { std ::cout << "dead" << std::endl; }
+      SomeClass() { std ::cout << "alive" << std::endl; }
+      ~SomeClass() { std ::cout << "dead" << std::endl; }
   };
 
   int main()
   {
-      auto a = std::make_shared<someClass>();     // alive
+      auto a = std::make_shared<SomeClass>();     // alive
       std ::cout << a.use_count() << std ::endl;  // 1
       {
           auto b = a;
@@ -1200,7 +1200,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
       }
       std ::cout << a.use_count() << std ::endl;  // 1
 
-      auto c = std::weak_ptr<someClass>(a);
+      auto c = std::weak_ptr<SomeClass>(a);
       std ::cout << a.use_count() << std ::endl;  // 1
 
       return 0;
@@ -1234,15 +1234,15 @@ doesn't allow narrowing so used in member initializer list for argument type che
     ```
     example: prevent code duplication
     ```cpp
-    const std::string &shorterString(const std::string &s1, const std::string &s2)
+    const std::string &shorter_string(const std::string &s1, const std::string &s2)
     {
         return s1.size() <= s2.size() ? s1 : s2;
     }
 
-    std::string &shorterString(std::string &s1, std::string &s2)
+    std::string &shorter_string(std::string &s1, std::string &s2)
     {
         // add const to args
-        const std::string &r = shorterString(const_cast<const std::string &>(s1),
+        const std::string &r = shorter_string(const_cast<const std::string &>(s1),
                                              const_cast<const std::string &>(s2));
 
         // discard const
@@ -1269,10 +1269,10 @@ doesn't allow narrowing so used in member initializer list for argument type che
   ```cpp
   // template class
   template <typename T>
-  class someClass
+  class SomeClass
   {
     public:
-      someClass(const T &data) : data_(data){};
+      SomeClass(const T &data) : data_(data){};
       void set(T value) { data = value; }
       void get() { return data; }
 
@@ -1280,20 +1280,20 @@ doesn't allow narrowing so used in member initializer list for argument type che
       T data_;
   };
 
-  someClass<int> my_object(10);
+  SomeClass<int> my_object(10);
   ```
 - **example: sizeof() implementation:**
   ```cpp
   template <typename T>
-  size_t sizeOf()
+  size_t size_of()
   {
       T *a        = nullptr;
       size_t size = (uint8_t *)(a + 1) - (uint8_t *)(a);
       return size;
   }
 
-  std::cout << "int: " << sizeOf<int>() << std::endl;              // "int: 4"
-  std::cout << "someClass: " << sizeOf<someClass>() << std::endl;  // "someClass: 16"
+  std::cout << "int: " << size_of<int>() << std::endl;              // "int: 4"
+  std::cout << "SomeClass: " << size_of<SomeClass>() << std::endl;  // "SomeClass: 16"
   ```
 - **specialization:** special different implementation for specific types
   ```cpp
@@ -1322,7 +1322,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
   ```cpp
   #include <stdexcept>
 
-  void someFunc(void)
+  void some_func(void)
   {
       uint8_t *ptr = nullptr;
 
@@ -1337,7 +1337,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
   {
       try
       {
-          someFunc();  // throws exception
+          some_func();  // throws exception
       }
       catch (std::runtime_error &exp)
       {
@@ -1404,7 +1404,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
   - **scoped:** add `class` to create scope (enum name qualifier required)  
     implicit conversion leads to error, if required use `static_cast`
   ```cpp
-  enum uFoo  // unscoped
+  enum Foo  // unscoped
   {
       a,         // 0 (default start)
       b,         // 1
@@ -1412,7 +1412,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
       d = b + c  // 2
   };
 
-  enum class sFoo  // scoped
+  enum class Boo  // scoped
   {
       a,
       b,
@@ -1421,7 +1421,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
   };
 
   int enumValue = a;        // implicit conversion
-  int enumValue = sFoo::a;  // error for conversion
+  int enumValue = Boo::a;   // error for conversion
   ```
 - **type alias:** similar to `typedef` but compatible with aggregates (like templates & arrays)  
   local alias created if declared within function scope
@@ -1439,17 +1439,17 @@ doesn't allow narrowing so used in member initializer list for argument type che
   ```
 - **typedef struct:**
   ```cpp
-  typedef struct someStruct_  // "someStruct_" not necessary
+  typedef struct SomeStruct_  // "SomeStruct_" not necessary
   {
       int x;
-  } someStruct;
+  } SomeStruct;
 
   // same as
-  struct someStruct_
+  struct SomeStruct_
   {
       int x;
   };
-  typedef struct someStruct_ someStruct;
+  typedef struct SomeStruct_ SomeStruct;
   ```
 - **nested struct:** don't repeat nameless (aka anonymous) struct/union member names
   ```cpp
@@ -1485,9 +1485,9 @@ doesn't allow narrowing so used in member initializer list for argument type che
   struct  // functor
   {
       bool operator()(int a, int b) const { return a < b; }
-  } lessFunc;
+  } less_func;
 
-  std::sort(vec.begin(), vec.end(), lessFunc);                            // using functor
+  std::sort(vec.begin(), vec.end(), less_func);                            // using functor
   std::sort(vec.begin(), vec.end(), [](int a, int b) { return a > b; });  // using lambdas
   ```
 
@@ -1496,10 +1496,32 @@ doesn't allow narrowing so used in member initializer list for argument type che
   ![](./media/cplusplus/iterator.png)
   ```cpp
   T::iterator itr = container.begin();  // vector<double>::iterator itr;
+  T::const_iterator itr;                // read-only access (cbegin, cend)
 
-  T val = *itr;  // current element
-  ++itr;         // increment iterator, now points to next element
+  T val = *itr;                         // current element
+  ++itr;                                // increment iterator, now points to next element
+  advance(itr, num);                    // move iterator forward
+  auto dist = distance(itr1, itr2);     // distance (complicated return type)
   ```
+  - **random access:** constant-time iterator advance (vector, deque, array)
+    ```cpp
+    ++itr;
+    --itr;
+    itr += 5;
+    itr -= 4;
+    if (itr2 > itr1) ...
+    ```
+  - **bidirectional:** only `++` & `--` (list, associative containers)
+  - **forward:** only `++` (forward_list)  
+    unorderd containers provide atleast forward iterators
+  - **input:** read values while iterating forward
+    ```cpp
+    int x = *itr;
+    ```
+  - **output:** write values iterating forward
+    ```cpp
+    *itr = 100;
+    ```
 - **pair:** store two heterogeneous objects as a single unit
   ```cpp
   #include <utility>
@@ -1582,7 +1604,8 @@ doesn't allow narrowing so used in member initializer list for argument type che
 - **list:** doubly-linked list (both direction traversal)  
   `θ(1)` insert/remove/splice anywhere  
   `θ(n)` search but low spatial locality so slower than vector  
-  no random access so no `at()`
+  no random access so no `at()`  
+  `forward_list` singly-linked list
   ```cpp
   #include <list>
   std::list<T> lst;                     // std::list<int> lst = {1, 2, 3, 4};
@@ -1607,9 +1630,9 @@ doesn't allow narrowing so used in member initializer list for argument type che
   #include <set>
   std::set<T> st;                       // std::set<int> st{1, 2, 3, 4};
 
-  <posItr, bool> = st.insert(val);      // insert value if not exists (check bool)
-  <posItr, bool> = st.insert(hint_itr, val);  // pass hint for `θ(1)` insertion
-  posItr         = st.find(key);        // find element, (posItr == st.end()) if not present
+  <pos_tr, bool>  = st.insert(val);     // insert value if not exists (check bool)
+  <pos_itr, bool> = st.insert(hint_itr, val);  // pass hint for `θ(1)` insertion
+  pos_itr         = st.find(key);       // find element, (pos_itr == st.end()) if not present
   if (mp.count(key) > 0)                // number of matching keys (0/1 for set & map)
   // empty, size, clear
   ```
@@ -1676,22 +1699,24 @@ doesn't allow narrowing so used in member initializer list for argument type che
   // push will insert into sorted array
   ```
 
-[continue](https://www.youtube.com/watch?v=vO2AlrBf5rQ&list=PLA0_W94naaYmk0uFVkUnXv0SiMIP5Jjlb&index=5)
-
 # STL algorithms
-- standard template library
+- STL algorithms mostly to replace loops  
+  always process ranges half-open `[begin, end)`
   ```cpp
   #include <algorithm>
-  flag = std::all_of(startItr, endItr, boolFunc);      // all_of, any_of, none_of
-  std::for_each(startItr, endItr, func);               // for_each
-  itr = std::find(startItr, endItr, val_or_boolFunc);  // find
-  std::fill(startItr, endItr, value);                  // fill
-  std::generate(startItr, endItr, func);               // generate
-  std::replace(startItr, endItr, old_val, new_val);    // replace
-  std::rotate(startItr, new_startItr, endItr);         // rotate
-  std::sort(startItr, endItr, operator);               // default std::less<T>, greater<>
-  std::reverse(startItr, endItr);                      // reverse
-  float sum = std::accumulate(startItr, endItr, initValue, operation); // default: std::plus<T>, (minus, multiplies, divides, modulus)
+
+  itr = std::min_element(start_itr, end_itr)
+  std::sort(start_itr, end_itr, operator);               // default std::less<T>, greater<>
+  std::reverse(start_itr, end_itr);                      // reverse
+
+  flag = std::all_of(start_itr, end_itr, bool_func);     // all_of, any_of, none_of
+  std::for_each(start_itr, end_itr, func);               // for_each
+  itr = std::find(start_itr, end_itr, val_or_bool_func); // find
+  std::fill(start_itr, end_itr, value);                  // fill
+  std::generate(start_itr, end_itr, func);               // generate
+  std::replace(start_itr, end_itr, old_val, new_val);    // replace
+  std::rotate(start_itr, new_start_itr, end_itr);         // rotate
+  float sum = std::accumulate(start_itr, end_itr, init_value, operation); // default: std::plus<T>, (minus, multiplies, divides, modulus)
 
   #include <stdio.h>
   FILE *fp;
@@ -1723,7 +1748,7 @@ doesn't allow narrowing so used in member initializer list for argument type che
   sqrt(num);
 
   #include <unistd.h>
-  sleep(numSeconds);  // usleep(numUSeconds)
+  sleep(num_seconds);  // usleep(num_useconds)
 
   #include <time.h>
   clock_t t;

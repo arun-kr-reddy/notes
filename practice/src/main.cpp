@@ -52,6 +52,12 @@ int main()
     b.splice(b.begin(), a, itr, a.end());
     print(a);
     print(b);
+
+    ++itr;
+    --itr;
+    itr += 5;
+    itr -= 4;
+    if (itr2 > itr1)
 #else
     std::vector<uint32_t> input(10);
     fillVector(input, 100);
@@ -62,7 +68,7 @@ int main()
     printVector(input);
     binarySearch(input, input.at(2), 0, input.size());
 #endif
-    return 0;
+        return 0;
 }
 
 void fillVector(std::vector<uint32_t> &input, uint32_t max)
