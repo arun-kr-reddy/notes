@@ -11,6 +11,7 @@
 - [misc](#misc)
 - [STL containers](#stl-containers)
 - [STL algorithms](#stl-algorithms)
+- [C library](#c-library)
 
 # links  <!-- omit from toc -->
 - [[playlist] modern C++](https://www.ipb.uni-bonn.de/teaching/modern-cpp/)
@@ -1487,8 +1488,22 @@
       bool operator()(int a, int b) const { return a < b; }
   } less_func;
 
-  std::sort(vec.begin(), vec.end(), less_func);                            // using functor
+  std::sort(vec.begin(), vec.end(), less_func);                           // using functor
   std::sort(vec.begin(), vec.end(), [](int a, int b) { return a > b; });  // using lambdas
+  ```
+  functor can have class member variables to remember state
+  ```cpp
+  class AddValue
+  {
+    public:
+      AddValue(int val) : val_(val) {}
+      bool operator()(int a) { return i + val_; }
+
+    private:
+      int val_;
+  };
+
+  for_each(start_itr, end_itr, add_val(2));
   ```
 
 # STL containers
@@ -1652,13 +1667,13 @@
   hash collision degrades performance, worst case `θ(n)` is all elements same bucket  
   hash value index into array (bucket) of lists
 - **unordered_set, unordered_map, unordered_multiset & unordered_multimap:**
-  ```
+  ```cpp
   #include <unordered_set>
 
   std::unordered_set<T> ust;            // std::unordered_set<int> ust{"red", "green", "blue"};
 
-  float lf = ust.loadfactor();          // num_elements / num_buckets
-  size_t bc = ust.bucket_count();       // num num_buckets
+  float lf   = ust.loadfactor();        // num_elements / num_buckets
+  size_t bc  = ust.bucket_count();      // num num_buckets
   size_t bct = ust.bucket(val);         // bucket of value
   ```
 
@@ -1692,8 +1707,8 @@
   ```cpp
   #include <queue>
   std::priority_queue<T> pq();          // new vector created & uses less<T> by default
-  std::priority_queue<T> pq(compare, vec);  // copy existing vector data (copy ctor)
-                                        // for compare function: std::less<T> (largest at top) or std::greater<T>
+  std::priority_queue<T> pq(bool_func, vec);  // copy existing vector data (copy ctor)
+                                              // std::less<T> (largest at top) or std::greater<T>
 
   // empty, size, top, push, pop
   // push will insert into sorted array
@@ -1701,23 +1716,31 @@
 
 # STL algorithms
 - STL algorithms mostly to replace loops  
-  always process ranges half-open `[begin, end)`
+  always process ranges half-open `[begin, end)`  
+  most algorithms support optional (first arg) execution policy `std::execution::par` (`seq`, `#include <execution>`)  
+  since pointer work like iterator most algorithms can process C arrays as well
   ```cpp
   #include <algorithm>
 
   itr = std::min_element(start_itr, end_itr)
-  std::sort(start_itr, end_itr, operator);               // default std::less<T>, greater<>
-  std::reverse(start_itr, end_itr);                      // reverse
+  std::sort(start_itr, end_itr, operator);                 // default std::less<T> (std::greater<T>)
+  std::reverse(start_itr, end_itr);
+  bool flag = std::all_of(start_itr, end_itr, bool_func);  // all_of, any_of, none_of
+  std::for_each(start_itr, end_itr, func);                 // apply unary (single arg) func
+  itr = std::find(start_itr, end_itr, val);                // find_if using bool_func
+  std::fill(start_itr, end_itr, value);
+  std::generate(start_itr, end_itr, func);
+  std::replace(start_itr, end_itr, old_val, new_val);
+  std::rotate(org_start_itr, new_start_itr, org_end_itr);
+  float sum = std::accumulate(start_itr, end_itr, init_value, operation);  // default std::plus<T> (binary func)
+                                                                           // minus, multiplies, divides, modulus
+  std::reduce(start_itr, end_itr, init_value, operation);  // out-of-order accumulate (so cannot use with strings)
+  std::transform(start_itr, end_itr, func, dst_itr);       // apply unary func and store somewhere
+  std::transform_reduce(start_itr, end_itr, func, dst_itr, init_value, reduce_op, transform_op);  // transform then reduce/accumulate
+  ```
 
-  flag = std::all_of(start_itr, end_itr, bool_func);     // all_of, any_of, none_of
-  std::for_each(start_itr, end_itr, func);               // for_each
-  itr = std::find(start_itr, end_itr, val_or_bool_func); // find
-  std::fill(start_itr, end_itr, value);                  // fill
-  std::generate(start_itr, end_itr, func);               // generate
-  std::replace(start_itr, end_itr, old_val, new_val);    // replace
-  std::rotate(start_itr, new_start_itr, end_itr);         // rotate
-  float sum = std::accumulate(start_itr, end_itr, init_value, operation); // default: std::plus<T>, (minus, multiplies, divides, modulus)
-
+# C library
+  ```
   #include <stdio.h>
   FILE *fp;
   fp = fopen("filename", "mode");  // r, rb, w, wb, a, ab

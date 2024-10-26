@@ -37,27 +37,11 @@ bool binarySearch(const std::vector<uint32_t> &input, uint32_t key, size_t start
 int main()
 {
 #if 1
-    std::list<int> a = {1, 2, 3, 3, 4, 5};
-    std::list<int> b = {1, 2, 3};
-    a.merge(b);
-    print(a);
-    a.unique();
-    print(a);
-    a.sort();
-    print(a);
-    a.reverse();
-    print(a);
-    auto itr = a.begin();
-    std::advance(itr, 2);
-    b.splice(b.begin(), a, itr, a.end());
-    print(a);
-    print(b);
+    std::unordered_set<T> ust;  // std::unordered_set<int> ust{"red", "green", "blue"};
 
-    ++itr;
-    --itr;
-    itr += 5;
-    itr -= 4;
-    if (itr2 > itr1)
+    float lf   = ust.loadfactor();    // num_elements / num_buckets
+    size_t bc  = ust.bucket_count();  // num num_buckets
+    size_t bct = ust.bucket(val);     // bucket of value
 #else
     std::vector<uint32_t> input(10);
     fillVector(input, 100);
@@ -68,7 +52,7 @@ int main()
     printVector(input);
     binarySearch(input, input.at(2), 0, input.size());
 #endif
-        return 0;
+    return 0;
 }
 
 void fillVector(std::vector<uint32_t> &input, uint32_t max)
