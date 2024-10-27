@@ -1722,7 +1722,7 @@
   ```cpp
   #include <algorithm>
 
-  itr = std::min_element(start_itr, end_itr)
+  itr = std::min_element(start_itr, end_itr);
   std::sort(start_itr, end_itr, operator);                 // default std::less<T> (std::greater<T>)
   std::reverse(start_itr, end_itr);
   bool flag = std::all_of(start_itr, end_itr, bool_func);  // all_of, any_of, none_of
@@ -1732,10 +1732,10 @@
   std::generate(start_itr, end_itr, func);
   std::replace(start_itr, end_itr, old_val, new_val);
   std::rotate(org_start_itr, new_start_itr, org_end_itr);
-  float sum = std::accumulate(start_itr, end_itr, init_value, operation);  // default std::plus<T> (binary func)
-                                                                           // minus, multiplies, divides, modulus
-  std::reduce(start_itr, end_itr, init_value, operation);  // out-of-order accumulate (so cannot use with strings)
-  std::transform(start_itr, end_itr, func, dst_itr);       // apply unary func and store somewhere
+  <T> val = std::accumulate(start_itr, end_itr, <T> init_value, operation);  // default std::plus<T> (binary func)
+                                                                             // minus, multiplies, divides, modulus
+  <T> val = std::reduce(start_itr, end_itr, <T> init_value, operation);      // out-of-order accumulate (so cannot use with strings)
+  std::transform(start_itr, end_itr, func, dst_itr);                         // apply unary func and store somewhere
   std::transform_reduce(start_itr, end_itr, func, dst_itr, init_value, reduce_op, transform_op);  // transform then reduce/accumulate
   ```
 

@@ -34,6 +34,22 @@ bool binarySearch(const std::vector<uint32_t> &input, uint32_t key, size_t start
 // ************************************************************************************************************************************************************
 // definitions
 // ************************************************************************************************************************************************************
+itr = std::min_element(start_itr, end_itr);
+std::sort(start_itr, end_itr, operator);  // default std::less<T> (std::greater<T>)
+std::reverse(start_itr, end_itr);
+bool flag = std::all_of(start_itr, end_itr, bool_func);  // all_of, any_of, none_of
+std::for_each(start_itr, end_itr, func);                 // apply unary (single arg) func
+itr = std::find(start_itr, end_itr, val);                // find_if using bool_func
+std::fill(start_itr, end_itr, value);
+std::generate(start_itr, end_itr, func);
+std::replace(start_itr, end_itr, old_val, new_val);
+std::rotate(org_start_itr, new_start_itr, org_end_itr);
+<T> val = std::accumulate(start_itr, end_itr, <T> init_value, operation);                       // default std::plus<T> (binary func)
+                                                                                                // minus, multiplies, divides, modulus
+<T> val = std::reduce(start_itr, end_itr, <T> init_value, operation);                           // out-of-order accumulate (so cannot use with strings)
+std::transform(start_itr, end_itr, func, dst_itr);                                              // apply unary func and store somewhere
+std::transform_reduce(start_itr, end_itr, func, dst_itr, init_value, reduce_op, transform_op);  // transform then reduce/accumulate
+
 int main()
 {
 #if 1
