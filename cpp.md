@@ -142,6 +142,10 @@
   ```
   to make type deduce `auto var = init;`  
   to make type stick `auto var = type{ init };`
+- **decltype:** deduce type using expression  
+  ```cpp
+  std::vector<decltype(foo())> v{foo()};  // cannot use auto
+  ```
 - **reference:** alias for existing variable declared using `&` to avoid copying data  
   similar to a pointer but cannot be modified after initialization
 - **++i vs i++:** `i++` increments `i` but returns original value so needs to be stored for later use  

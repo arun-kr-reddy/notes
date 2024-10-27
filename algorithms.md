@@ -8,7 +8,10 @@
 # links  <!-- omit from toc -->
 - [introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/) ([recitation files](https://courses.csail.mit.edu/6.006/fall11/notes.shtml))
 - [big O notation](https://adrianmejia.com/how-to-find-time-complexity-of-an-algorithm-code-big-o-notation/ )
+- [why `log(n)`](https://www.youtube.com/watch?v=Xe9aq1WLpjU)
 - [quick sort](https://www.youtube.com/watch?v=7h1s2SojIRw)
+- [counting sort](https://www.youtube.com/watch?v=OKd534EWcdk)
+- [radix sort](https://www.youtube.com/watch?v=XiuSW_mEn7g)
 
 # introduction
 - **data structures:** organize & store data for efficient access & manipulation  
@@ -23,30 +26,38 @@
   compiler will reuse current function's stack frame (prevent stack overflow)  
   example: binary search recursive call directly returns search position
   ```cpp
-  bool binarySearch(const std::vector<uint32_t> &input, uint32_t key, uint32_t low, uint32_t high)
+  template <typename T>
+  bool binary_search(const std::vector<T> &input, T key, typename std::vector<T>::iterator start, typename std::vector<T>::iterator end)
   {
-      if (high >= low)
+      cout << std::vector<T>(start, end) << endl;
+
+      if (end >= start)
       {
-          uint32_t mid = low + (high - low) / 2;
-          if (key > input.at(mid))
+          typename std::vector<T>::iterator mid = start + (end - start) / 2;
+          T mid_value                           = *mid;
+
+          if (key > mid_value)
           {
-              return binarySearch(input, key, mid + 1, high);
+              return binary_search(input, key, mid + 1, end);
           }
-          else if (key < input.at(mid))
+          else if (key < mid_value)
           {
-              return binarySearch(input, key, low, mid - 1);
+              return binary_search(input, key, start, mid - 1);
           }
           else
           {
-              cout << "found key " << key << " at " << mid << endl;
+              cout << "found key " << key << " at " << mid - input.begin() << endl;
               return true;
           }
       }
 
-      cout << "key " << key << " not found" << endl;
+      cout << key << " not found" << endl;
       return false;
   }
   ```
+- `ceil(log(n))` bits (or digits for base10) required to uniquely represent `[0, n)`  
+  search (mapping value to index) needs atleast `log(n)` steps  
+  sorting (index for each element) `n * log(n)`
 
 # search
 - **peak:** position whose value is `>=` (or `>`) all its neighbors, aka local maximum  
@@ -113,6 +124,7 @@
   ![](./media/algorithms/insertion_sort.png)  
   ![](./media/algorithms/insertion_sort_example.png)  
   worst-case `θ(n^2)` since each element needs `θ(n)` pairwise compare-and-swaps  
+  ideal for small input since minimal overhead (in-place no recursion) and efficient for nearly-sorted input
   for primitives compare & swap take `θ(1)` each, but aggregates compare could be more complex
 - **binary insertion sort:** use binary search to find correct position  
   useful when compare complexity much higher than swap complexity  
@@ -142,12 +154,158 @@
   ```
   needs `θ(n)` auxiliary space, but insertion sort only needs `θ(1)` (for swap temp var)  
   memory for halves can be reused to reduce memory usage by half (but still `θ(n)`)
+  ```cpp
+  template <typename T>
+  void merge_sort(std::vector<T> &input, typename std::vector<T>::iterator start, typename std::vector<T>::iterator end)
+  {
+      cout << std::vector<T>(start, end) << endl;
+
+      size_t size = end - start;
+      if (size == 2)
+      {
+          if (*start > *(end - 1))
+          {
+              uint32_t temp = *start;
+              *start        = *(end - 1);
+              *(end - 1)    = temp;
+          }
+      }
+      else if (size == 1)
+      {
+      }
+      else
+      {
+          size_t half_size = size / 2;
+          std::vector<T> left(start, start + half_size);
+          std::vector<T> right(start + half_size, end);
+
+          merge_sort(left, left.begin(), left.end());
+          merge_sort(right, right.begin(), right.end());
+
+          input.clear();
+          input = left + right;
+          cout << input << endl;
+      }
+  }
+
+  template <typename T>
+  std::vector<T> operator+(std::vector<T> &left, std::vector<T> &right)
+  {
+      std::vector<T> result;
+      result.reserve(left.size() + right.size());
+
+      while (left.size() || right.size())
+      {
+          if (left.size() == 0)
+          {
+              result.push_back(right.at(0));
+              right.erase(right.begin());
+              continue;
+          }
+
+          if (right.size() == 0)
+          {
+              result.push_back(left.at(0));
+              left.erase(left.begin());
+              continue;
+          }
+
+          if (left.at(0) < right.at(0))
+          {
+              result.push_back(left.at(0));
+              left.erase(left.begin());
+          }
+          else
+          {
+              result.push_back(right.at(0));
+              right.erase(right.begin());
+          }
+      }
+
+      return result;
+  }
+  ```
 - **recursion tree:** visual representation of recursive calls  
   get complexity by adding up the costs of each level  
   each node is the cost of operations done for child nodes (split + merge)  
   ![](./media/algorithms/merge_sort_tree.png)  
   `n` elements merged per level for total of `1 + log(n)` levels (root level + size halves per level)  
   total `θ(n) * θ(1+log(n)) ≈ θ(n * log(n))`  
+- **quick sort:** element in correct sorted position when all smaller elements to its left & larger right  
+  recursively select pivot then partition input into `<=` & `>=` sub-arrays  
+  partition by swapping larger elements on left with smaller element on right till two pointers meet  
+  ![](./media/algorithms/quick_sort.gif)  
+  average-case `θ(n * log(n))` since balanced sub-arrays for truly random input  
+  worst-case `θ(n^2)` for sorted/reverse-sorted input  
+  **median-of-3:** first sort first, middle & last elements in-place then using middle as pivot (moved to end) sort ignoring first & last (already sorted wrt pivot)
+  ```cpp
+  template <typename T>
+  void quick_sort(std::vector<T> &input, typename std::vector<T>::iterator start, typename std::vector<T>::iterator end)
+  {
+      if (start < end)
+      {
+          T pivot = *start;
+          cout << "pivot:" << pivot << "  start:" << *start << "  end:" << *(end - 1) << endl;
+          cout << std::vector<T>(start, end) << endl;
+          auto low = start, high = end;
+
+          // partition
+          while (low < high)
+          {
+              do
+              {
+                  low++;
+              } while ((low < end) && (*low <= pivot));
+
+              do
+              {
+                  high--;
+              } while ((high > start) && (*high >= pivot));
+
+              if (low < high)
+              {
+                  std::swap(*low, *high);
+              }
+          }
+
+          // swap pivot to correct index
+          std::swap(*start, *high);
+          cout << input << endl
+              << endl;
+
+          // recurse for sub-arrays
+          quick_sort(input, start, high);
+          quick_sort(input, high + 1, end);
+      }
+  }
+  ```
+
+## hybrid
+- quick sort has high const factor due to recursion, bad cache locality (left-right access) and bad pivot selection  
+  merge sort needs extra space  
+  heap sort has bad cache locality for swaps  
+  insertion sort slow for large inputs
+- **intro sort:** (C++ lib) hybrid of quick, heap & insertion sorts  
+  start with quick sort till certain recursion depth (stop ongoing bad pivot selection)  
+  switch to heap sort (better worst-case, in-place)   
+  if num elements less than threshold use insertion sort (better for smaller input)  
+  with threshold height of recursion tree controlled  
+- **tim sort:** (python lib) hybrid of merge & insertion sorts  
+  identify sorted (varying-length) portions and merge adjacent ones  
+  reverse-sorted portions reversed before merging  
+  if unsorted portion larger than threshold, recursevily break it then run insertion sort
+
+## non-comparison
+- **counting sort:** count occurrences of each element then place them in correct order  
+  `θ(n + range)`, useful if keys have small range (like `uint8_t`)  
+  calculate histogram's CDF then place each input element using CDF as offset
+  preserves relative order of equal elements (stable)  
+  ![](./media/algorithms/counting_sort.png)
+- **radix sort:** digit-by-digit (counting) sort from least to most significant digit  
+  needs stable (counting) sort co-routine to maintain relative order  
+  `θ(num_digits * (n + base))`, base is 10 for digit  
+  `base ∝ 1/num_digits`, `base ∝ space_complexity`, `num_digits ∝ 1/time_complexity`  
+  ![](./media/algorithms/radix_sort.png)
 
 # heap
 - **priority queue:** special type of queue in which each element is associated with a priority (key) value  
