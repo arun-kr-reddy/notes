@@ -303,8 +303,8 @@
   ![](./media/algorithms/counting_sort.png)
 - **radix sort:** digit-by-digit (counting) sort from least to most significant digit  
   needs stable (counting) sort co-routine to maintain relative order  
-  `θ(num_digits * (n + base))`, base is 10 for digit  
-  `base ∝ 1/num_digits`, `base ∝ space_complexity`, `num_digits ∝ 1/time_complexity`  
+  `θ(num_digits * (n + base))`, base 10 for decimal  
+  `base ∝ 1/num_digits`, `base ∝ space_complexity` (CDF array), `num_digits ∝ 1/time_complexity` (num iterations)  
   ![](./media/algorithms/radix_sort.png)
 
 # heap

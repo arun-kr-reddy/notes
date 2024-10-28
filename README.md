@@ -29,9 +29,11 @@
   - floating point to fixed point
   - hardware abstraction layer
 - **algorithms:**
+  - data structs: array, LL, stack, queue, hash table, tree, graph, heap, tries, union find
+  - algorithms: binary search, DFS, BFS, dynamic prog, quick sort, merge sort, bucket sort, topological sort, backtracking, bit operations
+  - patterns: sliding window, two pointers, prefix sums, heaps, dynamic programming, backtracking, bit manipulation, cycle detection, intervals, greedy, binary search, DFS, BFS, stack, monotonic stack, multi-source BFS, minimum spanning tree, tries
   - [connected component labelling](https://en.wikipedia.org/wiki/Connected-component_labeling)
   - [postfix vs infix](https://www.geeksforgeeks.org/postfix-to-infix/)
-  - [quick sort](https://www.youtube.com/watch?v=XE4VP_8Y0BU)
   - [every programmer should know](https://github.com/mtdvio/every-programmer-should-know)
   - [arden dertat 21 questions](https://gist.github.com/gabhi/2b39fdd74dfde98d6b11)
 - **computer architecture:**
