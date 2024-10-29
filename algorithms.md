@@ -113,7 +113,7 @@
 
     T(n) = T(n, 1) + log(m) * θ(n)
          = (log(m) + 1) * θ(n)
-         ≈ θ(n * log(m))                ⟶ worst case if matrix corner peak
+         ≈ θ(n * log(m))                  ⟶ worst case if matrix corner peak
     ```
 
 # sorting
@@ -314,55 +314,39 @@
   supported operations: `insert`, `peek` (tip/root), `extract_max`, `update_key`
 - **heap:** array structure visualized as nearly-complete binary tree  
   root of tree is first element `i = 0`, `parent(i) = (i - 1)/2`, `left(i) = 2 * i + 1`, `right(i) = 2 * i + 2`  
-  ![](./media/algorithms/heap_visualization.png)  
+  ![](./media/algorithms/heap.png)  
   **max-heap property:** key of each node `>=` keys of its children  
   ![](./media/algorithms/heap_min_max.png)
-
-[continue](https://youtu.be/B7hVxCmfPtM?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=956)
-
-- heap can be used for sorting (reverse-sorted with max-heap) by repeatedly extracting the root node  
-  just two operations are required to implement `insert`, `extract_max` & `heapsort`:
-  - `build_max_heap`: produce max-heap from unordered array
-  - `max_heapify` correct a single violation of the heap property at a subtree's root
-- **max_heapify:** assumes that child subtrees (`left(i)` & `right(i)`) are max-heaps at the start  
-  key value of the root (`A[i]`) violating max-heap property is swapped (`θ(log(n))`) with the child with the maximum key value  
-  recurse process is repeated until the node involved maintains the property  
-  ![](./media/algorithms/heapify_example.png)  
-  `θ(log(n))` since only one violation and number of levels is `log(array_size)`, so worst case root node turns to leaf node
+- **max-heapify:** correct single violation of max-heap property at subtree root  
+  left & right child subtrees must already be max-heaps  
+  swap root with child with larger key  
+  repeat until that node fits max-heap property  
+  ![](./media/algorithms/heapify.png)  
+  worst-case `θ(log(n))` root turns to leaf (tree height swaps)
+- **build max-heap:** produce max-heap from unordered array by repeatedly using max-heapify (for `(n/2, 0]`)  
+  total num nodes till `n` (`1 + 2 + ... + 2^n`) will have last `n` bits set or `2^(n+1) - 1`  
+  so every new level doubles num nodes, so last `n/2` elements are all (alredy max-heap) leaves  
+  ![](./media/algorithms/heap_build.png)  
+  `θ(n * log(n))` by recursion tree analysis (`n/2` leaves, `log(n)` levels)  
+  but (max node traversal) height increases as we move towards root  
   ```
-  l = left(i) 
-  r = right(i) 
-  if (l <= heap-size(A) and A[l] > A[i])
-      then largest = l else largest = i 
-  if (r <= heap-size(A) and A[r] > A[largest])
-      then largest = r 
-  if largest = i
-      then exchange A[i] and A[largest]  
-      max_heapify(A, largest)
+  total cost = cost of heapifying each level
+             = ∑ (num_elements * level_height)
+             = n/4 * 1 + n/8 * 2 + ... + 2 *(log(n) - 1) + 1 * log(n)
+
+  since every level has power-of-two num nodes: n/4 = 2^k
+
+  total cost = 2^k * (1/(2^0) + 2/(2^1) + 3/(2^2) + ...)      ⟶ convergence series bounded by three
+             = 2^k * θ(1)
+             = c * n/4
+             ≈ θ(n)
   ```
-- **build_max_heap:** any given array can be transformed to a max-heap by repeatedly using `max_heapify`  
-  total num nodes till `n` would be `1 + 2 + 4 + ... + 2^n`  
-  in binary sum will have last `n` bits set, same as `2^(n+1) - 1` (total num nodes doubles per level)  
-  so last `n/2` elements are all leaves and leaves are already max-heaps  
-  so iterate from `n/2` to `1`
-  ![](./media/algorithms/heap_build_example.png)  
-  `n/2` leaves & `log(n)` levels, by recursion tree analysis `θ(n * log(n))`  
-  observe that `max_heapify` takes `θ(1)` for nodes one level above leaves and in general `θ(l)` for nodes `l` levels above leaves  
-  and level one has `n/4` nodes, `n/8` for one above that and so on till one node at `log(n)` level  
-  so total work in loop is `n/4 * (1 * c) + n/8 * (2 * c) + ... + 1 * (log(n) * c)`  
-  since every level has power-of-two number of nodes `n/4 = 2^k`  
-  `c * 2^k (1/(2^0) + 2/(2^1) + ... + (k + 1)/(2^k))`, the series in the bracket is a convergence series bounded by three (constant)  
-  so `c * 2^k * θ(1) = c * n/4 ≈ θ(n)`
-- **heap sort:** first step takes `θ(n)`, last one takes `θ(log(n))` and ones in-between `θ(`n`)`  
-  all steps after first one will be repeated `n` times, so `θ(n * log(n))`  
-  ![](./media/algorithms/heap_sort.png)
-  - build max-heap from input array
-  - `A[1]` will be the maximum element  
-  - swap `A[n]` & `A[1]`, now max element is at the end of the array
-  - discard node `n` from heap (by decrementing heap-size)
-  - new root (old `A[n]`) may violate max heap property, but its children are max heaps  
-    run `max_heapify` to fix this
-  - goto step two unless heap is empty
+- **heap sort:** repeatedly push max-heap root node (largest element) to last  
+  build max-heap (once) ⟶ (repeat) swap root with last element (& decrement size) ⟶ max-heapify new root  
+  `θ(n) + n * θ(log(n)) ≈ θ(n * log(n))`  
+  ![](./media/algorithms/heap_sort.gif)
+
+[continue](https://www.youtube.com/watch?v=9Jry5-82I68&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=5)
 
 # binary search trees
 - **binary search tree:** each node `x` has a key and three pointers: parent (except root) and maybe left & right child  
