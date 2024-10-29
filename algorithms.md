@@ -281,24 +281,24 @@
   ```
 
 ## hybrid
-- quick sort has high const factor due to recursion, bad cache locality (left-right access) and bad pivot selection  
+- quick sort has high const factor due to recursion, bad cache locality (left & right ptr access), bad pivot selection  
   merge sort needs extra space  
-  heap sort has bad cache locality for swaps  
+  heap sort has bad cache locality (swaps)  
   insertion sort slow for large inputs
 - **intro sort:** (C++ lib) hybrid of quick, heap & insertion sorts  
   start with quick sort till certain recursion depth (stop ongoing bad pivot selection)  
-  switch to heap sort (better worst-case, in-place)   
-  if num elements less than threshold use insertion sort (better for smaller input)  
-  with threshold height of recursion tree controlled  
+  switch to heap sort (better worst-case, in-place)  
+  use insertion sort (better for smaller input) if num elements less than threshold  
+  height of recursion tree controlled using threshold  
 - **tim sort:** (python lib) hybrid of merge & insertion sorts  
-  identify sorted (varying-length) portions and merge adjacent ones  
+  identify & merge (adjacent) sorted (varying-length) portions  
   reverse-sorted portions reversed before merging  
   if unsorted portion larger than threshold, recursevily break it then run insertion sort
 
 ## non-comparison
 - **counting sort:** count occurrences of each element then place them in correct order  
   `θ(n + range)`, useful if keys have small range (like `uint8_t`)  
-  calculate histogram's CDF then place each input element using CDF as offset
+  calculate histogram's CDF then place each input element using CDF as offset  
   preserves relative order of equal elements (stable)  
   ![](./media/algorithms/counting_sort.png)
 - **radix sort:** digit-by-digit (counting) sort from least to most significant digit  
@@ -308,20 +308,18 @@
   ![](./media/algorithms/radix_sort.png)
 
 # heap
-- **priority queue:** special type of queue in which each element is associated with a priority (key) value  
-  elements are dequeued/extracted on the basis of their key (higher key elements served first)  
-  elements are inserted in a position based on its key value  
-  supported operations: `insert`, `max` (return by peeking max key element), `extract_max` (return and remove) and `update_key` (of an element)
-- **heap:** array structure visualized as a nearly complete binary tree  
-  max-heap property is that the key of a node is `>=` keys of its children (min-heap analogous)  
-  ![](./media/algorithms/heap_visualization_1.png)  
-  ![](./media/algorithms/heap_visualization_2.png)  
-  ![](./media/algorithms/heap_min_max.png)  
-  for a node at index `i` (assuming one-indexed array)
-  - tree root node is the first element `i = 1`
-  - `parent(i) = i/2`
-  - `left(i) = 2 * i`
-  - `right(i) = 2 * i + 1`
+- **priority queue:** each element associated with key (priority)  
+  elements served (dequeued) based on of their priority  
+  element's insertion position based on its priority  
+  supported operations: `insert`, `peek` (tip/root), `extract_max`, `update_key`
+- **heap:** array structure visualized as nearly-complete binary tree  
+  root of tree is first element `i = 0`, `parent(i) = (i - 1)/2`, `left(i) = 2 * i + 1`, `right(i) = 2 * i + 2`  
+  ![](./media/algorithms/heap_visualization.png)  
+  **max-heap property:** key of each node `>=` keys of its children  
+  ![](./media/algorithms/heap_min_max.png)
+
+[continue](https://youtu.be/B7hVxCmfPtM?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=956)
+
 - heap can be used for sorting (reverse-sorted with max-heap) by repeatedly extracting the root node  
   just two operations are required to implement `insert`, `extract_max` & `heapsort`:
   - `build_max_heap`: produce max-heap from unordered array
