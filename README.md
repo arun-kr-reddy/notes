@@ -123,6 +123,7 @@
   - [indian economy](https://web.archive.org/web/20190816184602/http://www.iitd.ac.in/CEAIITD/index.html)
   - [embedded](https://www.youtube.com/playlist?list=PLPW8O6W-1chwyTzI3BHwBLbGQoPFxPAPM)
   - [CS courses](https://github.com/Developer-Y/cs-video-courses/tree/master)
+  - protobuf
 
 # misc
 - **build:**

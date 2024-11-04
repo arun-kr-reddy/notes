@@ -341,42 +341,29 @@
              = c * n/4
              ≈ θ(n)
   ```
-- **heap sort:** repeatedly push max-heap root node (largest element) to last  
-  build max-heap (once) ⟶ (repeat) swap root with last element (& decrement size) ⟶ max-heapify new root  
+- **heap sort:** repeatedly push max-heap root node (largest element) to last (& decrement size)  
+  build max-heap (once) ⟶ (repeat) swap root with last element ⟶ max-heapify new root  
   `θ(n) + n * θ(log(n)) ≈ θ(n * log(n))`  
   ![](./media/algorithms/heap_sort.gif)
 
-[continue](https://www.youtube.com/watch?v=9Jry5-82I68&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=5)
-
 # binary search trees
-- **binary search tree:** each node `x` has a key and three pointers: parent (except root) and maybe left & right child  
-  for any node `x` all nodes `y` in the left subtree of `x` `key(y) <= key(x)` and opposite for right tree `key(y) >= key(x)`  
-  ![](./media/algorithms/bst_property.png)  
-  example:  
-  ![](./media/algorithms/bst.png)  
-  `insert(val)` is done by following left & right pointers from root till position is found  
-  ![](./media/algorithms/bst_insertion.png)  
-  `find(val)` follow left & right pointers until value found or `NULL` hit  
-  `find_min()` follow left till hit a leaf and right for `find_max()`  
-  if `h` is height of the tree, all above operations takes `θ(h)`  
-- **next larger (successor):** go to right and `find_min`  
-  if no right then go up (parent) until a right found then `find_min`  
-  ![](./media/algorithms/bst_successor.png)  
-- **delete:** leaf node deleted directly  
-  ![](./media/algorithms/bst_delete_1.png)  
-  for node with one child just swap then delete  
-  ![](./media/algorithms/bst_delete_2.png)  
-  for node with both children swap with `next_larger(x)` then delete  
-  ![](./media/algorithms/bst_delete_3.png)
-- **augmented BST:** add subtree size to each node, modify this during insert & delete  
-  useful to get num nodes `>=` or `<=` a certain value in `θ(1)` time  
-  similarly to get min/max in `θ(1)` time by storing subtree min/max  
-  ![](./media/algorithms/bst_augmented.png)  
-  example: get `num_nodes <= 79` in above image  
-  `79 > 49` so add left subtree size plus one (for `49`) and move to right  
-  `79 == 79` so add one and left subtree size  
-  ![](./media/algorithms/bst_augmented_example.png)  
-  update value after insert/delete by go back up till the root while updating intermediate nodes
+- **binary search tree:** efficiently store & retrieve data in (`θ(log(n))`) sorted order  
+  each node has a key and parent, left & right child pointers  
+  left child `<=` & right child `>=`  
+  ![](./media/algorithms/bst.png)
+- **find key:** follow left & right pointers until value found or `NULL` hit  
+  **find min:** follow left child till leaf node hit  
+  **next larger (successor):** go to right (if no right then go up until found) then find min  
+  ![](./media/algorithms/bst_successor.png)
+- **insert node:** follow left & right pointers from root till position is found  
+  ![](./media/algorithms/bst_insert.png)
+- **delete node:**
+  - **leaf node:** deleted directly  
+    ![](./media/algorithms/bst_delete_1.png)
+  - **node with one child:** swap then delete  
+    ![](./media/algorithms/bst_delete_2.png)
+  - **node with both children:** swap with successor then delete  
+    ![](./media/algorithms/bst_delete_3.png)
 
 # AVL tree (balanced BST)
 - height of a node is length (num link edges) of longest downward path to a leaf, decides the time complexity of BST operations  
