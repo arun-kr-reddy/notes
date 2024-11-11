@@ -393,15 +393,11 @@
     ![](./media/algorithms/avl_rotation_double.png)
 - **AVL insert:** simple BST insert then restore AVL property (rotations) up to root (and updating heights)  
   ![](./media/algorithms/avl_insertion_example.png)
-- **AVL sort:** insert `n` items then in-order traversal  
+- **AVL sort:** insert `n` elements then in-order traversal  
   ```
-  insert element    : θ(log(n))
-
-  sort = insert n elements + in-order traversal
+  sort = n * (insert element) + in-order traversal
        = n * θ(log(n)) + θ(n)
        ≈ θ(n * log(n))
-
   ```
 
-[recitation](https://www.youtube.com/watch?v=IWzYoXKaRIc&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=43)
 [continue](https://www.youtube.com/watch?v=Nz1KZXbghj8&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=7)
