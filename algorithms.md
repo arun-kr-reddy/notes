@@ -3,7 +3,7 @@
 - [sorting](#sorting)
 - [heap](#heap)
 - [binary search trees](#binary-search-trees)
-- [AVL tree (balanced BST)](#avl-tree-balanced-bst)
+- [balanced BST (AVL tree)](#balanced-bst-avl-tree)
 
 # links  <!-- omit from toc -->
 - [introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/) ([recitation files](https://courses.csail.mit.edu/6.006/fall11/notes.shtml))
@@ -16,7 +16,10 @@
 # introduction
 - **data structures:** organize & store data for efficient access & manipulation  
   **algorithm:** efficient procedure for solving a (large-scale) problem  
-  **model of computation:** specifies what operations an algorithm is allowed & its cost (time, space, etc)  
+- **abstract data type:** interface specification (required/supported operations)  
+  there are many possible data structures for one ADT  
+  example: priority queue (`insert`, `delete`, `find_min`) can be implemented using heap or AVL tree or sub-optimally sorted array
+- **model of computation:** specifies what operations an algorithm is allowed & its cost (time, space, etc)  
   total cost of an algorithm is sum of operation costs  
 - **asymptotic complexity:** estimate algorithm's worst-case computational complexity as input scales  
   ![](./media/algorithms/time_complexity.png)
@@ -312,7 +315,7 @@
   elements served (dequeued) based on of their priority  
   element's insertion position based on its priority  
   supported operations: `insert`, `peek` (tip/root), `extract_max`, `update_key`
-- **heap:** array structure visualized as nearly-complete binary tree  
+- **heap:** array structure visualized as full binary tree (all levels except last completely populated)  
   root of tree is first element `i = 0`, `parent(i) = (i - 1)/2`, `left(i) = 2 * i + 1`, `right(i) = 2 * i + 2`  
   ![](./media/algorithms/heap.png)  
   **max-heap property:** key of each node `>=` keys of its children  
@@ -349,12 +352,14 @@
 # binary search trees
 - **binary search tree:** efficiently store & retrieve data in (`θ(log(n))`) sorted order  
   each node has a key and parent, left & right child pointers  
-  left child `<=` & right child `>=`  
+  left child (& subtree) `<=` & right child (& subtree) `>=`  
   ![](./media/algorithms/bst.png)
 - **find key:** follow left & right pointers until value found or `NULL` hit  
   **find min:** follow left child till leaf node hit  
-  **next larger (successor):** go to right (if no right then go up until found) then find min  
-  ![](./media/algorithms/bst_successor.png)
+  ![](./media/algorithms/bst_successor.png)  
+  **next larger (successor):** go to right then find min  
+  if no right then go up till you reach node with left child  
+  ![](./media/algorithms/bst_successor_example.png)
 - **insert node:** follow left & right pointers from root till position is found  
   ![](./media/algorithms/bst_insert.png)
 - **delete node:**
@@ -362,46 +367,41 @@
     ![](./media/algorithms/bst_delete_1.png)
   - **node with one child:** swap then delete  
     ![](./media/algorithms/bst_delete_2.png)
-  - **node with both children:** swap with successor then delete  
+  - **node with both children:** swap with successor (with max one child) then delete  
     ![](./media/algorithms/bst_delete_3.png)
+- **node height:** longest downward path (num links) to a leaf  
+  `height(x) = 1 + max(height(left(x)), height(right(x)))`  
+  assume height of `NULL` children as `-1` to get leaf height `1 + max(-1, -1) = 0`  
+  ![](./media/algorithms/bst_height.png)
 
-# AVL tree (balanced BST)
-- height of a node is length (num link edges) of longest downward path to a leaf, decides the time complexity of BST operations  
-  `height(x) = max(height(left(x)), height(right(x)))`  
-  assume height of `NULL` children to be `-1` for convenience (useful for AVL check)  
-  example: single node will have `max(-1, -1) + 1 = 0` height  
-  ![](./media/algorithms/bst_node_length.png)  
-  depth is length of upward path to root
-- **balanced vs unbalanced:** balanced has nodes distributed evenly across levels, height `log(n)` so all operations `θ(log(n))`  
-  unbalanced has nodes skewed to one side (uneven distribution), `θ(h)`  
-  worst case if root is the smallest element (sorted data) BST forms a linked list, height `n` so `θ(n)`  
+# balanced BST (AVL tree)
+- **balanced:** nodes distributed evenly across levels (height `log(n)`)  
+  unbalanced worst-case linked list for sorted data (height `n`)  
   ![](./media/algorithms/bst_balanced.png)
-- **Adel’son-Vel’skii & Landis (AVL) tree** requires heights of left & right children of every node to differ by at-most `±1`  
-  `|height(left) - height(right)| <= 1`  
-  each node stores its height (augmented BST)  
-  ![](./media/algorithms/avl_property.png)  
-  **rotation:** change binary tree structure without interfering with order of elements  
-  in left-rotate root moves left  
-  here `β` stays the nodes between `A` & `B`  
+- **AVL tree:** BST where two child heights differ by at-most one  
+  each node stores its height  
+  ![](./media/algorithms/avl_property.png)
+- **AVL rotation:** adjust tree structure (to maintain balance) without changing BST property  
+  `-` balanced, `↙`/`↘` heavy, `⇙`/`⇘` double-heavy (differs by two)  
   ![](./media/algorithms/avl_rotation.gif)
-- **AVL insert:** start with simple BST insert and then work your way up restoring AVL property (and updating heights)  
-  assume `x` is lowest node violating AVL and is right-heavy  
-  dash for balanced, arrow for heavy & double arrow for double-heavy (one extra than expected)
-  - if `x`'s right child right-heavy or balanced  
-    rotate child node in the direction reverse of heavy path (left here)  
-    heavy path from parent to grand-child straight line  
-    ![](./media/algorithms/avl_insertion_1.png)
-  - else do rotate child in reverse of its heavy direction (right here) to get straight line  
-    then reverse rotate (left here) new child to get balanced subtree  
-    heavy path zig-zags from parent to grand-child  
-    ![](./media/algorithms/avl_insertion_2.png)
-- **example: AVL insert:** insert 23 (single rotation) then 55 (double rotation)  
+  - **single rotation:** double-heavy's child is same-direction heavy or balanced  
+    rotate double-heavy (as root) in reverse direction of (straight) heavy path  
+    ![](./media/algorithms/avl_rotation_single.png)
+  - **double rotation:** double-heavy's child is reverse-direction heavy (heavy path zig-zags)  
+    first get straight heavy path by rotating child in its reverse-direction  
+    then rotate double-heavy in its reverse direction  
+    ![](./media/algorithms/avl_rotation_double.png)
+- **AVL insert:** simple BST insert then restore AVL property (rotations) up to root (and updating heights)  
   ![](./media/algorithms/avl_insertion_example.png)
-- **AVL sort:** insert `n` items (`n * θ(log(n))`) then in-order traversal (`θ(n)`)
-- abstract data type is the interface specification (supported operations) like `insert`, `delete`, `find_min`, `successor` & `predecessor`  
-  example: priority queue ADT needs `insert`, `delete` & `find_min`  
-  data structure is the algorithm for each operation  
-  there are many possible DSs for one ADT  
-  example: priority queue can be implemented using heap or AVL tree, or sub-optimally sorted array
+- **AVL sort:** insert `n` items then in-order traversal  
+  ```
+  insert element    : θ(log(n))
 
-[continue](https://www.youtube.com/watch?v=Nz1KZXbghj8&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=12)
+  sort = insert n elements + in-order traversal
+       = n * θ(log(n)) + θ(n)
+       ≈ θ(n * log(n))
+
+  ```
+
+[recitation](https://www.youtube.com/watch?v=IWzYoXKaRIc&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=43)
+[continue](https://www.youtube.com/watch?v=Nz1KZXbghj8&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=7)
