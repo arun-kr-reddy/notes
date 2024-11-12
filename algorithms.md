@@ -343,7 +343,7 @@
   preserves relative order of equal elements (stable)  
   ![](./media/algorithms/counting_sort.png)
 - **radix sort:** digit-by-digit (counting) sort from least to most significant digit  
-  needs stable (counting) sort co-routine to maintain relative order  
+  needs stable sort co-routine (counting) so that (previously sorted) lower digits maintain relative order  
   `θ(num_digits * (n + base))` base 10 for decimal  
   `base ∝ 1/num_digits`, `base ∝ space_complexity` (CDF array), `num_digits ∝ 1/time_complexity` (num iterations)  
   ![](./media/algorithms/radix_sort.png)
@@ -354,7 +354,7 @@
   element's insertion position based on its priority  
   supported operations: `insert`, `peek` (tip/root), `extract_max`, `update_key`
 - **heap:** array structure visualized as full binary tree (all levels except last completely populated)  
-  root of tree is first element `i = 0`, `parent(i) = (i - 1)/2`, `left(i) = 2 * i + 1`, `right(i) = 2 * i + 2`  
+  root of tree is first element `i = 0`, `parent(i) = (i - 1)/2`, `left(i) = 2 * i + 1`, `right(i) = 2 * i + 2 `  
   ![](./media/algorithms/heap.png)  
   **max-heap property:** key of each node `>=` keys of its children  
   ![](./media/algorithms/heap_min_max.png)
@@ -437,3 +437,6 @@
        = n * θ(log(n)) + θ(n)
        ≈ θ(n * log(n))
   ```
+
+
+[continue](https://www.youtube.com/watch?v=0M_kIqhwbFo&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=8)
