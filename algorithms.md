@@ -1,9 +1,12 @@
 - [introduction](#introduction)
 - [search](#search)
 - [sorting](#sorting)
+  - [hybrid](#hybrid)
+  - [comparison model](#comparison-model)
+  - [integer (non-comparison)](#integer-non-comparison)
 - [heap](#heap)
 - [binary search trees](#binary-search-trees)
-- [balanced BST (AVL tree)](#balanced-bst-avl-tree)
+  - [balanced BST (AVL tree)](#balanced-bst-avl-tree)
 
 # links  <!-- omit from toc -->
 - [introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/) ([recitation files](https://courses.csail.mit.edu/6.006/fall11/notes.shtml))
@@ -58,9 +61,6 @@
       return false;
   }
   ```
-- `ceil(log(n))` bits (or digits for base10) required to uniquely represent `[0, n)`  
-  search (mapping value to index) needs atleast `log(n)` steps  
-  sorting (index for each element) `n * log(n)`
 
 # search
 - **peak:** position whose value is `>=` (or `>`) all its neighbors, aka local maximum  
@@ -298,15 +298,53 @@
   reverse-sorted portions reversed before merging  
   if unsorted portion larger than threshold, recursevily break it then run insertion sort
 
-## non-comparison
+## comparison model
+- **comparison model:** items are black boxes (ADTs) with only comparison operations defined, then time cost is num comparisons
+- **decision tree:** all comparison algos can be represented as a tree of possible outcomes & their results  
+- **example: binary search decision tree:** for `n = 3`  
+  ![](./media/algorithms/decision_tree.png)
+  | decision tree     | algorithm               |
+  | ----------------- | ----------------------- |
+  | internal node     | binary decision         |
+  | leaf              | output                  |
+  | root-to-leaf path | algo execution          |
+  | path length       | running time            |
+  | tree height       | worst-case running time |
+- **search lower bound:** each leaf specifies an index in preprocessed (sorted) input
+  ```
+  num_leaves >= num_possible_answers >= n
+
+  since decision tree is binary:
+  height >= log(n)
+          ≈ θ(n)
+  ```
+- **sorting lower bound:** each leaf specifies a permutataion of input
+  ```
+  num_leaves >= n!
+
+  since decision tree is binary:
+  height >= log(n!)
+         >= log(1 * 2 ... (n-1) * (n))
+         >= log(1) + log(2) ... log(n-1) + log(n)   ⟶ basically area under curve
+         >= n * (log(n) - 1)
+         >= n * log(n)
+          ≈ θ(n * log(n))
+  ```
+- **alternate lower bound justification:** `ceil(log(n))` bits (or digits for base10) required to uniquely represent `[0, n)`  
+  search (mapping value to index) needs atleast `log(n)` steps  
+  sorting (index for each element) `n * log(n)`
+
+
+## integer (non-comparison)
+- **integer sorting:** if keys are integers (that fits in word) then can do more than comparisons
 - **counting sort:** count occurrences of each element then place them in correct order  
   `θ(n + range)`, useful if keys have small range (like `uint8_t`)  
-  calculate histogram's CDF then place each input element using CDF as offset  
+  calculate histogram's CDF (`<=` values cumulative sum) then place each input element using CDF as offset  
   preserves relative order of equal elements (stable)  
   ![](./media/algorithms/counting_sort.png)
 - **radix sort:** digit-by-digit (counting) sort from least to most significant digit  
   needs stable (counting) sort co-routine to maintain relative order  
-  `θ(num_digits * (n + base))`, base 10 for decimal  
+  `θ(num_digits * (n + base))` base 10 for decimal  
   `base ∝ 1/num_digits`, `base ∝ space_complexity` (CDF array), `num_digits ∝ 1/time_complexity` (num iterations)  
   ![](./media/algorithms/radix_sort.png)
 
@@ -374,7 +412,7 @@
   assume height of `NULL` children as `-1` to get leaf height `1 + max(-1, -1) = 0`  
   ![](./media/algorithms/bst_height.png)
 
-# balanced BST (AVL tree)
+## balanced BST (AVL tree)
 - **balanced:** nodes distributed evenly across levels (height `log(n)`)  
   unbalanced worst-case linked list for sorted data (height `n`)  
   ![](./media/algorithms/bst_balanced.png)
@@ -399,5 +437,3 @@
        = n * θ(log(n)) + θ(n)
        ≈ θ(n * log(n))
   ```
-
-[continue](https://www.youtube.com/watch?v=Nz1KZXbghj8&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=7)
