@@ -7,6 +7,7 @@
 - [heap](#heap)
 - [binary search trees](#binary-search-trees)
   - [balanced BST (AVL tree)](#balanced-bst-avl-tree)
+- [hashing](#hashing)
 
 # links  <!-- omit from toc -->
 - [introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/) ([recitation files](https://courses.csail.mit.edu/6.006/fall11/notes.shtml))
@@ -414,7 +415,7 @@
 
 ## balanced BST (AVL tree)
 - **balanced:** nodes distributed evenly across levels (height `log(n)`)  
-  unbalanced worst-case linked list for sorted data (height `n`)  
+  unbalanced worst-case linked-list for sorted data (height `n`)  
   ![](./media/algorithms/bst_balanced.png)
 - **AVL tree:** BST where two child heights differ by at-most one  
   each node stores its height  
@@ -438,5 +439,24 @@
        ≈ θ(n * log(n))
   ```
 
+# hashing
+- **hash map:** store key-value pairs using hash functions to map keys to array indices  
+  supports insert, delete & search
+- **direct access table:** items stored in array indexed by key  
+  but keys maybe non-integers and large space complexity for large key range  
+  ![](./media/algorithms/hashing_direct_access_table.png)
+- **prehash:** converting keys(like string) to numbers (non-negative integers)  
+  ideally prehash same only for equal keys  
+  item's key shouldn't change while in table (like linked-list) else can't find it
+- **hashing:** map data of any size to a fixed-size value  
+  output hash value used as index to store & retrieve data  
+  `U` all possible keys, `k` keys in current input, `m` hashing output range, `T` hash table  
+  `m ≈ n` to minimize space complexity (with no overwrites)  
+  insert, find & delete in `θ(1)`  
+  ![](./media/algorithms/hashing.png)
+- **collision:** two different keys produce same hash value
+- **chaining:** handle collisions by storing multiple key-value pairs (in linked-list) at each hash table index  
+  worst-case all elements in single linked-list `θ(n)`  
+  ![](./media/algorithms/hashing_chaining.png)
 
-[continue](https://www.youtube.com/watch?v=0M_kIqhwbFo&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=8)
+[continue](https://youtu.be/0M_kIqhwbFo?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=2045)
