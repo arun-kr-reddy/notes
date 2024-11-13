@@ -451,12 +451,20 @@
 - **hashing:** map data of any size to a fixed-size value  
   output hash value used as index to store & retrieve data  
   `U` all possible keys, `k` keys in current input, `m` hashing output range, `T` hash table  
-  `m ≈ n` to minimize space complexity (with no overwrites)  
-  insert, find & delete in `θ(1)`  
+  `m ≈ n` to minimize space complexity (with no overwrites)
   ![](./media/algorithms/hashing.png)
 - **collision:** two different keys produce same hash value
 - **chaining:** handle collisions by storing multiple key-value pairs (in linked-list) at each hash table index  
   worst-case all elements in single linked-list `θ(n)`  
   ![](./media/algorithms/hashing_chaining.png)
+- **simple uniform assumption:** (theoretically) assumes keys are uniformly distributed across slots independent of other key's hashing  
+  expected length of a chain ≈ expected num keys per slot `n/m` (aka load factor `α`)  
+  hash table search `θ(1 + α)` (`α` can be `< 1` so `1` for hashing & accessadded)
+- **hash functions:**
+  - **division:** divide key by a prime number (usually hash table size) and output remainder (`h(k) = k % m`)
+  - **multiplication:** multiply key by constant (∈ `(0, 1)`) then multiply fractional part by hash table size `h(k) = ((k * A) % 1) * m`
+  - **universal:** `((ak + b) % p) % m` where `p` prime number (like INT_MAX), `a` & `b` random numbers ∈ `[0, p]`  
+    INT_MAX `2^31 - 1` is Mersenne prime (`2^n - 1` with prime `n`)
 
-[continue](https://youtu.be/0M_kIqhwbFo?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=2045)
+
+[continue](https://www.youtube.com/watch?v=0M_kIqhwbFo&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=9)
