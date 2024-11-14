@@ -300,7 +300,7 @@
   if unsorted portion larger than threshold, recursevily break it then run insertion sort
 
 ## comparison model
-- **comparison model:** items are black boxes (ADTs) with only comparison operations defined, then time cost is num comparisons
+- **comparison model:** elements are black boxes (ADTs) with only comparison operations defined, then time cost is num comparisons
 - **decision tree:** all comparison algos can be represented as a tree of possible outcomes & their results  
 - **example: binary search decision tree:** for `n = 3`  
   ![](./media/algorithms/decision_tree.png)
@@ -442,7 +442,7 @@
 # hashing
 - **hash map:** store key-value pairs using hash functions to map keys to array indices  
   supports insert, delete & search
-- **direct access table:** items stored in array indexed by key  
+- **direct access table:** elements stored in array indexed by key  
   but keys maybe non-integers and large space complexity for large key range  
   ![](./media/algorithms/hashing_direct_access_table.png)
 - **prehash:** converting keys(like string) to numbers (non-negative integers)  
@@ -461,10 +461,25 @@
   expected length of a chain ≈ expected num keys per slot `n/m` (aka load factor `α`)  
   hash table search `θ(1 + α)` (`α` can be `< 1` so `1` for hashing & accessadded)
 - **hash functions:**
-  - **division:** divide key by a prime number (usually hash table size) and output remainder (`h(k) = k % m`)
+  - **division:** divide key by a prime number (usually hash table size) and use remainder (`h(k) = k % m`)
   - **multiplication:** multiply key by constant (∈ `(0, 1)`) then multiply fractional part by hash table size `h(k) = ((k * A) % 1) * m`
   - **universal:** `((ak + b) % p) % m` where `p` prime number (like INT_MAX), `a` & `b` random numbers ∈ `[0, p]`  
-    INT_MAX `2^31 - 1` is Mersenne prime (`2^n - 1` with prime `n`)
+    INT_MAX `2^31 - 1` is Mersenne prime (`2^n - 1` prime if `n` is prime)
+- slow if `α` too small (linked-list traversal), wasteful if `α` too big  
+  if `m = 0(n)` ⇒ `α = 0(1)`
+  **rehashing:** when load factor exceeds a threshold rebuild hash table from scratch  
+  example: increase size by one
+  ```
+  T = 0(1 + 2 + 3 ... + n)
+    ≈ 0(n^2)
+  ```
+  example: size doubled (table doubling)
+  ```
+  T = 0(1 + 2 + 4 + 8 ... + n)
+    ≈ 0(n)
+  ```
+- **amortized abalysis:**  average cost of a sequence of operations  
+  useful when some occasional operations expensive  
+  few (table doubling) inserts cost `0(n)` but `0(1)` on average
 
-
-[continue](https://www.youtube.com/watch?v=0M_kIqhwbFo&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=9)
+[continue](https://youtu.be/BRO7mVIFt08?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=1261)
