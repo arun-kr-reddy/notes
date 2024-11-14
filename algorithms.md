@@ -457,7 +457,7 @@
 - **chaining:** handle collisions by storing multiple key-value pairs (in linked-list) at each hash table index  
   worst-case all elements in single linked-list `θ(n)`  
   ![](./media/algorithms/hashing_chaining.png)
-- **simple uniform assumption:** (theoretically) assumes keys are uniformly distributed across slots independent of other key's hashing  
+- **simple uniform assumption:** (theoretically) assumes keys uniformly distributed across slots independent of other key's hashing  
   expected length of a chain ≈ expected num keys per slot `n/m` (aka load factor `α`)  
   hash table search `θ(1 + α)` (`α` can be `< 1` so `1` for hashing & accessadded)
 - **hash functions:**
