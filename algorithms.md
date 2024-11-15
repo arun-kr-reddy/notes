@@ -461,25 +461,48 @@
   expected length of a chain ≈ expected num keys per slot `n/m` (aka load factor `α`)  
   hash table search `θ(1 + α)` (`α` can be `< 1` so `1` for hashing & accessadded)
 - **hash functions:**
-  - **division:** divide key by a prime number (usually hash table size) and use remainder (`h(k) = k % m`)
+  - **division:** divide key by a prime number (around hash table size) and use remainder (`h(k) = k % m`)
   - **multiplication:** multiply key by constant (∈ `(0, 1)`) then multiply fractional part by hash table size `h(k) = ((k * A) % 1) * m`
-  - **universal:** `((ak + b) % p) % m` where `p` prime number (like INT_MAX), `a` & `b` random numbers ∈ `[0, p]`  
+  - **universal:** `((ak + b) % p) % m` where `p` (large) prime number, `a` & `b` random numbers ∈ `[0, p]`  
+    large prime numbers give uniform distribution (so reduced collisions)  
     INT_MAX `2^31 - 1` is Mersenne prime (`2^n - 1` prime if `n` is prime)
 - slow if `α` too small (linked-list traversal), wasteful if `α` too big  
-  if `m = 0(n)` ⇒ `α = 0(1)`
-  **rehashing:** when load factor exceeds a threshold rebuild hash table from scratch  
-  example: increase size by one
-  ```
-  T = 0(1 + 2 + 3 ... + n)
-    ≈ 0(n^2)
-  ```
-  example: size doubled (table doubling)
-  ```
-  T = 0(1 + 2 + 4 + 8 ... + n)
-    ≈ 0(n)
-  ```
-- **amortized abalysis:**  average cost of a sequence of operations  
+  if `m = 0(n)` ⇒ `α = 0(1)`  
+  **rehashing:** rebuild hash table from scratch when load factor exceeds a threshold  
+  insertion constant (2) smaller than deletion one (4) for `0(1)` operations
+    - **insertion:**
+      example: increase size by one
+      ```
+      T = 0(1 + 2 + 3 ... + n)
+        ≈ 0(n^2)
+      ```
+      example: size doubled (table doubling)
+      ```
+      T = 0(1 + 2 + 4 + 8 ... + n)
+        ≈ 0(n)
+      ```
+    - **deletion:**
+      example: size halved when `n = m / 2`  
+      multiple rehashing if insertion (doubling) ⟷ deletion (halving) repeatedly  
+      amortized cost ≈ `0(n)`  
+      example: size halved when `n = m / 4`  
+      half table still available for expansion
+- **amortized analysis:**  average cost of a sequence of operations  
   useful when some occasional operations expensive  
   few (table doubling) inserts cost `0(n)` but `0(1)` on average
+- **improved hash table:** create backup (double size) table when main table nearly full  
+  with each insertion in actual table, rehash some data to backup table  
+  switch to backup table when main table full  
+  operations worst-case (not amortized) `0(1)`
+- **rolling hash:** update hash of a sliding window of data in constant time  
+  update old hash value by removing old element's contribution & adding new element's contribution  
+  example: assuming some base (256 for ASCII) each character in string contributes one digit in prehash
+- **string matching:**
+  - **linear:** iterate character by character  
+    worst-case `0(length(pattern) * length(string))`
+  - **Karp-Rabin:** match rolling pattern hash with substring rolling hash  
+    collisions possible so linear matching once hashes match  
+    amortized `0(length(pattern) + length(string))`
+
 
 [continue](https://youtu.be/BRO7mVIFt08?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=1261)
