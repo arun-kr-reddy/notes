@@ -1,8 +1,8 @@
 - [introduction](#introduction)
 - [process abstraction](#process-abstraction)
 - [process API](#process-api)
-- [process execution mechanism](#process-execution-mechanism)
-- [scheduling policies](#scheduling-policies)
+- [process execution](#process-execution)
+- [process scheduling](#process-scheduling)
 - [inter-process communication](#inter-process-communication)
 - [virtual memory](#virtual-memory)
 - [address translation](#address-translation)
@@ -23,267 +23,297 @@
 - [[playlist] operating systems](https://www.cse.iitb.ac.in/~mythili/os/)
 
 # introduction
-- **operating system:** is a middleware that sits between user programs & system hardware and manages hardware for the user programs:
-  - **manage CPU:** provide process abstraction (create & manage), each process has illusion of having complete CPU (CPU virtualization), timeshares the CPU between processes, enables coordination between processes
-  - **manage memory:** of the process (code, data, stack, heap), each process thinks it has dedicated memory space (code, data, stack, heap) for itself  
-  abstracts out the details of the actual placement in memory, translates from virtual addresses to actual physical addresses
-  - **manage devices:** OS has code (device driver) to manage hardware devices (like disk, network card) which talks the language of the devices, it issues instructions to devices (like fetch data from disk) and responds to device interrupts (key press), OS also manages the persistent data organized as a filesystem on disk
+- **operating system:** middleware between user programs & system hardware
+  - **CPU:** provides process abstraction (create & manage processes)  
+    each process has illusion of having complete CPU (CPU virtualization)  
+    timeshares CPU between processes  
+    enables coordination between processes
+  - **memory:** each process thinks it has entire (virtual) memory space for itself  
+    abstracts details of actual placement in memory (virtual ⟷ physical)
+  - **devices:** device driver (OS code) manage hardware devices  
+    issues instructions to devices and responds to device interrupts  
+    also manages persistent data organized as filesystem on disk
 - **OS design goals:**
-  - convenience, abstraction of hardware resources for user programs
-  - efficient usage of CPU, memory, etc
+  - convenient abstraction of hardware resources
+  - efficient usage of hardware
   - isolation between multiple processes
-- OS started out as a library (procedure call) and evolved to system call  
-**procedure call:** jumps to a process defined elsewhere in the program  
-**system call:** runs at a higher privilege level of CPU, sensitive operations (like hardware access) only allowed at a higher privilege level
+- OS started out as library (procedure call) then evolved to system call  
+  **procedure call:** jump to another function defined elsewhere in the program  
+  **system call:** OS code function call that runs at higher privilege level of CPU  
+  sensitive operations (like hardware access) only allowed at higher privilege level
 
 # process abstraction
-- **CPU scheduler:** pick one of the many active processes to execute on a CPU
+- **CPU scheduler:** pick one of many active processes to execute on CPU
   - **policy:** which process to run next
   - **mechanism:** how to context-switch between processes
 - **process constituents:**
-  - unique identifier (PID)
-  - memory image: static (code & data) and dynamic (stack & heap)
-  - CPU context: registers like program counter (PC), current operands, stack pointer (SP)
-  - file descriptors: pointers to open files (including stdout & stdin) & devices
+  - **process ID (PID):** unique identifier
+  - **memory image:** static (code & data), dynamic (stack & heap)
+  - **CPU context:** registers like program counter, current operands, stack pointer
+  - **file descriptors:** pointers to open files (like stdout) & devices
 - **process creation:**
-  - allocate memory and create memory image (load code & data from executable, create runtime stack & heap)
-  - opens basic files (stdin, stdout, stderr)
-  - initialize CPU registers (PC points to first instruction)
+  - allocate memory and create memory image
+    load code & data from executable and create runtime stack & heap
+  - open basic files (`stdin`, `stdout`, `stderr`)
+  - initialize CPU registers (PC pointing to first instruction)
 - **process states:**  
-![](./media/operating_systems/process_states.png)
+  ![](./media/operating_systems/process_states.png)
   - **running:** currently executing on CPU
   - **ready:** waiting to be scheduled
-  - **blocked:** suspended, not ready to run, waiting for some event like read from disk (disk will issue an interrupt when data is ready)
+  - **blocked:** suspended and not ready to run  
+    waiting for some event like read from disk
   - **new:** being created, yet to run
   - **dead:** terminated
-- example: process state with I/O:  
-![](./media/operating_systems/process_states_example.png)
-- **process control block:** OS maintains a data structure (linked list) of all active processes, information about each process is stored in a process control block (PCB)
+- **process control block:** information about each process stored in a PCB  
+  OS mantains data structure (like linked list) of all active process's PCB  
   - process identifier
   - process state
   - pointer to related processes (parent, child)
-  - CPU context (saved when the process is suspended)
+  - CPU context of process (saved when process is suspended)
   - pointers to memory locations
   - pointers to open files
 
 # process API
-- **application programming interface (API):** functions available to write user programs
-- **process API:** set of system calls provided by OS, some blocking system calls (like disk read) can cause the process to be blocked and descheduled
-- **portable operating system interface (POSIX) API:** standard set of system calls that compliant OS must implement, ensures program portability  
-user programs need to worry about this since program language libraries will usually hide the details of invoking system calls, example: `printf` calls `write` system call to write to screen
-- **process related system calls:** many variants of below exist with different arguments
-  - **`fork()`:** create new child process, all processes created by forking from a parent, `init` process is ancestor of all processes
-  - **`exec()`:** make process execute a given executable
-  - **`exit()`:** terminate a process
-  - **`wait()`:** causes parent to block until child terminates
+- **process API:** set of system calls provided by OS
+- **portable operating system interface (POSIX) API:** standard set of system calls that compliant OS must implement  
+  program language libraries usually hide the details of invoking system calls
+- **process related system calls:** multiple variants with different arguments exist
+  - **fork:** create new child process  
+    `init` process ancestor of all processes
+  - **exec:** make process execute a given executable
+  - **exit:** terminate a process
+  - **wait:** causes parent to block until child terminates
 - **fork working:**
-  - new process is created by making a copy of parent's memory image
-  - new process is added to OS process list and scheduled
-  - parent & child resume execution from the same point just after fork (with different return values)
-  - parent & child execute and modify the memory data independently
+  - new process created by making a copy of parent's memory image
+  - new process added to OS process list and scheduled
+  - parent & child resume execution from the same point just after fork (with different return values)  
+  - parent & child execute and modify memory data independently
   ```cpp
-  int main(int argc, char *argv[])
+  int foo()
   {
-      int ret = fork();    // ret is child process PID
+      int ret = fork();  // "ret" is child process PID
 
-      if (ret < 0)    // fork failed
+      if (ret < 0)  // fork failed
       {
-          printf("fork failed\n";)
+          printf("fork failed \n";)
       }
-      else if (ret == 0)    // child process
+      else if (ret == 0)  // child process
       {
-          printf("child process %d\n", getpid());
+          printf("child process %d \n", getpid());
       }
-      else    // parent process
+      else  // parent process
       {
-          printf("parent process %d of child %d\n", getpid(), ret);
+          printf("parent process %d of child %d \n", getpid(), ret);
       }
   }
   ```
+- **process termination**
+  - calling `exit()`, is automatically called at end of main
+  - OS terminates misbehaving process
 - **child process handling:**
-  - process termination scenarios are:
-    - by calling `exit()` (automatically called when end of main reached)
-    - OS terminates a misbehaving process
   - terminated process exist as a zombie
-  - when a parent calls `wait()` the zombie child will be cleaned up (reaped), wait blocks in parent until the child terminates (non-blocking ways also exist)
-  - if parent terminates before child then `init` process adopts orphans and reaps them
-- **exec working:** after fork parent & child will same code which is not very useful, so a (child) process can run `exec()` to load another executable into its memory image and run a different program from its parent, variants of exec exist where arguments to new executable are passed
-- **example: shell working:**
-  - `init` process created after initialization of hardware
-  - `init` process spawns a shell (like bash)
-  - shell reads user command  ⟶  forks a child  ⟶  execs command executable  ⟶  waits for it to finish  ⟶  reads next command  
-  common commands like `ls` are all executables that are exec'ed by the shell
-  - shell can also manipulate child process  
-  example: for `ls > log.txt` shell will: spawn a child ⟶ rewire stdout of child to file ⟶ call exec on the child
+  - zombie child cleaned up (reaped) when parent calls `wait()`  
+    parent blocked until child terminates (non-blocking wait also exist)
+  - if parent terminates before child then `init` process adopts then reaps orphans
+- after fork parent & child will same code which is not very useful  
+  **exec:** load another executable (after fork) into child's memory image & run it
+- **example: shell working:** `init` process (created after hardware init) spawns a shell  
+  shell reads command ⟶ forks child ⟶ execs command ⟶ waits until done ⟶ reads next command  
+  shell can also manipulate child (like redirect output using `>`)
 
-# process execution mechanism
-- **function call working:**
-  - translates to jump instruction
-  - new stack frame pushed and `SP` updated, stack frame contains arguments, return value, etc
-  - function instructions executed
-  - stack frame popped
-  - PC now holding return address
-- **system call difference:**
-  - CPU hardware has multiple privilege levels: user mode (user code) & kernel mode (OS calls), some instructions can execute only in kernel mode
-  - kernel does not trust user stack, separate kernel stack used in kernel mode
-  - kernel does not trust user provided addresses to jump to, interrupt descriptor table (IDT) has addresses of kernel functions to run for system calls and other events (set up at boot time)
-- **system call working:**
-  - special trap instruction is run when system call is made (hidden from user by libc), this will move CPU to higher privilege level, switch to kernel stack, save user context on kernel stack, look up IDT and jump to trap handler function in OS code
-  - **trap usecases:**
-    - **system call:** program needs OS service
-    - **program fault:** program does something illegal, example: access memory it doesn't have access to
-    - **interrupt:** external device needs attention of OS, example: network packet arrived on network card
-  - before calling trap, a number stored in a CPU register to identify which IDT entry to use
-  - when OS is done, it calls special return-from-trap instruction, this will restore user context on kernel stack, change CPU privilege from kernel mode to user mode, restore PC and jump to user code after trap
-  - before returning to user mode, OS checks if it must switch to different process (context switch):  
-  process has exited or must be terminated (program fault)  
-  process made a blocking system call (waiting for disk data)  
-  process has run for too long (CPU timesharing)
-- **CPU scheduler mechanism types:**
-  - **non-preemptive (cooperative):** switch only if process blocked or terminated
-  - **preemptive (non-cooperative):** switch even when process is ready to continue, CPU generates periodic timer interrupt, after servicing this interrupt OS checks if current process has run for too long
-- **CPU scheduler mechanism working:**
-  - process A has moved from user to kernel mode, OS has decided it must switch from process A to B
-  - save kernel context of A on kernel stack
-  - switch SP to kernel stack of B
-  - restore kernel context from B's kernel stack (stored when B was switched out)
-  - now CPU running B in kernel mode, return-from-trap to switch to user mode of B
+# process execution
+- OS kernel doesn't trust user programs  
+  separate kernel stack used in kernel mode
+  interrupt descriptor table (IDT) has addresses of kernel functions to handle system calls & other events (set up at boot time)
+- **trap instruction:** special instruction run when system call is made  
+  also used to handle program fault (like illegal access) & (device) interrupts  
+  moves CPU to higher privilege level, saves user context on kernel stack and jumps to OS function in IDT  
+  before returning to user mode (after trap execution) OS checks if it must switch to different process (scheduling or program fault)
 - **user context:** when going from user mode to kernel mode, saved on kernel stack by trap instruction  
 **kernel context:** during context switch, saved on kernel stack by context switching code
 
-# scheduling policies
-- **CPU burst:** CPU time used by a process in a continuous stretch, counted as a fresh burst if a process comes back after a I/O wait
-- **CPU scheduler policy goals:**
+# process scheduling
+- **scheduler mechanism:** process context (PC & other CPU registers) stored on kernel stack before context switch
+  - **non-preemptive (cooperative):** switch only if process blocked or terminated
+  - **preemptive (non-cooperative):** switch even when process is ready to continue  
+    hardware generates periodic timer interrupt (trap instruction)
+- **scheduler policy goals:**
   - **maximize utilization:** fraction of time CPU is used
   - **minimize average turnaround time:** time from process arrival to completion
   - **minimize average response time:** time from process arrival to first scheduling
-  - **fairness:** all processes must be treated equally
-  - **minimize overhead:** run process long enough to reduce cost of context switch (~1ms)
-- **CPU scheduler policies:** on context switch based on CPU burst which process to run next
-  - **first come first serve (FCFS):** process job in the order they are received  
-  **convoy effect:** stuck behind long process so high turnaround time
-  - **shortest job first (SJF):** process job with shorted execution time, is non-preemptive so can stil get stuck if shorter jobs arrive when long process executing
-  - **shortest remaining time first (SRTF):** preemptive version of SJF (preempts running job), process job closest to completion, aka shortest time to completion first (STFC)
-  - **round robin (RR):** each job processed for a fixed time slice, preemptive, slice big enough to reduce context switch cost, good for response time & fairness, bad for turnaround time
-  - **multi level feedback queue (MLFQ):** used in linux, many queues in order of priority, process from highest priority queue, within same priority any algorithm like RR, priority of process reduces with its age
+  - **fairness:** all processes treated equally
+  - **minimize overhead:** run process long enough to amortize context switch cost (~1ms)
+- **scheduler policies:**
+  - **first come first serve (FCFS):** schedule in the order they arrived  
+    high turnaround time when stuck behind long process (convoy effect)
+  - **shortest job first (SJF):** schedule job with shortest execution time first  
+    can still get stuck if long process already executing
+  - **shortest remaining time first (SRTF):** schedule job closest to completion  
+    preemptive version of SJF
+  - **round robin (RR):** each job scheduled for fixed time slice  
+    good for response time & fairness but bad for turnaround time
+  - **multi level feedback queue (MLFQ):** multiple queues with different priorities  
+    within same priority any algorithm like RR
 
 # inter-process communication
-- **inter-process communication (IPC):** mechanisms to share information between processes, processes do not share any memory with each other
-  - **shared memory:** both processes can read/write same region of memory via `int shmget(key,size, shmflg)` system call to communicate, by providing same key two processes can get same segment of memory
-  - **signals:** can be sent to a process by OS or another process, some signals have fixed meaning (`ctrl + C` send `SIGINT` signal), every process has a default code to execute for each signal (signal handler) like exit on terminate signal, some signal handlers can be overriden to do other things
-  - **sockets:** can be used for two processes on same machine (Unix sockets) or different machine (TCP/UDP sockets) to communicate, two processes open sockets and connect them to each other, messages written into one socket can be read from another, OS transfers data across socket buffers
-  - **pipes:** one-way communication (half-duplex), pipe system call returns two handles (file descriptors), data written in write handle can be read through read handle, pipe data buffered in OS buffers between read & write  
-  **regular pipes:** both file descriptor are in same process, parent & child share file descriptor after fork, parent uses one end and child uses other end  
-  **named pipes:** two endpoints in different processes
-  - **message queue:** mailbox abstraction, process can open a mailbox at a specified location, processes can send/receive messages from mailbox, OS buffers messages between send & receive
-- **blocking vs non-blocking communication:** some IPC actions like reading from empty socket/pipe/message queue or writing to full socket/pipe/message queue can block, system calls to read/write have versions that return error code instead of blocking
+- **inter-process communication (IPC):** mechanisms to share information between processes  
+  processes don't share any memory with each other  
+  data buffering taken care by OS
+  - **shared memory:** read/write same region of memory  
+    passing same key to `int shmget(key,size, shmflg)` system call
+  - **signals:** sent to a process by OS or another process  
+    some signals have fixed meaning (like `SIGSEV`)  
+    every process has default signal handler code  
+    some can be overriden to do other things
+  - **sockets:** can be used for two processes on same (Unix sockets) or different machines (TCP/UDP sockets)  
+    two processes open sockets and connect them to each other  
+    messages written into one socket can be read from another  
+  - **pipes:** one-way (half-duplex) communication  
+    system call returns two file handles  
+    data written in write handle can be read through read handle  
+      - **regular pipes:** both file handles used in same process  
+        after fork parent uses one end and child uses other end
+      - **named pipes:** two endpoints in different processes
+  - **message queue:** process can open mailbox at specific location  
+    processes can send/receive messages from mailbox
+- **blocking vs non-blocking communication:** some IPC actions can block (like reading from empty queue)  
+  instead read/write system calls with return error code exist
 
 # virtual memory
-- earlier memory had only code of one running process (and OS code), but now multiple active processes timeshare CPU so memory of many processes must be in memory (non-contiguous too)  
-![](./media/operating_systems/actual_memory.png)
-- **virtual address space:** every process assumes it has access to large contiguous space of memory from address 0 to MAX, to hide complexity of multiple processes non-contiguously sharing memory, contains program code, heap & stack (heap & stack grow runtime), is setup during process creation  
-![](./media/operating_systems/virtual_memory.png)
-- **address translation:** CPU issues load/store to virtual addresses (VA) but memory hardware accesses physical addresses (PA), OS allocates memory and tracks location of processes, translation (VA to PA) done by memory management unit (MMU) hardware using necessary information from OS
-- **paging:** OS divides virtual address space into fixed size pages and physical memory into frames, to allocate memory a page is mapped to free physical frame, page table stores mapping from virtual page number to physical frame number for a process
+- multiple active processes timeshare CPU so their memory image must be in memory  
+  ![](./media/operating_systems/actual_memory.png)
+- **virtual address space:** every process assumes it has access to large contiguous memory (from address 0 to MAX)  
+  hides complexity of multiple processes non-contiguously sharing memory  
+  ![](./media/operating_systems/virtual_memory.png)
+- **address translation:** process issues load/store to virtual address (VA) but memory hardware accesses physical address (PA)  
+   translation (VA to PA) done by memory management unit (MMU) hardware using information from OS
+- **paging:** divide virtual address space into fixed-size pages and physical memory into frames  
+  to allocate memory a page mapped to free physical frame  
+  page table maps (process) virtual page number to physical frame number
 - **memory virtualization goals:**
-  - **transparency:** user programs should not be aware of the messy details
+  - **transparency:** user programs shouldn't be aware of the messy details
   - **efficiency:** minimize overhead & wastage in terms of memory space & access time
-  - **isolation & protection:** user process should not be able to access anything outside its address space
-- **memory allocation system calls:**
-  - `malloc()` implemented by libc, to grow the heap `brk()`/`sbrk()` system calls used
-  - program can use `mmap()` to allocate page sized memory, gets anonymous page from OS
-- **OS address space:** OS is not a separate process with its own address space, instead OS code is part of the address space of every process, process sees OS as part of its code, page table maps OS addresses to OS code
+  - **isolation & protection:** user process shouldn't be able to access anything outside its address space
+- `brk()` (set program break) or `sbrk()` (increment/decrement program break) to grow/shrink heap  
+  `mmap()` get (anonymous) memory page from OS
+- **OS address space:** OS code is part of the virtual address space of every process  
+  page table maps OS VA to actual OS code PA
 
 # address translation
-- **address translation in simplified OS:** places entire memory image in one chunk, OS tells MMU the base (starting address) & bound (total size of process) values (needs privileged mode), MMU calculates PA from VA, MMU also checks if address is beyond bound, generates faults and traps to OS if access illegal (VA is out of bound), OS updates translation information upon context switch
+- **address translation in simplified OS:** place entire memory image in one chunk (page)  
+  OS tells MMU the base (start address) & bound (total process size) values  
+  MMU calculates PA from VA and checks if address is beyond bound  
+  OS updates base & bound on context switch  
+  OS maintains free list of memory & where each process's space is allocated (in PCB)
+  ```cpp
+  PA = VA + base;
+  assert(PA < VA + base + bound);
   ```
-  PA = VA + base
-  assert (PA < VA + base + bound)
-  ```
-- **role of OS in translation:**
-  - maintains free list of memory
-  - allocate space to process during creation and clean up when done
-  - maintains information of where space is allocated to each process (in PCB)
-  - sets address translation information in hardware and updates this on context switch
-  - handles traps due to illegal memory access
-- **segmentation:** generalized base & bounds, each segment of memory image placed separately, multiple base & bound values stored in MMU, good for sparse address space, but variable sized allocation leads to external fragmentation due to small holes in memory left between segments  
+- **segmentation:** generalized base & bounds where each segment of memory image placed separately with multiple base & bound values stored in MMU  
+  good for sparse address space but leads to external fragmentation between segments  
 ![](./media/operating_systems/segmentation.png)
-- **internal fragmentation:** unused part of memory block assigned to a process cannot be used by other processes, can be solved using dynamic partitioning to allocate space to process  
-**external fragmentation:** total memory space is enough to satisfy a request or to reside a process in it but it is not contiguous so it cannot be used  
-![](./media/operating_systems/fragmentation.png)
+- **internal fragmentation:** process allocated more memory than it needs, wasting the excess  
+  **external fragmentation:** total free memory is enough but is fragmented into small non-contiguous blocks  
+  ![](./media/operating_systems/fragmentation.png)
 
 # paging
-- **paging:** allocate memory in fixed size chunks called pages, avoids external fragmentation, but since minimum allocation is page-sized it has internal fragmentation due to partially filled pages
-- **example: paging:** 64B address space in 128B physical memory with 16B page size  
-![](./media/operating_systems/paging.png)
-- **page table:** per process data structure to help VA-PA translation, array stores mappings from virtual page number (VPN) to physical frame number (PFN), part of OS memory (in PCB), MMU has access to page table and uses it for address translation, OS updates page table upon context switch
-- **page table entry (PTE):** simplest page table is linear page table, array of page table entries (one per virtual page), VPN is index in the array, each PTE contains PFN and few other bits like 
+- **paging:** allocate memory in fixed size chunks (pages)  
+  avoids external fragmentation  
+  but internal fragmentation due to partially-filled pages
+- **example: paging:** 64byte address space in 128byte physical memory with 16byte page size  
+  ![](./media/operating_systems/paging.png)
+- **page table:** stores mappings(in PCB) from virtual page number (VPN) to physical frame number (PFN)  
+  MMU uses page table for address translation  
+  OS updates page table upon context switch
+- **page table entry (PTE):** other than PFN contains few other bits like
   - **valid bit:** is this page used by process?
   - **protection bits:** read/write permissions
   - **present bit:** is this page in main memory?
   - **dirty bit:** has this page been modified?
   - **accessed bit:** has this page been recently accessed?
-- **address translation in hardware:** most significant bits of VA give the VPN, page table maps VPN to PFN, PA is obtained from PFN and offset within a page, MMU stores physical address of start of page table then walks the page table to get relevant PTE, MMU just translates VPN to PFN and add the same offset  
-![](./media/operating_systems/address_translation.png)
-- **paging overhead:** when CPU requests data/code at a virtual address, MMU must translate VA to PA (by reading page table entry) adding overhead to memory access
-- **translation lookaside buffer (TLB):** to reduce overhead a cache of recent VA-PA mappings is maintained, for address translation MMU first looks up TLB, if TLB miss then MMU performs additional memory accesses to walk page table, TLB misses are expensive due to multiple memory accesses (locality of reference (defined below) improves hit rate), TLB entries may become invalid on context switch and change of page tables
-- **page tables in memory:** with 32 bit VA, 4KB pages we have `2^32/2^12 = 2^20` entries, if PTE is 4 bytes then each page table is 4MB, one page table per process, to reduce size of page tables:
-  - larger pages, so fewer entries, but leads to fragmentation
-  - page table is itself split into smaller chunks
-- **multilevel page tables:** page table is spread over many pages, page directory (outer page table) tracks the PFNs of the page table pages, depending on how large the page table is we may need more than 2 levels also (64bit arch may need 7 levels), in case of TLB miss multiple accesses to memory required to access all levels of page tables so very expensive  
+- **address translation in hardware:** most significant bits of VA give the VPN  
+  MMU only stores PA of page table start so needs to walk to get relevant PTE (& its PFN)  
+  ![](./media/operating_systems/address_translation.png)
+- **translation lookaside buffer (TLB):** cache of recent VA-PA mappings maintained  
+  MMU first looks up TLB, if TLB miss then extra latency to walk page table
+- **page tables in memory:** with 32bit VA & 4KB pages we have `2^32/2^12 = 2^20` entries  
+  if PTE is 4 bytes then page table (per process) is 4MB  
+  to reduce size of page tables:
+  - larger pages, so fewer entries  
+    but leads to fragmentation
+  - page table itself split into smaller chunks
+- **multilevel page tables:** page table is spread over many pages  
+  page directory (outer page table) tracks the PFNs of the page table pages  
+  depending on how large the page table is we may need more than 2 levels  
+  in case of TLB miss need to walk all page table levels so very expensive  
 ![](./media/operating_systems/linear_vs_multilevel_pagetable.png)  
 for address translation first few bits of VA to identify outer page table entry, next few bits to index next level of PTEs  
 ![](./media/operating_systems/multilevel_pagetable_address.png)
 
 # demand paging
-- **demand paging:** main memory not always enough to store all the pages of all active processes, OS uses a part of disk (swap space) to store pages that are not in active use  
-![](./media/operating_systems/swap_space.png)
-- **page fault:** if page not in main memory (present bit unset) during VA-PA translation MMU raises trap to OS, MMU cannot access the disk
-- **page fault handling:** moves CPU to kernel mode, OS fetches disk address of page and issues read to disk, disk fetch is slow so OS context switches to another process, once disk read completes OS updates page table of process and marks process as ready, when process scheduled again OS restarts the instruction that caused page fault
+- **demand paging:** main memory not always enough to store all the pages of all active processes  
+  OS uses a part of disk (swap space) to store pages that are not in active use  
+  ![](./media/operating_systems/swap_space.png)
+- **page fault:** if page not in main memory (present bit reset) MMU raises trap to OS since it cannot access the disk  
+  OS fetches disk address of page and issues read to disk  
+  but since disk fetch is slow OS context switches to another process  
+  when process scheduled again instruction that caused page fault restarted
+- **page replacement policies:** if no free page available (when servicing page fault) then OS must swap out existing page  
+  to prevent this OS proactively swap out pages to keep list of free pages handy
+  - **optimal:** replace page not needed for longest time in future  
+    theoretical since cannot calculate when page is needed in future
+  - **first in first out (FIFO):** replace page that was brought into memory earliest  
+    but that may be a popular page  
+    increasing num page frames results in increase in num page faults (Belady's anomaly)
+  - **least recently/frequently used (LRU/LFU):** replace page that was least recently (or frequently) used in the past  
+    works well due to locality of references  
+    OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active/inactive
 - **memory access process:**
-  - CPU issues load to a VA, checks CPU cache first, goes to main memory in case of cache miss
-  - MMU looks up TLB for VA, if TLB hit obtains PA, fetches memory location and returns to CPU (via CPU caches)
-  - if TLB miss MMU accesses memory, walks page table and obtains PTE:  
-  if present bit set in PTE, accesses memory  
-  if not present but valid, raises page fault, OS handles page fault and restarts the CPU load instruction  
-  if invalid page access, trap to OS for illegal access
-- **page replacement policies:** when servicing page fault if OS finds no free page then OS must swap out an existing page and then swap in faulting page, to prevent this much work OS proactively swap out pages to keep list of free pages handy
-  - **optimal:** replace page not needed for longest time in future, just theoretical, cannot calculate when page is needed (look into future)
-  - **first in first out (FIFO):** replace page that was brought into memory earliest, but that may be a popular page
-    - **Belady's anomaly:** increasing number of page frames results in an increase in number of page faults for FIFO page replacement algorithm
-  - **least recently/frequently used (LRU/LFU):** replace the page that was least recently (or frequently) used in the past, works well due to locality of references, OS periodically looks at accessed bit in PTE (set by MMU) to estimate pages that are active/inactive
-- **cold (compulsory) miss:** miss when the first access to a page happens
-- **locality of references:** tendency of computer program to access instructions whose address are near one another
-  - **temporal:** same location will be referenced again in the near future
-  - **spatial:** nearby memory locations will be referenced in the near future
+  - process issues load to VA  
+    check CPU cache first, for miss go to main memory
+  - MMU looks up TLB for VA
+    if TLB hit obtain & fetch PA and return to process (via CPU caches)
+  - if TLB miss MMU walks page table and obtains PTE:
+    - if PTE present bit set, access memory
+    - if not present but valid, raise page fault
+    - if invalid page access, trap to OS for illegal access
 
 # memory allocation algorithms
-- **variable sized allocation:** given a memory block how to allocate it to satisfy various memory allocation requests, must be solved by C library for user `malloc`s and kernel for its internal data structures
-  - **headers:** every allocated chunk has a header containing size of allocated region (size is later used by `free`), may contain magic number for additional integrity checking  
-  ![](./media/operating_systems/headers.png)
-  - **free list:** free space managed as a linked list, pointer to the next free chunk is embedded within current free chunk, library/kernel tracks the head of the list (next NULL at tail), allocation happens from the head, must split & coalesce free chunks to satisfy variable sized requests (external fragmentation)  
+- **variable-sized allocation:** given a memory block allocate various memory allocation requests  
+  implemented as `malloc()` in C lib
+  **headers:** every allocated chunk has header containing size (used later by `free`)  
+  may contain magic number for additional integrity checking  
+  ![](./media/operating_systems/headers.png)  
+  **free list:** free space managed as linked list  
+  pointer to next free chunk embedded within current free chunk  
+  library/kernel tracks head of the list and allocates from head  
+  free chunks split & coalesced to satisfy variable-sized requests (external fragmentation)  
   ![](./media/operating_systems/free_list.png)
-- **free list external fragmentation:**
-  - **splitting:** on an allocation request allocator will find a free chunk of memory that can satisfy the request and split it into two, first chunk returned to caller and second chunk will remain on the free list
-  - **coalescing:** on a free request allocator will check if free chunk of memory being returned sits next to another free chunk, if yes then merge them into a single larger free chunk  
-  example: non-coalesced free list: suppose three allocations of 100 bytes are deallocated in the order: last, first, middle  
-  ![](./media/operating_systems/non_coalesced_free_list.png)
-- **buddy allocation:** allocate memory in size of power-of-2, used by kernel for easy coalescing, two free adjacent/buddy chunks can be merged to form a bigger power-of-2 chunk  
-![](./media/operating_systems/buddy_allocation.png)
-- **variable size allocation strategies:**
+- **free list coalescing:** for a free request allocator will check if free chunk of memory being returned sits next to another free chunk  
+  if yes then merge them into a single larger free chunk  
+  example: non-coalesced free list: suppose three allocations of 100 bytes are deallocated in the order: last, first, middle
+- **buddy allocation:** allocate memory in size of power-of-2  
+  two free adjacent/buddy chunks can be merged to form a bigger power-of-2 chunk  
+  ![](./media/operating_systems/buddy_allocation.png)
+- **variable-size allocation strategies:**
   - **first fit:** allocate first free chunk that is sufficient
   - **best fit:** allocate free chunk that is closest in size
-  - **worst fit:** allocate free chunk that is farthest in size, remaining chunk is bigger & more usable
-- **fixed size allocations:** memory allocation algorithms are much simpler with fixed size allocations, no issue with small holes left behind by fragmentation
-  - **page-sized allocations:** has free list of pages, pointer to next page stored in the free page itself
-  - **slab allocator:** used by kernel for small allocations like PCB, object caches for each type (size) of objects, within each cache only fixed size allocation, each cache made up of one or more pages/slabs with multiple fixed size objects  
+  - **worst fit:** allocate free chunk that is farthest in size  
+    so remaining chunk is bigger & more usable
+- **fixed-size allocation:**
+  - **page-sized allocations:** maintain list of free (linked) list pages
+  - **slab allocator:** pre-allocate fixed-size blocks of memory (slabs) which is further divided into smaller chunks (objects)  
+  only certain object-sized allocation within a cache (one or more slabs)  
+  each cache made up of one or more pages  
   ![](./media/operating_systems/slab_allocator.png)
+
+[continue](https://www.youtube.com/watch?v=SVHLonf5AGY&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=12&pp=iAQB)
 
 # threads and concurrency
 - **thread:** is like another copy of a process that executes independently, all threads share the same address space (code & heap), each thread has separate PC and stack for independent function calls  
 ![](./media/operating_systems/single_vs_multi_threaded.png)
 - **process vs thread:**
-  - **parent forks a child:** parent & child do not share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
+  - **parent forks a child:** parent & child don't share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
   - **parent executes two threads:** two threads share parts of address space, global variables can be used for communication, smaller memory footprint
 - **concurrency:** running multiple threads/processes at same time by interleaving their execution (even on single CPU core)  
 **parallelism:** running multiple threads/processes in parallel over different CPU cores
@@ -343,9 +373,9 @@ for address translation first few bits of VA to identify outer page table entry,
 - **goals of lock implementation:**
   - mutual exclusion
   - fairness: all threads should eventually get the lock, no thread should starve
-  - low overhead: acquiring, releasing & waiting for lock should not consume too many resources
+  - low overhead: acquiring, releasing & waiting for lock shouldn't consume too many resources
 - **is disabling interrupts enough:** this technique is used to implement locks on single processor systems inside the OS, disabling interrupt is a privileged instruction and malicious programs can misuse it (like run forever), will not work on multiprocessor systems since another thread on another core can enter critical section
-- **example: lock implementation using flag variable:** spin on a flag variable until it is unset, then set it to acquire lock, reset flag variable once done, race condition has moved to lock acquisition code, if thread context switched after spin wait but before setting flag, then both threads acquire the lock
+- **example: lock implementation using flag variable:** spin on a flag variable until it is reset, then set it to acquire lock, reset flag variable once done, race condition has moved to lock acquisition code, if thread context switched after spin wait but before setting flag, then both threads acquire the lock
   ```cpp
   typedef struct _lock_t(int flag;) lock_t;
 
@@ -790,7 +820,7 @@ for address translation first few bits of VA to identify outer page table entry,
   - fetch data from disk and perform operation
   - writes may need to allocate new blocks from disk using bitmap of free blocks
   - update time of access & other metadata in inode
-- **virtual file system (VFS):** file systems differ in implementations of data structures, hence linux supports VFS abstraction, VFS looks a file systems as objects (files, directories, inodes, superblock) and operations on these objects (like lookup filename in directory), system call logic is written on VFS objects, to develop a new file system simply implement functions on VFS objects and provide pointers to these functions to kernel, syscall implementation does not have to change with file system implementation details
+- **virtual file system (VFS):** file systems differ in implementations of data structures, hence linux supports VFS abstraction, VFS looks a file systems as objects (files, directories, inodes, superblock) and operations on these objects (like lookup filename in directory), system call logic is written on VFS objects, to develop a new file system simply implement functions on VFS objects and provide pointers to these functions to kernel, syscall implementation doesn't have to change with file system implementation details
 - **disk buffer cache:** results of recently fetched disk blocks are cached, file system issues block read/write requests via buffer cache, served from cache if cache hit, else block fetched to cache and returned to file system, unified page cache: free pages allocated to both processes and disk buffer cache from common pool, writes are applied to cache block either
   - **synchronously (write-through):** cache writes to disk immediately
   - **asynchronously (write-back):** cache stores dirty block in memory and writes back after delay
@@ -807,7 +837,7 @@ for address translation first few bits of VA to identify outer page table entry,
   - seek time to get to right track (few ms)
   - rotational latency for disk to spin to correct sector (few ms)
   - data transfer time to read sector (few tens μs)
-- **disk scheduling:** requests to disk are not served in FIFO, they are reordered with other pending requests in order to read blocks in sequence as far as possible (to minimize seek time & rotational delay), OS does not know internal geometry of disk so scheduling done mostly by disk controller
+- **disk scheduling:** requests to disk are not served in FIFO, they are reordered with other pending requests in order to read blocks in sequence as far as possible (to minimize seek time & rotational delay), OS doesn't know internal geometry of disk so scheduling done mostly by disk controller
   - **shortest seek time first (SSTF):** access block that we can seek to fastest, problem: some requests that are far from current position or head may never get served (starvation), example: from 30 go to 21 before 2  
   ![](./media/operating_systems/shortest_seek_time_first.png)
   - **elevator/SCAN algorithm:** disk head does one sweep over tracks and serves requests that fall on the path

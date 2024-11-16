@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "dsa.h"
-#include "utils.h"
 #include "neon.h"
+#include "utils.h"
 
 using std::cout;
 using std::endl;
