@@ -4,7 +4,8 @@
 - [filtering](#filtering)
 - [features](#features)
   - [harris corner detection](#harris-corner-detection)
-- [scale-invariant](#scale-invariant)
+  - [histogram of gradients](#histogram-of-gradients)
+  - [scale-invariant](#scale-invariant)
 - [image transforms](#image-transforms)
   - [affine](#affine)
   - [homography](#homography)
@@ -208,7 +209,11 @@
     - **edge:** `R < 0` if `λ1 << λ2` or vice-versa
     - **corner:** `R >> 0` if `λ1 ≈ λ2 >> 0`
 
-# scale-invariant 
+## histogram of gradients
+- **histogram of gradients:** feature descriptor that captures distribution of edge orientations within a local region of an image  
+  brightness-invariant since edges used instead of pixel intensities
+
+## scale-invariant 
 
 # image transforms
 - once matching features between two images found, need to figure out transform between them  
