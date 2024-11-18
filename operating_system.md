@@ -21,6 +21,7 @@
 
 # links  <!-- omit from toc -->
 - [[playlist] operating systems](https://www.cse.iitb.ac.in/~mythili/os/)
+- [cond-var vs mutex](https://medium.com/@abhisheksagar_59776/mutex-vs-condition-variables-e0a15b2226a4)
 
 # introduction
 - **operating system:** middleware between user programs & system hardware
@@ -307,20 +308,23 @@ for address translation first few bits of VA to identify outer page table entry,
   each cache made up of one or more pages  
   ![](./media/operating_systems/slab_allocator.png)
 
-[continue](https://www.youtube.com/watch?v=SVHLonf5AGY&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=12&pp=iAQB)
-
 # threads and concurrency
-- **thread:** is like another copy of a process that executes independently, all threads share the same address space (code & heap), each thread has separate PC and stack for independent function calls  
-![](./media/operating_systems/single_vs_multi_threaded.png)
-- **process vs thread:**
-  - **parent forks a child:** parent & child don't share any memory, needs IPC mechanisms to communicate, extra copies of code & data in memory
-  - **parent executes two threads:** two threads share parts of address space, global variables can be used for communication, smaller memory footprint
-- **concurrency:** running multiple threads/processes at same time by interleaving their execution (even on single CPU core)  
-**parallelism:** running multiple threads/processes in parallel over different CPU cores
-- **why threads:** with parallelism a single process can effectively utilize multiple CPU cores, even without parallelism concurrency of threads ensures effective use of CPU when one of the threads blocked
-- **scheduling threads:** OS schedules threads that are ready to run independently (much like processes), context of a thread (PC, registers) is saved into/restored from thread control block (TCB), every PCB has one or more linked TCBs
-- **kernel threads:** threads that are scheduled independently by kernel, example: linux pthreads  
-**user-level threads:** provided by some libraries, library multiplexes large number of user threads over a smaller number of kernel threads, low overhead for switching (expensive context switch not required), but all user threads cannot run in parallel
+- **thread:** lightweight process that runs concurrently within the same process  
+  each thread has separate PC & stack but share same address space (code & heap)  
+  ![](./media/operating_systems/single_vs_multi_threaded.png)
+- **parent forks a child:** no shared memory so need IPC for communication and extra copies of code & data  
+  **parent executes two threads:** parts of address space shared so global variables used for communication and smaller memory footprint
+- **parallelism:** running multiple threads/processes in parallel over different CPU cores  
+  **concurrency:** running multiple threads/processes at same time by interleaving their execution (even on single CPU core)  
+  even without parallelism, thread concurrency ensures effective CPU use when one of the threads blocked
+- **scheduling threads:** OS schedules threads that are ready to run independently (much like processes)  
+  context of a thread (PC, registers) saved-into/restored from thread control block (TCB)  
+  every PCB has one or more linked TCBs
+- **kernel threads:** threads that are scheduled independently by kernel (like linux pthreads)  
+  **user-level threads:** provided by some libraries  
+  library multiplexes large number of user threads over smaller number of kernel threads  
+  low overhead for switching since expensive context switch not required  
+  but all user threads cannot run in parallel
 - **example: thread creation:**
   ```cpp
   #include <assert.h>
@@ -329,7 +333,7 @@ for address translation first few bits of VA to identify outer page table entry,
 
   void *mythread(void *arg)
   {
-      printf("%s\n", (char *)arg);
+      printf("%s\n", (char *)arg);  // "A" then "B"
       return NULL;
   }
 
@@ -354,335 +358,265 @@ for address translation first few bits of VA to identify outer page table entry,
       return 0;
   }
   ```
-- **race condition:** concurrent execution can lead to different results, when two or more threads can access shared data and try to change it at the same time
+- **race condition:** when multiple threads (or processes) try to change shared data at the same time leading to unpredictable output
   ```cpp
-  counter = counter + 1;
+  counter = counter + 1;  // in common thread function
 
   // in assembly
-  // 100 mov    0x8049a1c, %eax
-  // 104 add    $0x1, %eax       <-- wrong value read by other thread if
-  // interrupted after this 108 mov    %eax, 0x8049a1c
+  100 mov    0x8049a1c, %eax
+  104 add    $0x1, %eax       ⟵ if interrupted wrong value read by other thread
+  108 mov    %eax, 0x8049a1c
   ```
-- **critical section:** portion of code that can lead to race conditions
-- **mutual exclusion:** only one thread should be executing critical section at any time
-- **atomicity:** critical section should execute like one uninterruptible instruction
+- **critical section:** code segment that accesses shared resources  
+  **mutual exclusion:** ensure only one thread can access shared resource at a time  
+  **atomicity:** critical section should execute like one uninterruptible instruction
 
 # locks
-- **lock:** is just a variable that is either available (no thread holds the lock) or acquired (one thread holds the lock, other threads waiting), makes sure only one thread is executing critical section
-- **why locks:** all threads accessing a critical section share a lock, one thread succeeds in locking (owner of the lock), other threads that try to lock cannot proceed further until lock is released by the owner
-- **goals of lock implementation:**
+- **lock:** a variable that is either available (no thread holds it) or acquired (one thread holds it, other threads waiting)  
+  makes sure only one thread is executing critical section  
+  implementing locks needs support from hardware & OS
+- **lock implementation goals:**
   - mutual exclusion
-  - fairness: all threads should eventually get the lock, no thread should starve
-  - low overhead: acquiring, releasing & waiting for lock shouldn't consume too many resources
-- **is disabling interrupts enough:** this technique is used to implement locks on single processor systems inside the OS, disabling interrupt is a privileged instruction and malicious programs can misuse it (like run forever), will not work on multiprocessor systems since another thread on another core can enter critical section
-- **example: lock implementation using flag variable:** spin on a flag variable until it is reset, then set it to acquire lock, reset flag variable once done, race condition has moved to lock acquisition code, if thread context switched after spin wait but before setting flag, then both threads acquire the lock
+  - **fairness:** all threads should eventually get the lock, no thread should starve
+  - **low overhead:** acquiring, releasing & waiting for lock shouldn't consume too many resources
+- **is disabling interrupts enough:** can be used to implement locks only on single processor systems  
+  but disabling interrupt is privileged instruction so malicious programs can misuse it (like run forever)  
+  on multiprocessor systems another thread on another core can enter critical section
+- **example: lock implementation using flag variable:** spin on flag variable until it is reset (spinlock)  
+  but now race condition has moved to lock acquisition code  
+  if thread context switched after spin wait but before setting flag then both threads acquire lock
   ```cpp
   typedef struct _lock_t(int flag;) lock_t;
 
   void init(lock_t *mutex)
   {
-      // 0 ⟶ lock is available, 1 ⟶ held
+      // 0: lock is available, 1: held
       mutex->flag = 0;
   }
 
   void lock(lock_t *mutex)
   {
-      while (mutex->flag == 1)  // test the flag
+      while (mutex->flag == 1)  // test flag
           ;                     // spin wait
-      mutex->flag = 1;          // now set it
+      mutex->flag = 1;          // set it
   }
 
   void unlock(lock_t *mutex) { mutex->flag = 0; }
   ```
-- **hardware atomic instructions:** very hard to ensure atomicity only in software, modern architectures provide hardware atomic instructions
-  - **test-and-set:** update a variable and return old value all in single hardware instruction
+- **hardware atomic instructions:** very hard to ensure atomicity only in software  
+  modern architectures provide hardware atomic instructions
+  - **test-and-set:** update variable and return old value all in single hardware instruction
     ```cpp
     int test_and_set(int *old_ptr, int new)
     {
-        int old = *old_ptr;  // fetch old value at old_ptr
-        *old_ptr = new;      // store new into old_ptr
-        return old;          // return the old value
+        int old = *old_ptr;
+        *old_ptr = new_val;
+        return old;
     }
     ```
-  - **compare-and-swap:** update a variable only if equal to expected and return actual value all in single hardware instruction
+    ```cpp
+    while (test_and_set(&lock->flag, 1) == 1)
+    ```
+  - **compare-and-swap:** update variable only if equal to expected and return actual value all in single hardware instruction
     ```cpp
     int compare_and_swap(int *ptr, int expected, int new)
     {
         int actual = *ptr;
-        if (actual == expected) *ptr = new;
+        if (actual == expected) *ptr = new_val;
         return actual;
     }
     ```
-- **spinlock:** spin until lock is acquired
-  ```cpp
-  while (test_and_set(&lock->flag, 1) == 1)
-  while (compare_and_swap(&lock->flag, 0, 1) == 1)
-  ```
-- **(sleeping) mutex:** a contending thread could simply give up the CPU and check back later instead of spinning for a lock, `yield` moves thread from running to ready state
+    ```cpp
+    while (compare_and_swap(&lock->flag, 0, 1) == 1)
+    ```
+- **(sleeping) mutex:** contending thread put to sleep when it fails to acquire a lock instead of busy waiting
   ```cpp
   void lock()
   {
       while (test_and_set(&lock->flag, 1) == 1)
-          yield()  // give up the CPU
+          yield()  // give up CPU
   }
   ```
 - **spinlock vs mutex:** 
-    - userspace: most lock implementations are (sleeping) mutex since CPU wasted by spinning contending threads
-    - OS: uses spinlocks since OS is default software layer and has no other thread to yield to, OS must disable interrupts while lock is held since an interrupt handler could request same lock leading to deadlock, OS must never perform any blocking operation (go to sleep) with a locked spinlock
-- **coarse-grained locking:** one big lock for all shared data, example: one lock for any change in entire linked-list  
-**fine-grained locking:** separate locks for individual shared data, allows more parallelism, but multiple locks may be harder to manage, example: individual locks for each linked-list element
+    - **userspace:** most lock implementations are (sleeping) mutex since CPU wasted by spinning contending threads
+    - **OS:** uses spinlocks since OS is default software layer and has no other thread to yield to  
+    OS must disable interrupts while lock is held since interrupt handler could request same lock leading to deadlock  
+    OS must never perform any blocking operation (go to sleep) with a locked spinlock
+- **coarse-grained locking:** one big lock for all shared data  
+  example: one lock for any change in entire linked-list  
+  **fine-grained locking:** separate locks for individual shared data  
+  allows more parallelism but multiple locks may be harder to manage  
+  example: individual locks for each linked-list element
 
 # conditional variables
-- other than mutex, another common requirement in multi-threaded applications is waiting & signaling, can accomplish using busy-wait but inefficient, example: thread T1 wants to continue only after T2 has finished some task
-- **conditional variables:** is a queue that a thread can put itself into when waiting on some condition, another thread that makes the condition true can signal the conditional variable to wake up a waiting thread
+- another common requirement in multi-threaded applications is waiting & signaling  
+  can accomplish using busy-wait but inefficient  
+  example: thread T1 wants to continue only after T2 has finished some task
+- **conditional variables:** is a queue that a thread can put itself into when waiting on some condition  
+  another thread that makes the condition true can signal the conditional variable to wake up a waiting thread
   - **signal:** wake up one thread
   - **broadcast:** wake up all waiting threads
-- **example: parent waits for child:** mutex is there to protect the process of sleeping & waiting
+- **cond-var vs mutex:** cond-var used to block a thread based on custom condition but mutex based on only one condition (mutex already locked or not)  
+  cond-var often needs a mutex to ensure safe access to shared data  
+  `while` instead of `if` in consumer to avoid spurious wakeups like some other thread modifying data between signal generated & delivered
   ```cpp
-  int done = 0;
-  pthread_mutex_t m = pthread_MUTEX_INITIALIZER;
-  pthread_cond_t c = pthread_COND_INITIALIZER;
-
-  void thr_exit()
+  // data consumer
+  lock(data->mutex);                   // to prevent data modification
+  while (is_available(data) == false)
   {
-      pthread_mutex_lock(&m);
-      done = 1;
-      pthread_cond_signal(&c);
-      pthread_mutex_unlock(&m);
+      wait(data->cond_var, data->mutex);  // unlocks mutex and wait for signal
+                                          // mutex locks (acquired) again on signal
   }
+  process(data);        // before unlock since modifies data
+  unlock(data->mutex);  // unlock data mutex
 
-  void *child(void *arg)
+  // data producer
+  lock(data->mutex);
+  if (is_available(data) == false)
   {
-      printf("child\n");
-      thr_exit();
-      return NULL;
-  }
+      prepare(data);
+      signal(data->cond_var);
+  }  // no deadlock of unlock with wait since wait lock would be blocked
+  unlock(data->mutex);  // unlock data mutex
 
-  void thr_join()
-  {
-      // why check condition before calling wait?
-      // in case child has already run & `done` is true then no one will wake parent thread
-
-      // why while instead of if?
-      // to avoid corner cases of parent thread being woken up
-      // even when condition not true (due to issue in implementation)
-
-      // why mutex lock?
-      // possible race condition (missed wakeup), parent checks condition then interrupted
-      // child sets to 0 and signals but no one sleeping yet
-      // parent resumes now and goes to sleep forever
-      // mutex lock must be held when calling wait & signal
-      // wait function implementation releases the lock before putting thread to sleep
-
-      pthread_mutex_lock(&m);
-      while (done == 0)
-          pthread_cond_wait(&c, &m);
-      pthread_mutex_unlock(&m);
-  }
-
-  int main(int argc, char *argv[])
-  {
-      printf("parent: begin\n");
-      pthread_t p;
-      pthread_create(&p, NULL, child, NULL);
-      thr_join();
-      printf("parent: end\n");
-      return 0;
-  }
   ```
-- **example: producer/consumer problem:** one or more producer threads and one or more consumer threads sharing a buffer of bounded size  
-![](./media/operating_systems/producer_consumer.png)
+- **example: producer/consumer problem:** producer thread(s) & consumer thread(s) sharing bounded-size buffer  
+  ![](./media/operating_systems/producer_consumer.png)
   ```cpp
-  cond_t empty, fill;
+  cond_t full, empty;
   mutex_t mutex;
 
   void *producer(void *arg)
   {
-      int i;
-      for (i = 0; i < loops; i++)
+      while (1)
       {
-          pthread_mutex_lock(&mutex);
-          while (count == MAX)
-              pthread_cond_wait(&empty, &mutex);  // set 1
-          put(i);
-          pthread_cond_signal(&fill);             // set 2
-          pthread_mutex_unlock(&mutex);
+          lock(mutex);
+          if (is_buffer_full())
+          {
+              wait(full, mutex);
+          }
+          buffer.push(data);
+          signal(empty);
+          unlock(mutex);
       }
   }
 
   void *consumer(void *arg)
   {
-      int i;
-      for (i = 0; i < loops; i++)
+      while (1)
       {
-          pthread_mutex_lock(&mutex);
-          while (count == 0)
-              pthread_cond_wait(&fill, &mutex);   // set 2
-          int tmp = get();
-          pthread_cond_signal(&empty);            // set 1
-          pthread_mutex_unlock(&mutex);
-          printf("%d\n", tmp);
+          lock(mutex);
+          while (is_buffer_empty())
+          {
+              wait(empty, mutex);
+          }
+          process(buffer.pop());
+          signal(full);
+          unlock(mutex);
       }
   }
   ```
 
 # semaphores
-- **semaphores:** is a variable with an underlying counter (not visible to user), two functions - up/post increments and down/wait decrements counter, calling thread blocked if resulting value negative, binary semaphore (init value 1) acts as a mutex
-- **example: binary semaphore:**
+- **semaphores:** variable with an underlying counter (not visible to user)  
+  `post` (or `up`) increments and `wait` (or `down`) decrements counter  
+  thread calling `wait` blocked if resulting value negative
+- **binary semaphore:** semaphore with init value `1` acts as mutex
   ```cpp
-  semt_t m;
-  sem_init(&m, 0, 1);
+  sem_t lock;
+  init(&lock, 1);
 
-  sem_wait (&m);  // refcount 0, any other thread calling wait blocked
-  // critical section
-  sem_post(&m);
+  wait(&lock);  // refcount 0
+                // any other thread calling wait blocked (refcount -1)
+
+  // CRITICAL SECTION
+
+  post(&lock);
   ```
-- **example: parent child with semaphore:**
+- **mutex vs cond-var vs semaphore:** mutex for locking and conditional variable for synchronization  
+  semaphore both locking & synchronization (but less granular than cond-var)
+- **example: producer/consumer with semaphore:** for signalling one counting semaphore to track empty slots and another to track full slots  
+  and mutex (or binary semaphore) for buffer  
+  `lock` after `wait` to prevent thread sleeping with mutex (no locks held when sleeping)
   ```cpp
-  sem_t s;
+  sem_t full, empty, mutex;
 
-  void *child(void *arg)
-  {
-      printf("child\n");
-      sem_post(&s);                           // signal here: child is done
-      return NULL;
-  }
-
-  int main(int argc, char *argv[])
-  {
-      sem_init(&s, 0, 0);
-      printf("parent: begin\n");
-      pthread_t c;
-      pthread_create(&c, NULL, child, NULL);
-      sem_wait(&s);                           // blocked, wait here for child
-      printf("parent: end\n");
-      return 0;
-  }
-  ```
-- **example: producer/consumer with semaphore:** need two semaphore for signaling full & empty and one binary semaphore to act as mutex for buffer
-  ```cpp
-  sem_t empty;
-  sem_t full;
-  sem_t mutex;
+  sem_init(&full, 0);     // starts with none full
+  sem_init(&empty, MAX);  // starts with all empty
+  sem_init(&mutex, 1);
 
   void *producer(void *arg)
   {
-      int i;
-      for (i = 0; i < loops; i++)
+      while (1)
       {
-          // why mutex after sem_wait?
-          // if mutex before wait, waiting thread sleeps with mutex
-          // signaling thread cannot acquire lock and wake it up
-          sem_wait(&empty);      // set 1
-          sem_wait(&mutex);
-          put(i);
-          sem_post(&mutex);
-          sem_post(&full);       // set 2
+          wait(full);  // increment full
+
+          wait(mutex);  // lock(mutex)
+          buffer.push(data);
+          post(mutex);  // unlock(mutex)
+
+          post(empty);  // decrement empty
       }
   }
 
   void *consumer(void *arg)
   {
-      int i;
-      for (i = 0; i < loops; i++)
+      while (1)
       {
-          sem_wait(&full);       // set 2
-          sem_wait(&mutex);
-          int tmp = get();
-          sem_post(&mutex);
-          sem_post(&empty);      // set 1
-          printf("%d\n", tmp);
-      }
-  }
+          wait(empty);
 
-  int main(int argc, char *argv[])
-  {
-      // ...
-      sem_init(&empty, 0, MAX);  // MAX buffers are empty
-      sem_init(&full, 0, 0);     // 0 buffers are full
-      sem_init(&mutex, 0, 1);    // binary semaphore
-      // ...
+          wait(mutex);
+          buffer.push(data);
+          post(mutex);
+
+          post(full);
+      }
   }
   ```
 
 # concurrency bugs
-**concurrency bugs:** are non-deterministic and occur based on execution order of threads, very hard to debug
-  - **non-deadlock bugs:** not blocking but incorrect results when threads execute
-    - **atomicity bugs:** atomicity assumptions made by programmer are violated during execution of concurrent threads, fix: use locks for mutual exclusion
-    - **order-violation bugs:** desired order of memory access is flipped during concurrent execution, fix: use conditional variables
-  - **deadlocks:** threads cannot execute any further and wait for each other, all four of below conditions must hold for a deadlock to occur
+- **concurrency bugs:** non-deterministic so very hard to debug since they occur based on execution order of threads
+  - **non-deadlock:** not blocking but incorrect results
+    - **atomicity:** atomicity assumptions violated during execution of concurrent threads  
+      fix: use locks for mutual exclusion
+    - **order-violation bugs:** desired order of memory access is flipped (assume another thread already ran)  
+      fix: use conditional variables
+  - **deadlocks:** threads cannot execute any further and wait for each other  
+    ![](./media/operating_systems/deadlock_dependency.png)  
+    all four conditions must hold for deadlock to occur:
     - **mutual exclusion:** a thread claims exclusive control of a resource
-    - **hold-and-wait:** thread holds a resource and is waiting for another, to prevent acquire all locks at once by acquiring a master lock first
+    - **circular wait:** there exists a cycle in the resource dependency graph  
+      fix **total ordering:** always acquire locks in certain fixed order (like address)
+      ```cpp
+      if (m1 > m2)
+      {
+          lock(m1);
+          lock(m2);
+      }
+      else
+      {
+          lock(m2);
+          lock(m1);
+      }
+      ```
+    - **hold-and-wait:** thread holds a resource and is waiting for another  
+      fix: **master lock:** acquire all locks at once by acquiring a master lock first
+      ```cpp
+      lock(master);  // begin lock acquisition
+
+      lock(m1);
+      lock(m2);
+      // ...
+
+      unlock(master);  // end
+      ```
     - **no preemption:** thread cannot be made to give up its resource
-    - **circular wait:** there exists a cycle in the resource dependency graph, to prevent always acquire locks in certain fixed order, total ordering (or partial ordering on related locks) must be followed
-- **example: atomicity bug:** one threads reads & prints a shared data item while another concurrently modifies it
-  ``` cpp
-  // thread 1
-  if (thd->proc_info)
-  {
-      // ...
-      fputs(thd->proc_info, ...);
-      // ...
-  }
+- **detect & recover:** modern OS detect deadlocks and reboot system or kill deadlocked processes
 
-  // thread 2
-  thd->proc_info = NULL;
-  ```
-- **example: order-violation bug:** thread1 assumes thread2 has already run
-  ```cpp
-  // thread 1
-  void init()
-  {
-      // ... 
-      m_thread = createthread(m_main, ...);
-      // ...
-  }
 
-  // thread 2
-  void m_main(...)
-  {
-      // ...
-      m_state = m_thread->state;
-      // ...
-  }
-  ```
-- **example: deadlock:** thread1 holds lock1 and is waiting for lock2, thread2 holds lock2 and is waiting for lock1
-  ```cpp
-  // thread 1
-  pthread_mutex_lock(l1);
-  pthread_mutex_lock(l2);
+[continue](https://www.youtube.com/watch?v=7F4qQOSJGDw&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=17&pp=iAQB)
 
-  // thread 2
-  pthread_mutex_lock(l2);
-  pthread_mutex_lock(l1);
-  ```
-  ![](./media/operating_systems/deadlock_dependency.png)
-- **example: circular wait prevention:** total ordering:
-  ```cpp
-  // grab locks in high-to-low address order
-  // code assumes m1 != m2
-  if (m1 > m2)
-  {
-      pthread_mutex_lock(m1);
-      pthread_mutex_lock(m2);
-  }
-  else
-  {
-      pthread_mutex_lock(m2);
-      pthread_mutex_lock(m1);
-  }
-  ```
-- **example: hold-and-wait prevention:** master lock:
-  ```cpp
-  pthread_mutex_lock(prevention);  // begin lock acquisition
-  pthread_mutex_lock(l1);
-  pthread_mutex_lock(l2);
-  // ...
-  pthread_mutex_unlock(prevention);  // end
-  ```
-- **other solutions to deadlocks:**
-  - **deadlock avoidance:** if OS knew which process needs which locks then it can schedule the processes in a way that deadlock will not occur, impractical in real lift to assume OS having this knowledge
-  - **detect and recover:** reboot system or kill deadlocked processes
+
 
 # communication with I/O devices
 - **port:** point of connection to the system, I/O devices connect to the CPU & memory via a bus to a port on the machine

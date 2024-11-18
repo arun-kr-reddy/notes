@@ -166,7 +166,7 @@
   γ                ## gamma
   δ                ## delta
   ε                ## epsilon
-  O                ## theta
+  θ                ## theta
   κ                ## kappa
   λ                ## lambda
   μ                ## mu

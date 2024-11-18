@@ -3,6 +3,12 @@
 - [resizing](#resizing)
 - [filtering](#filtering)
 - [features](#features)
+  - [harris corner detection](#harris-corner-detection)
+- [scale-invariant](#scale-invariant)
+- [image transforms](#image-transforms)
+  - [affine](#affine)
+  - [homography](#homography)
+  - [random sample consensus](#random-sample-consensus)
 
 # links  <!-- omit from toc -->
 - [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/)
@@ -32,7 +38,8 @@
 # histogram
 - **histogram:** pixel intensities distribution
 - **histogram equalization:** stretching its histogram to cover the full range of possible pixel values  
-  improve image contrast to increase visual distinction between features
+  improve image contrast to increase visual distinction between features  
+  ![](./media/computer_vision/histogram_equalization.png)
   - calculate histogram
   - compute cumulative distribution function (`<=` pixel frequencies cumulative sum)
   - normalize CDF array elements (between 0 & 1) by dividing by total num pixels
@@ -66,6 +73,9 @@
 - **convolution:** applying a kernel/filter to image  
   kernel slides over the image, multiplying pixels and summing the products  
   ![](./media/computer_vision/convolution.gif)
+- mathematically convolution involves kernel flip  
+  what is usually called convolution is correlation  
+  ![](./media/computer_vision/correlation_vs_convolution.png)
 - **separable kernel:** seperate 2D kernel into vertical & horizonal 1D kernels  
   `k^2` ⟶ `2k` multiplications, `k^2 - 1` ⟶ `2(k - 1)` additions  
   ![](./media/computer_vision/separable_kernel.png)
@@ -126,7 +136,7 @@
     ![](./media/computer_vision/gaussian_laplacian.png)  
     difference of gaussian (DoG) ia a good approximation to LoG  
     ![](./media/computer_vision/log_vs_dog.png)  
-    basically substracting two gaussian filters with different `σ`  
+    basically substracting two gaussian filters (band-pass filter) with different `σ`  
     ![](./media/computer_vision/gaussian_difference.png)
 - **canny:** precise localization to single pixel, noise reduction by producing strong edges only, edge continuty even when gaps present
   - use sobel filter to smooth image and get gradient magnitude & direction
@@ -142,7 +152,7 @@
   ```
 - **non-linear filter:** cannot be implemented using convolution
   - **median:** to remove extreme outliers (like salt-pepper noise)
-  - **bilateral:** gaussian blurs across edges so add tonal weights (besides spatial)  
+  - **bilateral:** gaussian blurs across edges so also add tonal weights (besides spatial)  
     pixel values similar to center pixel value weighted more  
     constantly changing filter that preserves edges while smoothing flat regions  
     ![](./media/computer_vision/bilateral.png)
@@ -152,13 +162,154 @@
 - hough transform:
 
 # features
-- **corner:** point where two edges meet
 - **features:** unique highly descriptive region  
+  useful for matching, recognition & detection
   ![](./media/computer_vision/features_flat_edge_corner_1.png)  
+  gradient distributions  
   ![](./media/computer_vision/features_flat_edge_corner_2.png)
-- template matching: measure similarity between two patches  
-  check uniqueness of a patch
-  - sum squared diff
-  - auto correlation
-- **eigen vectors:** results in scalar multiple of itself when multiplied with matrix (linear transformation)  
-  **eigen value:** how much eigen vector stretched or shrunk
+- **template matching:** finding parts of image that match template image  
+  like searching for specific picture within larger one
+  - **sum squared diff:** minimize `Σ(I(x + i, y + j) - T(x, y))^2`  
+    slide template across image and sum squared differences between their pixel values
+  - **normalized cross correlation:** 
+    ```
+    SSD = Σ(I(x + i, y + j) - T(x, y))^2  ⟵ minimize
+        = Σ (I(x + i, y + j))^2 +  (T(x, y))^2 - 2 * I(x + i, y + j) * T(x, y)
+    
+    if SSD needs to be minimized, then negative last term need to bemaximized
+    Σ I(x + i, y + j) * T(x, y)   ⟵ cross-correlation (maximize)
+    ```
+    but cross-correlation value high if (non-matching) image has high pixel intensities  
+    so normalize it to make it insensitive to changes in brightness  
+    ![](./media/computer_vision/normalized_cross_correlation.png)
+- **auto correlation:** `Σ(I(x,y) - I(x + i, y + j))^2`  
+  measure similarity of image with its shifted version (self-difference) to get unique patch
+- **eigen vectors:** vector that when multiplied by matrix only changes in magnitude not direction (linear transformation)  
+  **eigen value:** factor by which eigenvector scaled when multiplied by matrix
+- **determinant:** scalar value from square matrix elements  
+  **trace:** sum of principal diagonal elements
+  ```
+  A = [a b]
+      [c d]
+  
+  det(A)   = (a * d) - (b * c)
+  trace(A) = a + d
+  ```
+
+## harris corner detection
+- **structure (or covariance) matrix:** approximate self-difference using (gaussian) weighted sum of nearby gradient info (`Ix` & `Iy` edge intensities)  
+  ![](./media/computer_vision/hcd_matrix.png)
+- eigen values (`λ1` & `λ2`) of structure matrix gives nearby gradient's distribution  
+  ![](./media/computer_vision/hcd_eigenvalue_distribution.png)
+- **corner response function:** instead of calculating eigen values for every point, estimate them using  
+  ![](./media/computer_vision/hcd_score.png)  
+  where `det(M) = λ1 * λ2` & `trace(M) = λ1 + λ2`
+    - **flat region:** `|R| ≈ 0` if `λ1 ≈ λ2 ≈ 0`
+    - **edge:** `R < 0` if `λ1 << λ2` or vice-versa
+    - **corner:** `R >> 0` if `λ1 ≈ λ2 >> 0`
+
+# scale-invariant 
+
+# image transforms
+- once matching features between two images found, need to figure out transform between them  
+  `p' = M * p` to map a given point `p` using transform `M` to new coordinate system
+- ![](./media/computer_vision/image_transformation.png)
+
+## affine
+- **affine transfomations:** preserves parallel lines (& ratios of their lengths)
+  - **scaling:**
+    ```
+    [x'] = [Sx 0 ] * [x]
+    [y']   [ 0 Sy]   [y]
+
+    p'   = [S]     * p
+    ```
+  - **translation:** can only add multiples of `x`/`y` but no way to add constant values  
+    so augment vector `[x, y]` ⟶ `[x, y, 1]`, `p` ⟶ `p̄`
+    ```
+    [x'] = [1 0 Tx] * [x]
+    [y']   [0 1 Ty]   [y]
+                      [1]
+    
+    p'   = [I T]    * p̄   ⟵ I: identity matrix
+    ```
+  - **euclidean:** rotation + translation
+    ```
+    [x'] = [cos(θ) -sin(θ) Tx] * [x]
+    [y']   [sin(θ)  cos(θ) Ty]   [y]
+                                 [1]
+    
+    p'   = [R T]               * p̄
+    ```
+  - **similarity:** rotation + scaling + translation
+    ```
+    p'   = [S*R T]             * p̄
+    ```
+  - **shear:** displace each point in fixed direction by amount proportional to its from a given line
+    ```
+    [x'] = [1 h] * [x]
+    [y']   [0 1]   [y]
+    
+    p'   = [R T] * p
+    ```
+- for combination just multiply them first (similar to kernels) then map  
+  but all of them `2 x 3` matrix, so add extra `[0, 0, 1]` bottom row
+  ```
+  [x']   [a00 a01 a02]   [x]
+  [y'] = [a10 a11 a12] * [y]
+  [1 ]   [  0   0   1]   [1]
+  ```
+- (transform) matrix calculated by solving linear equations  
+  for each match we get two equations
+  ```
+  x' = a00 * x + a01 * y + a02
+  y' = a10 * x + a11 * y + a12
+  ```
+  for 6 unknowns (`a00` to `a12`) we need 3 matched points
+
+## homography
+- **homography/projective/perspective transformations:** map points from one image plane to another and preserves straight lines  
+  to describe geometric relationship between two images of same scene (world plane) taken from different viewpoints  
+  ![](./media/computer_vision/homography.gif)
+- either images from same camera at different angle  
+  ![](./media/computer_vision/homography_case1.gif)  
+  or same plane from different locations  
+  ![](./media/computer_vision/homography_case2.gif)
+- **homography coordinates:** uses three coordinates to represent points in space  
+  ![](./media/computer_vision/homography_coordinates.png)  
+  when `z' == 1` homography maps nicely to cartesian
+- **homography matrix:** augment point to include third coordinate
+  ```
+      [x̃]
+  p̃ = [ỹ]
+      [w̃]
+
+  [x̃'] = [h00 h01 h02]   [x̃]
+  [ỹ']   [h10 h11 h12] * [ỹ]
+  [w̃']   [h20 h21 h22]   [w̃]
+  ```
+  bottom row now not limited to `[0, 0, 1]`  
+  to get actual final coordinates `x' = x̃' / w̃'`, 2D coordinate if `w̃ == 1`
+- (transform) matrix calculated by solving linear equations  
+  third coordinate scales transformed coordinates  
+  so assume third coordinate as 1 (then `x = x̃`) and `h33` as 1
+  ```
+  [x'] = [h00 h01 h02]   [x]
+  [y']   [h10 h11 h12] * [y]
+  [1 ]   [h20 h21   1]   [1]
+  ```
+  we need 4 matched points for 8 unknowns (`h00` to `h21`)
+  ```
+  x' = (h00 * x + h01 * y + h02) / (h20 * x + h21 * y + 1)
+  x' = (h10 * x + h11 * y + h12) / (h20 * x + h21 * y + 1)
+  ```
+- `h33 != 1` is rarein real world  
+  even if it is wrong for matched feature pair, RANSAC will ignore that pair
+
+## random sample consensus
+- **random sample consensus (RANSAC):** estimating transform matrix in presence of outliers by randomly selecting minimal set of data points (4 matches for homography)  
+  data points that fit well (within threshold) are considered inliers and matrix is refined using these inliers  
+  process repeated multiple times and matrix with largest num inliers selected as final estimate
+- **example: RANSAC line fitting:** green line is best fit yet  
+  ![](./media/computer_vision/ransac.gif)
+- to optimize iterations stop after "good-enough" inliers cutoff for best model is hit
