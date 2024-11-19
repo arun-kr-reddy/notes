@@ -2,10 +2,10 @@
 - [histogram](#histogram)
 - [resizing](#resizing)
 - [filtering](#filtering)
-- [features](#features)
+- [feature matching](#feature-matching)
   - [harris corner detection](#harris-corner-detection)
   - [histogram of gradients](#histogram-of-gradients)
-  - [scale-invariant](#scale-invariant)
+  - [scale-invariant feature transform](#scale-invariant-feature-transform)
 - [image transforms](#image-transforms)
   - [affine](#affine)
   - [homography](#homography)
@@ -162,7 +162,7 @@
 
 - hough transform:
 
-# features
+# feature matching
 - **features:** unique highly descriptive region  
   useful for matching, recognition & detection
   ![](./media/computer_vision/features_flat_edge_corner_1.png)  
@@ -185,6 +185,9 @@
     ![](./media/computer_vision/normalized_cross_correlation.png)
 - **auto correlation:** `Σ(I(x,y) - I(x + i, y + j))^2`  
   measure similarity of image with its shifted version (self-difference) to get unique patch
+- **orientation normalization:** align features by rotating image patch (used for descriptor) from dominant orientation (from histogram of pixel orientations) to (fixed) standard orientation
+
+## harris corner detection
 - **eigen vectors:** vector that when multiplied by matrix only changes in magnitude not direction (linear transformation)  
   **eigen value:** factor by which eigenvector scaled when multiplied by matrix
 - **determinant:** scalar value from square matrix elements  
@@ -196,8 +199,6 @@
   det(A)   = (a * d) - (b * c)
   trace(A) = a + d
   ```
-
-## harris corner detection
 - **structure (or covariance) matrix:** approximate self-difference using (gaussian) weighted sum of nearby gradient info (`Ix` & `Iy` edge intensities)  
   ![](./media/computer_vision/hcd_matrix.png)
 - eigen values (`λ1` & `λ2`) of structure matrix gives nearby gradient's distribution  
@@ -212,8 +213,24 @@
 ## histogram of gradients
 - **histogram of gradients:** feature descriptor that captures distribution of edge orientations within a local region of an image  
   brightness-invariant since edges used instead of pixel intensities
+  - compute gradient magnitude & orientation for each pixel
+  - divide image into cells (8x8 pixels)
+  - put pixels in bins (eight 45°) according to orientation  
+    each pixel's contribution in histogram using its gradient magnitude  
+    ![](./media/computer_vision/hog_binning.png)
+  - small individual cells sensitive to lighting  
+    so group them into blocks (4x4 cells) and normalize their gradient (divide by root of sum of squares)
+  - feature descriptor made up of array of cell histograms
 
-## scale-invariant 
+## scale-invariant feature transform
+- **scale-invariant feature transform:** detect & describe distinctive local features that remain stable under significant changes in scale  
+  ![](./media/computer_vision/SIFT.png)
+  - apply gaussian for different scales (`σ`) for multiple sets of octaves (downscaled image)
+  - apply DoG to pairs of consecutive scales
+  - keypoints are local extrema in both local & scale  
+    so higher than eight neighbor and overlapping nine in above & below scales
+  - rule out keypoints with weak corner response function
+  - orientation normalization for keypoints
 
 # image transforms
 - once matching features between two images found, need to figure out transform between them  
