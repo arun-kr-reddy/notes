@@ -10,6 +10,7 @@
   - [affine](#affine)
   - [homography](#homography)
   - [random sample consensus](#random-sample-consensus)
+- [optical flow](#optical-flow)
 
 # links  <!-- omit from toc -->
 - [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/)
@@ -137,13 +138,13 @@
     ![](./media/computer_vision/gaussian_laplacian.png)  
     difference of gaussian (DoG) ia a good approximation to LoG  
     ![](./media/computer_vision/log_vs_dog.png)  
-    basically substracting two gaussian filters (band-pass filter) with different `σ`  
+    basically subtracting two gaussian filters (band-pass filter) with different `σ`  
     ![](./media/computer_vision/gaussian_difference.png)
-- **canny:** precise localization to single pixel, noise reduction by producing strong edges only, edge continuty even when gaps present
+- **canny:** precise localization to single pixel, noise reduction by producing strong edges only, edge continuity even when gaps present
   - use sobel filter to smooth image and get gradient magnitude & direction
   - non-maximum suppression perpendicular to edge  
     thins down edge to single pixel
-  - (hysteresis) thresholding edges into strong (`R > T`), weak (`> t` and `< T`), no edge (`< t`)
+  - (hysteresis) threshold edges into strong (`R > T`), weak (`> t` and `< T`), no edge (`< t`)
   - connect together strong edges, weak edges connected iff neighbor to strong
 - **sharpen:** add edges to image (impulse/identity filter)
   ```
@@ -164,7 +165,7 @@
 
 # feature matching
 - **features:** unique highly descriptive region  
-  useful for matching, recognition & detection
+  useful for matching, recognition & detection  
   ![](./media/computer_vision/features_flat_edge_corner_1.png)  
   gradient distributions  
   ![](./media/computer_vision/features_flat_edge_corner_2.png)
@@ -177,7 +178,7 @@
     SSD = Σ(I(x + i, y + j) - T(x, y))^2  ⟵ minimize
         = Σ (I(x + i, y + j))^2 +  (T(x, y))^2 - 2 * I(x + i, y + j) * T(x, y)
     
-    if SSD needs to be minimized, then negative last term need to bemaximized
+    if SSD needs to be minimized, then negative last term need to be maximized
     Σ I(x + i, y + j) * T(x, y)   ⟵ cross-correlation (maximize)
     ```
     but cross-correlation value high if (non-matching) image has high pixel intensities  
@@ -185,7 +186,8 @@
     ![](./media/computer_vision/normalized_cross_correlation.png)
 - **auto correlation:** `Σ(I(x,y) - I(x + i, y + j))^2`  
   measure similarity of image with its shifted version (self-difference) to get unique patch
-- **orientation normalization:** align features by rotating image patch (used for descriptor) from dominant orientation (from histogram of pixel orientations) to (fixed) standard orientation
+- **orientation normalization:** align features by rotating image patch (used for descriptor) from dominant orientation to (fixed) standard orientation  
+  dominant orientation from top percentile of magnitude-weighted histogram of pixel orientations
 
 ## harris corner detection
 - **eigen vectors:** vector that when multiplied by matrix only changes in magnitude not direction (linear transformation)  
@@ -199,7 +201,7 @@
   det(A)   = (a * d) - (b * c)
   trace(A) = a + d
   ```
-- **structure (or covariance) matrix:** approximate self-difference using (gaussian) weighted sum of nearby gradient info (`Ix` & `Iy` edge intensities)  
+- **structure (or covariance) matrix:** approximate self-difference using (gaussian) weighted sum of nearby gradient info (`Ix` first derivative, `Ix^2` second derivate)  
   ![](./media/computer_vision/hcd_matrix.png)
 - eigen values (`λ1` & `λ2`) of structure matrix gives nearby gradient's distribution  
   ![](./media/computer_vision/hcd_eigenvalue_distribution.png)
@@ -212,7 +214,7 @@
 
 ## histogram of gradients
 - **histogram of gradients:** feature descriptor that captures distribution of edge orientations within a local region of an image  
-  brightness-invariant since edges used instead of pixel intensities
+  edges (unlike pixel intensities) don't change with brightness
   - compute gradient magnitude & orientation for each pixel
   - divide image into cells (8x8 pixels)
   - put pixels in bins (eight 45°) according to orientation  
@@ -225,12 +227,13 @@
 ## scale-invariant feature transform
 - **scale-invariant feature transform:** detect & describe distinctive local features that remain stable under significant changes in scale  
   ![](./media/computer_vision/SIFT.png)
-  - apply gaussian for different scales (`σ`) for multiple sets of octaves (downscaled image)
+  - apply gaussian for different scales (`σ`) for multiple sets of octaves (down-scaled image)
   - apply DoG to pairs of consecutive scales
-  - keypoints are local extrema in both local & scale  
+  - features are local extrema in both local & scale  
     so higher than eight neighbor and overlapping nine in above & below scales
-  - rule out keypoints with weak corner response function
-  - orientation normalization for keypoints
+  - rule out features with weak corner response function
+  - orientation normalization for features
+  - HOG of fixed-size window around feature used as descriptor
 
 # image transforms
 - once matching features between two images found, need to figure out transform between them  
@@ -238,7 +241,7 @@
 - ![](./media/computer_vision/image_transformation.png)
 
 ## affine
-- **affine transfomations:** preserves parallel lines (& ratios of their lengths)
+- **affine transformations:** preserves parallel lines (& ratios of their lengths)
   - **scaling:**
     ```
     [x'] = [Sx 0 ] * [x]
@@ -311,7 +314,8 @@
   [w̃']   [h20 h21 h22]   [w̃]
   ```
   bottom row now not limited to `[0, 0, 1]`  
-  to get actual final coordinates `x' = x̃' / w̃'`, 2D coordinate if `w̃ == 1`
+  to get actual final coordinates `x' = x̃' / w̃'`, 2D coordinate if `w̃ == 1`  
+  ![](./media/computer_vision/homography_visualization.png)
 - (transform) matrix calculated by solving linear equations  
   third coordinate scales transformed coordinates  
   so assume third coordinate as 1 (then `x = x̃`) and `h33` as 1
@@ -325,7 +329,7 @@
   x' = (h00 * x + h01 * y + h02) / (h20 * x + h21 * y + 1)
   x' = (h10 * x + h11 * y + h12) / (h20 * x + h21 * y + 1)
   ```
-- `h33 != 1` is rarein real world  
+- `h33 == 1` for a plane, `h33 != 1` is rare in real world (like lens distortion)  
   even if it is wrong for matched feature pair, RANSAC will ignore that pair
 
 ## random sample consensus
@@ -335,3 +339,6 @@
 - **example: RANSAC line fitting:** green line is best fit yet  
   ![](./media/computer_vision/ransac.gif)
 - to optimize iterations stop after "good-enough" inliers cutoff for best model is hit
+
+# optical flow
+![](https://youtu.be/a-v5_8VGV0A?list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p)
