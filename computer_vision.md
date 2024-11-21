@@ -3,9 +3,10 @@
 - [resizing](#resizing)
 - [filtering](#filtering)
 - [feature matching](#feature-matching)
-  - [harris corner detection](#harris-corner-detection)
-  - [histogram of gradients](#histogram-of-gradients)
-  - [scale-invariant feature transform](#scale-invariant-feature-transform)
+  - [harris corner detection (HCD)](#harris-corner-detection-hcd)
+  - [histogram of gradients (HOG)](#histogram-of-gradients-hog)
+  - [scale-invariant feature transform (SIFT)](#scale-invariant-feature-transform-sift)
+  - [oriented FAST \& rotated BRIEF (ORB)](#oriented-fast--rotated-brief-orb)
 - [image transforms](#image-transforms)
   - [affine](#affine)
   - [homography](#homography)
@@ -189,7 +190,7 @@
 - **orientation normalization:** align features by rotating image patch (used for descriptor) from dominant orientation to (fixed) standard orientation  
   dominant orientation from top percentile of magnitude-weighted histogram of pixel orientations
 
-## harris corner detection
+## harris corner detection (HCD)
 - **eigen vectors:** vector that when multiplied by matrix only changes in magnitude not direction (linear transformation)  
   **eigen value:** factor by which eigenvector scaled when multiplied by matrix
 - **determinant:** scalar value from square matrix elements  
@@ -212,7 +213,7 @@
     - **edge:** `R < 0` if `λ1 << λ2` or vice-versa
     - **corner:** `R >> 0` if `λ1 ≈ λ2 >> 0`
 
-## histogram of gradients
+## histogram of gradients (HOG)
 - **histogram of gradients:** feature descriptor that captures distribution of edge orientations within a local region of an image  
   edges (unlike pixel intensities) don't change with brightness
   - compute gradient magnitude & orientation for each pixel
@@ -224,7 +225,7 @@
     so group them into blocks (4x4 cells) and normalize their gradient (divide by root of sum of squares)
   - feature descriptor made up of array of cell histograms
 
-## scale-invariant feature transform
+## scale-invariant feature transform (SIFT)
 - **scale-invariant feature transform:** detect & describe distinctive local features that remain stable under significant changes in scale  
   ![](./media/computer_vision/SIFT.png)
   - apply gaussian for different scales (`σ`) for multiple sets of octaves (down-scaled image)
@@ -234,6 +235,23 @@
   - rule out features with weak corner response function
   - orientation normalization for features
   - HOG of fixed-size window around feature used as descriptor
+
+## oriented FAST & rotated BRIEF (ORB)
+- **features from accelerated segment test (FAST):** classify a pixel as corner by comparing it to its surrounding pixels  
+  highly computationally efficient so used for real-time usecases like SLAM  
+ with circle of 16 (radius 3) neighboring pixels, at-least N (like two-thirds) contiguous pixels in circle should be brighter/darker than centre pixel by some threshold  
+ ![](./media/computer_vision/fast_circle_pixels.png)  
+ an optimization is to first check if three of pixels 1, 5, 9, 13 brighter/darker by threshold  
+ non-max suppression to refine features by finding maximum threshold (using binary search) for which centre pixel still corner
+- **binary robust independent elementary features (BRIEF):** describe image patches as binary strings making it efficient for both descriptor computation & matching  
+  compare fixed set of (random) pixel-pairs in patch  
+  pairwise comparisons concatenated (bit set if first pixel in pair larger) to form binary string  
+  comparison highly-sensitive to noise so smoothen patch beforehand  
+  to match two descriptors hamming distance is num set bits in `A XOR B`
+- **oriented FAST & rotated BRIEF (ORB)**: combines FAST & BRIEF so performs as well as SIFT for feature detection but is two orders of magnitude faster  
+  FAST enhanced to be scale-invariant by using multi-scale pyramid    
+  orientation calculated based on size of contiguous pixels (if half circle then edge straight)  
+  ![](./media/computer_vision/orb_pyramid.png)
 
 # image transforms
 - once matching features between two images found, need to figure out transform between them  
@@ -341,4 +359,4 @@
 - to optimize iterations stop after "good-enough" inliers cutoff for best model is hit
 
 # optical flow
-![](https://youtu.be/a-v5_8VGV0A?list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p)
+- [continue](https://youtu.be/a-v5_8VGV0A?list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&t=1454)
