@@ -12,6 +12,7 @@
   - [homography](#homography)
   - [random sample consensus](#random-sample-consensus)
 - [optical flow](#optical-flow)
+  - [lucas-kanade](#lucas-kanade)
 
 # links  <!-- omit from toc -->
 - [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/)
@@ -359,4 +360,56 @@
 - to optimize iterations stop after "good-enough" inliers cutoff for best model is hit
 
 # optical flow
-- [continue](https://youtu.be/a-v5_8VGV0A?list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&t=1454)
+- **optical flow:** pattern of apparent motion of pixels between two consecutive frames caused by movement of object or camera  
+  is a 2D vector field where each vector represents pixel displacement from one frame to next  
+  ![](./media/computer_vision/optical_flow.gif)  
+  useful for motion estimation, object tracking & visual odometry
+- difficult to implement using feature matching  
+  example: small moving region (background static) will be rejected as outlier  
+  example: feature might not match if object turns slightly or part of object (hand) moves in different way  
+  but no issue for panorama stitching since only global motion estimate
+
+## lucas-kanade
+- **lucas-kanade algorithm:** assumes point looks same in every frame (brightness constancy), small motion & points move like their neighbors (spatial coherence)  
+  moving object in time is same as moving observation point in space
+  ```
+  assuming object moves by ∆p over ∆t time:
+  f(p - ∆p, t) = f(p, t + ∆t)
+
+  p       : observation point
+  t       : first image
+  t + ∆t  : second image
+  f       : brightness
+  ```
+  taylor series expansion approximation of nth-order polynomial  
+  ![](./media/computer_vision/taylor_expansion_approximation.png)  
+  ```
+  1st order expansion
+  f(x) ≈ a1 * x^1 + a0 * x^0
+       ≈ a1 * x + a0          ⟵ "mx + c" form (line)
+  ```
+  optical flow approximated with first-order taylor expansion
+  ```
+  f(p - ∆p, t)        = f(p, t + ∆t)
+  m * (p - ∆p) + c    ≈ f(p, t + ∆t)
+  m * p - m * ∆p + c  ≈ f(p, t + ∆t)
+
+  subtract brightness of observation pixel in first image "f(p, t)" on both sides:
+  m * p - m * ∆p + c - f(p, t)  ≈ f(p, t + ∆t) - f(p, t)
+
+  "m * p + c" & "f(p, t)" cancel out:
+  m * ∆p ≈ f(p, t) - f(p, t + ∆t)
+  ```
+  `m` is basically slope of `f` at `(p, t)`
+  ```
+  m = dp = [dx  0]
+           [ 0 dy]
+
+  dp * ∆p           ≈ f(p, t) - f(p, t + ∆t)
+  dx * ∆x + dy * ∆y ≈ f((x, y), t) - f((x, y), t + ∆t)
+  ```
+  now need to solve `u` & `v`  
+
+
+
+[continue](https://youtu.be/a-v5_8VGV0A?list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&t=2660)
