@@ -12,7 +12,9 @@
   - [homography](#homography)
   - [random sample consensus](#random-sample-consensus)
 - [optical flow](#optical-flow)
-  - [lucas-kanade](#lucas-kanade)
+  - [lucas-kanade (sparse)](#lucas-kanade-sparse)
+  - [farneback (dense)](#farneback-dense)
+- [depth from stereo](#depth-from-stereo)
 
 # links  <!-- omit from toc -->
 - [[playlist] ancient secrets of CV](https://pjreddie.com/courses/computer-vision/)
@@ -368,13 +370,10 @@
   example: small moving region (background static) will be rejected as outlier  
   example: feature might not match if object turns slightly or part of object (hand) moves in different way  
   but no issue for panorama stitching since only global motion estimate
-
-## lucas-kanade
-- **lucas-kanade algorithm:** assumes point looks same in every frame (brightness constancy), small motion & points move like their neighbors (spatial coherence)  
-  moving object in time is same as moving observation point in space
+- **brightness constancy:** moving object in time is same as moving observation point in space
   ```
   assuming object moves by ∆p over ∆t time:
-  f(p - ∆p, t) = f(p, t + ∆t)
+  f(p - ∆p, t) = f(p, t + ∆t)   ⟵ brightness constancy equation
 
   p       : observation point
   t       : first image
@@ -382,13 +381,20 @@
   f       : brightness
   ```
   taylor series expansion approximation of nth-order polynomial  
-  ![](./media/computer_vision/taylor_expansion_approximation.png)  
+  ![](./media/computer_vision/taylor_expansion_approximation.png)
   ```
   1st order expansion
   f(x) ≈ a1 * x^1 + a0 * x^0
-       ≈ a1 * x + a0          ⟵ "mx + c" form (line)
+       ≈ a * x + b              ⟵ "mx + c" line
+
+  2nd order expansion
+  f(x) ≈ a2 * x^2 + a1 * x^1 + a0 * x^0
+       ≈ a * x^2 + b * x + c    ⟵ parabola
   ```
-  optical flow approximated with first-order taylor expansion
+  ![](./media/computer_vision/taylor_series_approximation.gif)
+## lucas-kanade (sparse)
+- **lucas-kanade algorithm:** assumes point looks same in every frame (brightness constancy), small motion & points move like their neighbors (spatial coherence)  
+  approximate brightness constancy equation with first-order taylor expansion
   ```
   f(p - ∆p, t)        = f(p, t + ∆t)
   m * (p - ∆p) + c    ≈ f(p, t + ∆t)
@@ -408,8 +414,24 @@
   dp * ∆p           ≈ f(p, t) - f(p, t + ∆t)
   dx * ∆x + dy * ∆y ≈ f((x, y), t) - f((x, y), t + ∆t)
   ```
-  now need to solve `u` & `v`  
+  now to solve `u` & `v` assume neighbors move together  
+  with 3x3 grid, two unknowns from nine equations solved using least-squares  
+  optical flow run on good features (like corners)
+- **lucas-kanade limitations:**
+  - lightning changes
+  - large movement, solved by running on multi-scale pyramid (smaller motion in smaller resolution)
+  - no good features (flat patch like a wall)
+  - **aperture problem:** ambiguous motion through small window/aperture  
+    ![](./media/computer_vision/aperture_problem.gif)
 
+## farneback (dense)
+- **farneback algorithm:** for better approximation solve second-order taylor expansion of brightness constancy equation
+  ```
+  f(p - ∆p, t)                      = f(p, t + ∆t)
+  a * (p - ∆p)^2 + b * (p - ∆p) + c ≈ f(p, t + ∆t)
+  ```
 
-
-[continue](https://youtu.be/a-v5_8VGV0A?list=PLjMXczUzEYcHvw5YYSU92WrY8IwhTuq7p&t=2660)
+# depth from stereo
+- depth helpful in object segmentation, 3D reconstruction, facial recognition
+- **binocular parallax:** difference in apparent position of object seen by left & right eye due the horizontal separation between them
+- **stereo:** displacement of a pixel from one image to another inversely proportional to distance from camera
