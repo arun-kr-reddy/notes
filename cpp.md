@@ -5,11 +5,16 @@
 - [streams](#streams)
 - [memory](#memory)
 - [pointers](#pointers)
+  - [`nullptr` implicitly converts to any pointer type (but never integral type)](#nullptr-implicitly-converts-to-any-pointer-type-but-never-integral-type)
 - [smart pointers](#smart-pointers)
 - [templates](#templates)
 - [exceptions](#exceptions)
 - [misc](#misc)
 - [STL containers](#stl-containers)
+  - [sequence](#sequence)
+  - [associative](#associative)
+  - [unordered associative](#unordered-associative)
+  - [container adaptors](#container-adaptors)
 - [STL algorithms](#stl-algorithms)
 - [C library](#c-library)
 
@@ -958,7 +963,7 @@
     compilation error if modification attempted
   - **volatile:** may be modified by something external to the program at any time, so must be re-read from memory every time (not cached)  
     `const volatile` for read-only status registers
-  - **restrict:** compiler hint that during a pointer's lifetime no other pointer will access the same memory  
+  - **restrict:** compiler hint that during a pointer's lifetime no other pointer will access/modify the same memory (or part of it)  
     not part of C++ but most compilers support it
   - **_Atomic:** guaranteed read-modify-write operation in single instruction  
     used in reentrant functions (like mutex lock/unlock) & multithreaded programming
