@@ -22,6 +22,7 @@
 - [binomial as gaussian approximation](https://bartwronski.com/2021/10/31/practical-gaussian-filter-binomial-filter-and-small-sigma-gaussians/)
 - [canny demo](https://bigwww.epfl.ch/demo/ip/demos/edgeDetector/)
 - [eigen](https://medium.com/@avneesh.khanna/eigenvectors-eigenvalues-an-intuitive-visual-explanation-f2ddc0b88bf5)
+- [depth from stereo](https://www.andreasjakl.com/easily-create-depth-maps-with-smartphone-ar-part-1/)
 
 # introduction
 - **computer vision:** enable computers to analyse & understand images
@@ -354,6 +355,8 @@
   even if it is wrong for matched feature pair, RANSAC will ignore that pair
 
 ## random sample consensus
+- **least-squares:** find best-fitting curve for a set of data points by minimizing sum of squared differences (offsets) between observed data points and values predicted by model  
+  outliers can significantly affect the outputs, so not used for transform matrix
 - **random sample consensus (RANSAC):** estimating transform matrix in presence of outliers by randomly selecting minimal set of data points (4 matches for homography)  
   data points that fit well (within threshold) are considered inliers and matrix is refined using these inliers  
   process repeated multiple times and matrix with largest num inliers selected as final estimate
@@ -433,5 +436,18 @@
 
 # depth from stereo
 - depth helpful in object segmentation, 3D reconstruction, facial recognition
-- **binocular parallax:** difference in apparent position of object seen by left & right eye due the horizontal separation between them
-- **stereo:** displacement of a pixel from one image to another inversely proportional to distance from camera
+- **binocular parallax:** difference in apparent position of object seen by left & right eye due the horizontal separation between them  
+  **parallax effect:** pixels nearer to camera move faster than those farther away
+- **depth from stereo:** detect depth using movement of unique features  
+  ![](./media/computer_vision/depth_from_stereo.png)
+  - **keyframe selection:** selecting previously-captured distinct (high num features & movement) image as reference  
+    higher movement gives better depth accuracy, depth inconsistencies for very old image so area overlap checked  
+    relative 6DoF movement from inertial measurement unit (IMU) sensor
+  - **preprocess images:** prepare camera images for stereo matching  
+    **stereo rectification:** re-project image planes onto common plane parallel to the line between camera centers  
+    done using fundamental matrix by feature detection & matching  
+    with this epipolar lines aligned, so only horizontal displacement between pixels  
+    ![](./media/computer_vision/epipolar_constraint.png)  
+    ![](./media/computer_vision/epipolar_rectification.png)
+  - **stereo matching:** disparity map created using by matching pixels using template matching of blocks  
+    ![](./media/computer_vision/stereo_matching.png)

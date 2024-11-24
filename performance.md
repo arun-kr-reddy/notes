@@ -1,5 +1,10 @@
 - [introduction](#introduction)
+  - [example: matrix multiplication performance optimization](#example-matrix-multiplication-performance-optimization)
 - [Bentley optimization rules](#bentley-optimization-rules)
+  - [data structures](#data-structures)
+  - [logic](#logic)
+  - [loops](#loops)
+  - [functions](#functions)
 - [bit hacks](#bit-hacks)
 
 # links  <!-- omit from toc -->
