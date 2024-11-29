@@ -38,6 +38,7 @@
 - [designated initializer](https://gcc.gnu.org/onlinedocs/gcc/Designated-Inits.html)
 - [copy-and-swap idiom](https://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom) ([video](https://www.youtube.com/watch?v=7LxepUEcXA4))
 - [stack unwinding](https://stackoverflow.com/questions/2331316/what-is-stack-unwinding)
+- [fixed point vs floating point](https://www.youtube.com/watch?v=zVM8NKXsboA)
 
 # introduction
 - *within C++ there is a much smaller & cleaner language struggling to get out*
@@ -252,6 +253,11 @@
   void print_sum(double a, double b, double c);
   ```
 - **name mangling:** identifiers are encoded so that linker can separate common names due to overloading and namespaces  
+  with `_Z` prefix considers identifier, return type, arg types & namespace/class name for mangled name
+  ```cpp
+  void foo(double x, int y) {}  // _Z3fooi
+  void foo(double x, int y) {}  // _Z3foodi
+  ```
   `extern "C" { .... }` makes function name in C++ have C linkage so client C code can use it (no name mangling in C)
   ```cpp
   // individual declaration
@@ -944,6 +950,11 @@
     (a + b > 6) ? printf(">6\n") : printf("<=6\n");           // ">6"
     ((int32_t)a + b > 6) ? printf(">6\n") : printf("<=6\n");  // "<=6"
     ```
+- **fixed point:** decimal position (num digits before & after decimal) fixed  
+  efficient but cannot represent very large & very small numbers simultaneously  
+  `Q8.8` has 8bits for integers (including sign) & 8bits for fraction  
+  example: `Q7.1` only supports `.0` & `.5` as fraction  
+  **floating point:** decimal position floating (not fixed) to get dynamic precision and large range
 - **float representation (IEEE 754):**  
   ![](./media/cplusplus/IEEE754.png)
   ```cpp

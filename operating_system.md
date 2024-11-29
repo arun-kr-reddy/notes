@@ -56,6 +56,7 @@
   - allocate memory and create memory image
     load code & data from executable and create runtime stack & heap
   - open basic files (`stdin`, `stdout`, `stderr`)
+    global & static variables initialized (ctor calls for objects)
   - initialize CPU registers (PC pointing to first instruction)
 - **process states:**  
   ![](./media/operating_systems/process_states.png)
