@@ -17,7 +17,6 @@
 - [communication with I/O devices](#communication-with-io-devices)
 - [files \& directories](#files--directories)
 - [file system implementation](#file-system-implementation)
-- [hard disk internals](#hard-disk-internals)
 
 # links  <!-- omit from toc -->
 - [[playlist] operating systems](https://www.cse.iitb.ac.in/~mythili/os/)
@@ -614,10 +613,7 @@ for address translation first few bits of VA to identify outer page table entry,
     - **no preemption:** thread cannot be made to give up its resource
 - **detect & recover:** modern OS detect deadlocks and reboot system or kill deadlocked processes
 
-
-[continue](https://www.youtube.com/watch?v=7F4qQOSJGDw&list=PLDW872573QAb4bj0URobvQTD41IV6gRkx&index=17&pp=iAQB)
-
-
+[CONTINUE]()
 
 # communication with I/O devices
 - **port:** point of connection to the system, I/O devices connect to the CPU & memory via a bus to a port on the machine
@@ -762,24 +758,3 @@ for address translation first few bits of VA to identify outer page table entry,
 - **disk buffer benefits:**
   - improved performance due to reduced disk I/O
   - single copy of block in memory, so no inconsistency across processes
-
-# hard disk internals
-- **hard disk internals:** a set of 512 byte blocks (sectors) that can be read/written atomically, one or more platters connected by a spindle spin at ~10K rpm, each plater has a disk head & arm attached to it, a platter is divided into multiple tracks and each track into 512 byte sectors  
-![](./media/operating_systems/hard_disk_internals.png)
-- **hard disk sector access:** seek to the correct track while waiting for disk to rotate, example: sector 30 to 11  
-![](./media/operating_systems/hard_disk_sector_access.png)
-- **time taken for I/O operation:** given high seek & rotational latency usually rate of sequential access is much higher than random access
-  - seek time to get to right track (few ms)
-  - rotational latency for disk to spin to correct sector (few ms)
-  - data transfer time to read sector (few tens μs)
-- **disk scheduling:** requests to disk are not served in FIFO, they are reordered with other pending requests in order to read blocks in sequence as far as possible (to minimize seek time & rotational delay), OS doesn't know internal geometry of disk so scheduling done mostly by disk controller
-  - **shortest seek time first (SSTF):** access block that we can seek to fastest, problem: some requests that are far from current position or head may never get served (starvation), example: from 30 go to 21 before 2  
-  ![](./media/operating_systems/shortest_seek_time_first.png)
-  - **elevator/SCAN algorithm:** disk head does one sweep over tracks and serves requests that fall on the path
-    - **elevator/SCAN:** sweep outer to inner then inner to outer
-    - **circular-SCAN:** sweep only one direction and circle back to start again, sweeping back & forth favors middle tracks more
-    - **freeze-SCAN:** freeze queue while scanning to avoid starving far away requests
-  - **shortest positioning time first (SPTF):** considers both seek time & rotational latency, example: better to serve 8 before 16 even though seek time is higher but 16 incurs a much higher rotational latency  
-  ![](./media/operating_systems/shortest_positioning_time_first.png)
-- **error detection/correction:** bits stored on disk with some error detection/correction bits, correct random bit flips or detect corruption of data, disk controller or OS can handle some errors (blacklisting certain sectors), if errors cannot be masked user perceives hard disk failures
-- **redundant array of inexpensive disks (RAID):** provide high reliability & performance by replicating across multiple disks
