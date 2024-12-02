@@ -77,6 +77,7 @@
   - [gpu programming](https://www.olcf.ornl.gov/cuda-training-series/) ([playlist](https://www.youtube.com/playlist?list=PL6RdenZrxrw-zNX7uuGppWETdxt_JxdMj))
     - [wen mei hwu lectures](https://www.youtube.com/playlist?list=PLzn6LN6WhlN06hIOA_ge6SrgdeSiuf9Tb)
     - [parallel patterns](https://link.springer.com/chapter/10.1007/978-1-4842-5574-2_14)
+    - kernel chaining
   - SIMD - NEON & Hexagon DSP
     - intrinsic or assembly instructions
     - [halide library](https://halide-lang.org/)
