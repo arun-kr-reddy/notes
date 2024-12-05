@@ -453,7 +453,8 @@
   `U` all possible keys, `k` keys in current input, `m` hashing output range, `T` hash table  
   `m ≈ n` to minimize space complexity (with no overwrites)
   ![](./media/algorithms/hashing.png)
-- **collision:** two different keys produce same hash value
+- **collision:** two different keys produce same hash value  
+  universe size usually bigger than output (table) size
 - **chaining:** handle collisions by storing multiple key-value pairs (in linked-list) at each hash table index  
   worst-case all elements in single linked-list `θ(n)`  
   ![](./media/algorithms/hashing_chaining.png)
@@ -496,7 +497,19 @@
   operations worst-case (not amortized) `0(1)`
 - **rolling hash:** update hash of a sliding window of data in constant time  
   update old hash value by removing old element's contribution & adding new element's contribution  
-  example: assuming some base (256 for ASCII) each character in string contributes one digit in prehash
+  example: assuming some base (256 for ASCII) each character in string contributes one digit in prehash  
+  ```
+  1234 ⟶ 2345
+  2345 = (1234 - 1000) * 10 + 5
+
+  n = (n - old * base^(size - 1)) * base + new
+    = n * base - old * base^size + new
+
+  n:    sliding window
+  size: sliding window size
+  old:  character moving out
+  new:  character moving in
+  ```
 - **string matching:**
   - **linear:** iterate character by character  
     worst-case `0(length(pattern) * length(string))`
@@ -505,4 +518,4 @@
     amortized `0(length(pattern) + length(string))`
 
 
-[continue](https://youtu.be/BRO7mVIFt08?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=1261)
+[continue](https://www.youtube.com/watch?v=rvdJDijO2Ro&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=10&pp=iAQB)

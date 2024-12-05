@@ -24,7 +24,7 @@
   - stack canary
   - [embedded C questions](https://rmbconsulting.us/publications/a-c-test-the-0x10-best-questions-for-would-be-embedded-programmers/)
   - [named lambda](https://stackoverflow.com/questions/51760019/why-would-one-write-a-c-lambda-with-a-name-so-it-can-be-called-from-somewhere)
-  - iomapip
+  - iomanip
   - std::any
   - floating point to fixed point
   - hardware abstraction layer
