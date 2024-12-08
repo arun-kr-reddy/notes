@@ -8,6 +8,7 @@
 - [binary search trees](#binary-search-trees)
   - [balanced BST (AVL tree)](#balanced-bst-avl-tree)
 - [hashing](#hashing)
+  - [open addressing](#open-addressing)
 
 # links  <!-- omit from toc -->
 - [introduction to algorithms](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/) ([recitation files](https://courses.csail.mit.edu/6.006/fall11/notes.shtml))
@@ -517,5 +518,11 @@
     collisions possible so linear matching once hashes match  
     amortized `0(length(pattern) + length(string))`
 
+## open addressing
+- **open addressing:** store all elements within hash table itself (no chaining), one item per slot (`m >= n`)  
+  probe (run hash function) till empty slot found  
+  hash function takes key & trial count as arguments  
+  hash function should hit all slots if trial count keeps increasing  
+  ![](./media/algorithms/open_addressing.png)
 
-[continue](https://www.youtube.com/watch?v=rvdJDijO2Ro&list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&index=10&pp=iAQB)
+[continue](https://youtu.be/rvdJDijO2Ro?list=PLUl4u3cNGP61Oq3tWYp6V_F-5jb5L2iHb&t=731)
