@@ -1,4 +1,5 @@
 - [git](#git)
+  - [cmake](#cmake)
 - [mermaid UML](#mermaid-uml)
 - [powershell](#powershell)
 - [ffmpeg](#ffmpeg)
@@ -167,6 +168,10 @@
 - **replace string in all filenames:**
   ```sh
   get-childitem *.mp4 | foreach { rename-item $_ $_.Name.Replace("Lecture ","") }
+  ```
+- **windows 11 old context menu:**
+  ```sh
+  reg.exe add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve
   ```
 
 # ffmpeg
