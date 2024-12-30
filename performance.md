@@ -8,17 +8,18 @@
 - [bit hacks](#bit-hacks)
 
 # links  <!-- omit from toc -->
+- [performance engineering](https://ocw.mit.edu/courses/6-172-performance-engineering-of-software-systems-fall-2018/)
 
 # introduction
-- *the first rule of program optimization: don't do it  
-second rule of program optimization: for experts only, don't do it yet*
-- there are software properties that are more important that performance, like modularity, reliability, portability, maintainability, testability etc  
-then **why performance:** performance is the currency of computing using which we often buy needed properties  
-- Moore's law and scaling of clock frequency was the printing press for the currency of performance, but that came to an end in 2004 when clock speed plateaued  
-to scale performance, processor manufacturers put many processing cores on the microprocessor chip  
-![](./media/performance/technology_scaling.png)  
-performance is no longer free, now it looks like big multicore processors with complex cache hierarchies, wide vector units, GPUs, FPGAs, etc  
-so now the software must be adapted to utilize this hardware efficiently
+- *first rule of program optimization: don't do it, second rule: for experts only, don't do it yet*
+- software properties like modularity, reliability, portability, maintainability, testability etc more important that performance  
+  performance is (computing) currency using which required properties are bought  
+- Moore's law & clock frequency scaling was the printing press for currency of performance  
+  but clock speed plateaued due to power density (temperature)  
+  so multiple cores to utilize extra Moore's law transistors  
+  ![](./media/performance/technology_scaling.png)  
+  now performance is no longer free, it looks like big multi-core processors with complex cache hierarchies, wide vector units, GPUs, FPGAs, etc  
+  software must be adapted to utilize this hardware efficiently
 - **iron law of processor performance:** trade-off between complexity and the number of primitive instructions that processors use to perform calculation  
 ![](./media/performance/iron_law.png)
 - **Amdahl's law:** overall performance improvement gained by optimizing a single part of a system is limited by the fraction of time that the improved part is actually used  
@@ -26,6 +27,8 @@ so now the software must be adapted to utilize this hardware efficiently
 `Slatency` theoretical speedup  
 `s` speedup of optimized part  
 `p` fraction of time
+
+[continue](https://youtu.be/o7h_sYMk_oc?list=PLUl4u3cNGP63VIBQVWguXxZZi0566y7Wf&t=958)
 
 ## example: matrix multiplication performance optimization
 - execution of matrix multiplication of 4096 x 4096 floating-pointing point matrix in python takes 6 hours, in java takes 46 minutes (8.81x relative speedup), in C takes 19 minutes (2.07x relative speedup)  
