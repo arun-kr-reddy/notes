@@ -191,15 +191,15 @@
     while (n)  // run till n equals 0
     {
         n = n & (n - 1);
-        count++;          
+        count++;
     }
 
     // n = 1010
     // 1010 & 1001 ⟶ 1000  2nd bit reset
     // 1000 & 0001 ⟶ 0     4th bit reset
     ```
-- for  `||` & `&&` guaranteed to be left-to-right  
-  example: with `(left && right)` evaluate left operand first, if false then avoid evaluating right operand
+- **short circuiting:** expression's evaluation stopped as soon as the result is known  
+  `||` & `&&` guaranteed to be left-to-right, so for `(left && right)` if left false then right not evaluated
 - **ternary (three parts) operator:** if-else statements in shortest way possible
   ```cpp
   var = (predicate) ? (consequent) : (alternative);
