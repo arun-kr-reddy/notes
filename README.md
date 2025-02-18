@@ -32,6 +32,7 @@
   - data structs: array, LL, stack, queue, hash table, tree, graph, heap, tries, union find
   - algorithms: binary search, DFS, BFS, dynamic prog, quick sort, merge sort, bucket sort, topological sort, backtracking, bit operations
   - patterns: sliding window, two pointers, prefix sums, heaps, dynamic programming, backtracking, bit manipulation, cycle detection, intervals, greedy, binary search, DFS, BFS, stack, monotonic stack, multi-source BFS, minimum spanning tree, tries
+  - leetcode tips: for each question write down approach in 3-4 lines, pseudocode, time complexity
   - [connected component labelling](https://en.wikipedia.org/wiki/Connected-component_labeling)
   - [postfix vs infix](https://www.geeksforgeeks.org/postfix-to-infix/)
   - [every programmer should know](https://github.com/mtdvio/every-programmer-should-know)
@@ -125,7 +126,13 @@
   - [embedded](https://www.youtube.com/playlist?list=PLPW8O6W-1chwyTzI3BHwBLbGQoPFxPAPM)
   - [CS courses](https://github.com/Developer-Y/cs-video-courses/tree/master)
   - protobuf
-
+- **SKL list:**
+  - **C:** compiler derivatives, GDB
+  - **C++:** metaprogramming, lambdas, C++ multithreading, design patterns(okhravi)
+  - **OS & embedded:** IPC, file systems, memory protection
+  - **domain specific:** ML basics (complete ancient secrets)
+  - **optimization:** vulkan, cuda (oakridge), perf engineering (MIT), compilers (alex aiken)
+  - **misc:** basics of python & SQL
 # misc
 - **build:**
   ```sh
