@@ -130,7 +130,7 @@
   - **C:** compiler derivatives, GDB
   - **C++:** metaprogramming, lambdas, C++ multithreading, design patterns(okhravi)
   - **OS & embedded:** IPC, file systems, memory protection
-  - **domain specific:** ML basics (complete ancient secrets)
+  - **domain specific:** ML basics (complete ancient secrets), local laplacian filter
   - **optimization:** vulkan, cuda (oakridge), perf engineering (MIT), compilers (alex aiken)
   - **misc:** basics of python & SQL
 # misc
