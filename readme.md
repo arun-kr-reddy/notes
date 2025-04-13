@@ -1,12 +1,9 @@
-- [links](#links)
-- [build](#build)
-- [symbols](#symbols)
-
-# links
+# readme
 - [algorithms](./algorithms.md)
 - [misc](./misc.md)
+- [tools](./tools.md)
 
-# build
+## build
 - **windows:**
   ```sh
   cd .\build\windows\
@@ -20,44 +17,47 @@
   ./main_exe
   ```
 
-# symbols
-- ```sh
-  ⟵  ⟶  ⟷ ↑ ↓  ## arrows
-  ±                ## plus minus
-  :                ## such that
-  ∀                ## for all
-  ∃                ## there exists
-  ∴                ## therefore
-  ∵                ## since
-  ⊂                ## subset of
-  ∈                ## belongs to
-  ∪                ## union
-  ⇒                ## implies that
-  ⇔                ## if and only if
-  ≈                ## approximately equal
-  ≡                ## equivalent
-  ∝                ## proportional
-  ∞                ## infinity
-  ∠                ## angle
-  °                ## degree
-  √                ## root
-  ∆                ## delta
-  ∑                ## sigma
-  α                ## alpha
-  β                ## beta
-  γ                ## gamma
-  δ                ## delta
-  ε                ## epsilon
-  θ                ## theta
-  κ                ## kappa
-  λ                ## lambda
-  μ                ## mu
-  π                ## pi
-  σ                ## sigma
-  τ                ## tau
-  φ                ## phi
-  ψ                ## psi
-  ω                ## omega
-  ⦻               ## correlation
-                   ## invisible character
+## symbols
+- ```
+  ⟵  left
+  ⟶  right
+  ⟷  left-right
+  ↑  up
+  ↓  down
+  ±  plus minus
+  :  such that
+  ∀  for all
+  ∃  there exists
+  ∴  therefore
+  ∵  since
+  ⊂  subset of
+  ∈  belongs to
+  ∪  union
+  ⇒  implies that
+  ⇔  if and only if
+  ≈  approximately equal
+  ≡  equivalent
+  ∝  proportional
+  ∞  infinity
+  ∠  angle
+  °  degree
+  √  root
+  ∆  delta
+  ∑  sigma
+  α  alpha
+  β  beta
+  γ  gamma
+  δ  delta
+  ε  epsilon
+  θ  theta
+  κ  kappa
+  λ  lambda
+  μ  mu
+  π  pi
+  σ  sigma
+  τ  tau
+  φ  phi
+  ψ  psi
+  ω  omega
+  ⦻  correlation
   ```

@@ -1,4 +1,4 @@
-- [todo](#todo)
+# tools
 - [mermaid](#mermaid)
   - [flowchart](#flowchart)
   - [sequence diagram](#sequence-diagram)
@@ -8,16 +8,16 @@
   - [quadrant chart](#quadrant-chart)
   - [X-Y chart](#x-y-chart)
 
-# todo
+## todo <!-- omit from toc -->
 - [python scripting](https://www.youtube.com/watch?v=1DtlzSDdk4s)
 - [linux commands](https://www.youtube.com/watch?v=gd7BXuUQ91w)
 - [cmake](https://youtu.be/7YcbaupsY8I)
 - [GDB](https://www.youtube.com/watch?v=bWH-nL7v5F4)
 - [git](https://www.youtube.com/watch?v=jm7QsI-nNjk)
 
-# [mermaid](https://mermaid.js.org/intro/)
+## [mermaid](https://mermaid.js.org/intro/)
 
-## flowchart
+### flowchart
 - all mentioned nodes in subgraph grouped together
 - **node shapes:**
   | shape         | symbol        | use          |
@@ -65,7 +65,7 @@
     end
   ```
 
-## sequence diagram
+### sequence diagram
 - participants rendered in order of declaration
 - activation period by appending `+` & `-` to connection
 - `autonumber` to auto-generate sequence numbers
@@ -130,7 +130,7 @@
     t2 ->>- t1: frame_done
   ```
 
-## gantt diagram
+### gantt diagram
 - ```
   gantt
     dateFormat YYYY-MM-DD
@@ -166,7 +166,7 @@
       end : milestone, after t5, 0d
   ```
 
-## class diagram
+### class diagram
 - **relations:**
   | symbol     | use               |
   | ---------- | ----------------- |
@@ -251,7 +251,7 @@
     note for Circle "defined in /shapes/circle.hpp"
   ```
 
-## git graph
+### git graph
 - ```
   gitGraph LR:
     title example git graph
@@ -283,7 +283,7 @@
     commit id: "commit6"
   ```
 
-## quadrant chart
+### quadrant chart
 - without points quadrant titles in the centre
 - ```
   quadrantChart
@@ -320,7 +320,7 @@
     candidate_6: [0.35, 0.78]
   ```
 
-## X-Y chart
+### X-Y chart
 - ```
   ```
   ```mermaid
