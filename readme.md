@@ -1,0 +1,63 @@
+- [links](#links)
+- [build](#build)
+- [symbols](#symbols)
+
+# links
+- [algorithms](./algorithms.md)
+- [misc](./misc.md)
+
+# build
+- **windows:**
+  ```sh
+  cd .\build\windows\
+  cmake ..\.. -G "Visual Studio 17 2022"
+  ```
+- **linux:**
+  ```sh
+  cd ./build/linux/
+  cmake ../..
+  make
+  ./main_exe
+  ```
+
+# symbols
+- ```sh
+  ⟵  ⟶  ⟷ ↑ ↓  ## arrows
+  ±                ## plus minus
+  :                ## such that
+  ∀                ## for all
+  ∃                ## there exists
+  ∴                ## therefore
+  ∵                ## since
+  ⊂                ## subset of
+  ∈                ## belongs to
+  ∪                ## union
+  ⇒                ## implies that
+  ⇔                ## if and only if
+  ≈                ## approximately equal
+  ≡                ## equivalent
+  ∝                ## proportional
+  ∞                ## infinity
+  ∠                ## angle
+  °                ## degree
+  √                ## root
+  ∆                ## delta
+  ∑                ## sigma
+  α                ## alpha
+  β                ## beta
+  γ                ## gamma
+  δ                ## delta
+  ε                ## epsilon
+  θ                ## theta
+  κ                ## kappa
+  λ                ## lambda
+  μ                ## mu
+  π                ## pi
+  σ                ## sigma
+  τ                ## tau
+  φ                ## phi
+  ψ                ## psi
+  ω                ## omega
+  ⦻               ## correlation
+                   ## invisible character
+  ```
