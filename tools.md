@@ -1,4 +1,5 @@
 # tools
+- [markdown](#markdown)
 - [mermaid](#mermaid)
   - [flowchart](#flowchart)
   - [sequence diagram](#sequence-diagram)
@@ -15,6 +16,8 @@
 - [GDB](https://www.youtube.com/watch?v=bWH-nL7v5F4)
 - [git](https://www.youtube.com/watch?v=jm7QsI-nNjk)
 
+## markdown
+- [supported code block languages](https://github.com/jincheng9/markdown_supported_languages)
 ## [mermaid](https://mermaid.js.org/intro/)
 
 ### flowchart
@@ -26,7 +29,7 @@
   | parallelogram | `id1[/text/]` | input/output |
   | rectangle     | `id1[text]`   | process node |
   | diamond       | `id1{text}`   | decision     |
-- ```
+- ```text
   graph LR
     a((start))
     b[func1]
@@ -69,7 +72,7 @@
 - participants rendered in order of declaration
 - activation period by appending `+` & `-` to connection
 - `autonumber` to auto-generate sequence numbers
-- ```sh
+- ```text
   sequenceDiagram
     title example sequence diagram
     autonumber
@@ -131,7 +134,7 @@
   ```
 
 ### gantt diagram
-- ```
+- ```text
   gantt
     dateFormat YYYY-MM-DD
     title example gantt diagram
@@ -178,7 +181,7 @@
   | `..>`      | dependency        |
   | `..>`      | realization       |
   | `<\|--\|>` | two-way relations |
-- ```
+- ```text
   classDiagram
     namespace BaseShapes {
       class Shapes{
@@ -252,7 +255,7 @@
   ```
 
 ### git graph
-- ```
+- ```text
   gitGraph LR:
     title example git graph
     commit id: "commit1"
@@ -285,7 +288,7 @@
 
 ### quadrant chart
 - without points quadrant titles in the centre
-- ```
+- ```text
   quadrantChart
     title example quadrant chart
     x-axis low talent --> high talent
@@ -321,7 +324,13 @@
   ```
 
 ### X-Y chart
-- ```
+- ```text
+  xychart-beta
+    title "example X-Y chart"
+    x-axis [jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec]
+    y-axis "savings (in ₹)" 0 --> 10000000
+    bar [10000, 50000, 200000, 1000000, 1500000, 2500000, 3000000, 3500000, 5000000, 6000000, 8000000, 9500000]
+    line [10000, 50000, 200000, 1000000, 1500000, 2500000, 3000000, 3500000, 5000000, 6000000, 8000000, 9500000]
   ```
   ```mermaid
   xychart-beta

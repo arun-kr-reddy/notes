@@ -5,12 +5,12 @@
 
 ## build
 - **windows:**
-  ```sh
+  ```bash
   cd .\build\windows\
   cmake ..\.. -G "Visual Studio 17 2022"
   ```
 - **linux:**
-  ```sh
+  ```bash
   cd ./build/linux/
   cmake ../..
   make
@@ -18,7 +18,7 @@
   ```
 
 ## symbols
-- ```
+- ```text
   ⟵  left
   ⟶  right
   ⟷  left-right
