@@ -60,4 +60,5 @@
   ψ  psi
   ω  omega
   ⦻  correlation
+  ㅤ  invisible char
   ```
