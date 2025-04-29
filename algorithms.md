@@ -36,13 +36,29 @@
   - recursive call is the last operation in the function before returning
   - allows compiler to reuse current stack frame (so no stack overflow)
   - if recursive call needs current output, pass it as argument
-- interface is the specification (what) while data structure is the implementation (how)
-  - two main interfaces: set & sequence
-  - two main data structure approaches: arrays, pointer-based
-
+- interface is the specification (what), while data structure is the implementation (how)
+- **augmentation:**
+  - adding extra information to data structure to support new operations efficiently
+- **amortization:**
+  - averaging cost of an operation over a sequence of operations
+  - average cost of expensive operation done infrequently is low
 ## dynamic array
-- static array
-- linked list
-- dynamic atrray
-  - resizing by `+k` vs `*k`
-- amortization
+- **static array:**
+  - insert/delete needs reallocation and copying over all elements
+- **linked list:**
+  - each element stored in node which points to next node
+  - can manipulate sequence by simply relinking pointers
+  - augment by maintaining length & tail node pointer along with head
+    - get size & get/set/insert last operations `O(1)`
+- **dynamic array:**
+  - allocate extra space so no reallocation with every dynamic operation
+  - when `size == capacity`, allocate (& copy over to) new array of size
+    - `capacity + k`: frequent reallocations (every `k` inserts) but less wasted space
+    - `capacity * k`: fewer allocations (amortized `O(1)` insertion) but potentially more wasted space
+- 
+  | operation           | static | LL     | dynamic |
+  | ------------------- | ------ | ------ | ------- |
+  | get/set at          | `O(1)` | `O(n)` | `O(1)`  |
+  | insert/delete first | `O(n)` | `O(1)` | `O(n)`  |
+  | insert/delete last  | `O(n)` | `O(n)` | `O(1)`  |
+  | insert/delete at    | `O(n)` | `O(n)` | `O(n)`  |
