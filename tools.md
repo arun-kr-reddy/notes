@@ -8,6 +8,8 @@
   - [git graph](#git-graph)
   - [quadrant chart](#quadrant-chart)
   - [X-Y chart](#x-y-chart)
+- [tech tips](#tech-tips)
+  - [errors](#errors)
 
 ## todo <!-- omit from toc -->
 - [python scripting](https://www.youtube.com/watch?v=1DtlzSDdk4s)
@@ -340,3 +342,10 @@
     bar [10000, 50000, 200000, 1000000, 1500000, 2500000, 3000000, 3500000, 5000000, 6000000, 8000000, 9500000]
     line [10000, 50000, 200000, 1000000, 1500000, 2500000, 3000000, 3500000, 5000000, 6000000, 8000000, 9500000]
   ```
+
+## tech tips
+
+### errors
+- **google drive download limit exceeded:**
+  - right click ⟶ organize ⟶ add shorcut ⟶ new folder ⟶ add
+  - download that folder
