@@ -42,8 +42,10 @@
 - **amortization:**
   - averaging cost of an operation over a sequence of operations
   - average cost of expensive operation done infrequently is low
+
 ## dynamic array
 - **static array:**
+  - assume array always needs to be full
   - insert/delete needs reallocation and copying over all elements
 - **linked list:**
   - each element stored in node which points to next node
@@ -55,6 +57,7 @@
   - when `size == capacity`, allocate (& copy over to) new array of size
     - `capacity + k`: frequent reallocations (every `k` inserts) but less wasted space
     - `capacity * k`: fewer allocations (amortized `O(1)` insertion) but potentially more wasted space
+  - similarly resizing on `size == capacity/2` can lead to multiple alloc dealloc 
 - 
   | operation           | static | LL     | dynamic |
   | ------------------- | ------ | ------ | ------- |
