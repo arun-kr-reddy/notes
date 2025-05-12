@@ -1,5 +1,5 @@
 # algorithms
-- [introduction](#introduction)
+- [intro](#intro)
 - [dynamic array](#dynamic-array)
 
 ## todo <!-- omit from toc -->
@@ -10,7 +10,7 @@
 ## links <!-- omit from toc -->
 - [[lectures] intro to algorithms (MIT 2020)](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/)
 
-## introduction
+## intro
 - **induction:**
   - technique to prove algorithm correctness and establish recurrence relations
   - involves two steps:
