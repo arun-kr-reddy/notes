@@ -17,6 +17,11 @@
   ./main_exe
   ```
 
+## todo
+- [abseil tips](https://abseil.io/tips/)
+- functions camel case, variables snake case
+- [google highway](https://github.com/google/highway)
+
 ## symbols
 - ```text
   ⟵  left
