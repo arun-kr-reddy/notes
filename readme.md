@@ -21,6 +21,7 @@
 - [abseil tips](https://abseil.io/tips/)
 - functions camel case, variables snake case
 - [google highway](https://github.com/google/highway)
+- [DL systems](https://dlsyscourse.org/lectures/)
 
 ## symbols
 - ```text

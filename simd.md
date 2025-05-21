@@ -13,4 +13,5 @@
   using ri_512 = _m512i;
   using msk_512 = uint32_t;
   ```
-- [CONTINUE](https://youtu.be/qejTqnxQRcw?t=782)
+- bitonic merge sort
+- fast median
