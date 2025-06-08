@@ -10,6 +10,9 @@
   - [X-Y chart](#x-y-chart)
 - [tech tips](#tech-tips)
   - [errors](#errors)
+- [system reset](#system-reset)
+  - [factory reset](#factory-reset)
+  - [windows](#windows)
 
 ## todo <!-- omit from toc -->
 - [python scripting](https://www.youtube.com/watch?v=1DtlzSDdk4s)
@@ -349,3 +352,21 @@
 - **google drive download limit exceeded:**
   - right click ⟶ organize ⟶ add shorcut ⟶ new folder ⟶ add
   - download that folder
+
+## system reset
+
+### factory reset
+- **oppo TWS:**
+  - forget from all devices
+  - remove it from case
+  - touch both buds for 20s
+- **realme neckband:**
+  - tap center button 5 times
+  - hold center button for 10s
+
+### windows
+- **remove bing results from search:**
+  - `reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /v BingSearchEnabled /t REG_DWORD /d 0 /f`
+- **open video downloader `binaries missing`:**
+  - open `C:\Users\arun\AppData\Local\Programs\youtube-dl-gui\resources\app.asar.unpacked\binaries`
+  - paste [yt-dlp.exe](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe)
