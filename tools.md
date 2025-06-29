@@ -371,4 +371,4 @@
   - open `C:\Users\arun\AppData\Local\Programs\youtube-dl-gui\resources\app.asar.unpacked\binaries`
   - paste [yt-dlp.exe](https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe)
 - **windows 11 old context menu:**
-  - `reg.exe add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve`
+  - `reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f /ve`
