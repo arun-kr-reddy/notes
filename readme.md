@@ -22,6 +22,16 @@
 - functions camel case, variables snake case
 - [google highway](https://github.com/google/highway)
 - [DL systems](https://dlsyscourse.org/lectures/)
+- thread pool
+
+## 6 month plan
+- [ ] DSA
+- [ ] C++
+- [ ] operating systems
+- [ ] computer architecture
+- [ ] GPU + SIMD
+- [ ] computer vision + ML basics
+- [ ] system design
 
 ## symbols
 - ```text
