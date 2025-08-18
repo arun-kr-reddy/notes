@@ -26,13 +26,14 @@
 
 ### [ESOPs tax filing](https://www.youtube.com/watch?v=NO6OlUI1Hz4)
 - [sample spreadsheet](https://docs.google.com/spreadsheets/d/1oIXQBw2UPs85bPaDNYrtJTxoSkKj0gQ7glok59ZK_Gs/edit?usp=sharing)
-- use [SBI TT rate](https://github.com/sahilgupta/sbi-fx-ratekeeper/blob/main/csv_files/SBI_REFERENCE_RATES_USD.csv) for USD to INR conversions
-- form12n has already-taxed income from combined RSU & ESPP, individual amount from tax-computation sheet
-- dividends taxed by US at 25% ([etrade 1042s](https://us.etrade.com/etx/pxy/tax-center)) which can be used as tax credits by filling [itr form67](https://eportal.incometax.gov.in/iec/foservices/#/dashboard/fileIncomeTaxForm)
-- **ITR schedules to fill:**
+- use last monthly date's "TT BUY" [SBI rate](https://github.com/sahilgupta/sbi-fx-ratekeeper/blob/main/csv_files/SBI_REFERENCE_RATES_USD.csv) for USD to INR conversions
+- form12BA has already-taxed income from combined RSU & ESPP, individual amount from tax-computation sheet
+- dividends taxed by US at 25% ([etrade 1042S](https://us.etrade.com/etx/pxy/tax-center)) which can be used as tax credits by filling [itr form67](https://eportal.incometax.gov.in/iec/foservices/#/dashboard/fileIncomeTaxForm)
+- **ITR2 schedules to fill:**
   - capital gains: fill combined purchase & sale price for financial year, add dividend as other sources
   - foreign source income (FSI): fill RSUs & ESPP gain
   - foreign assets (FA): fill combined purchase & sale price for calendar year
+  - tax relief (TR): fill after form67
 
 #### ESPP
 - `num_shares * (purchase_date_FMV - purchase_price)` already taxed
